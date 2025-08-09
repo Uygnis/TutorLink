@@ -1,0 +1,18 @@
+# React frontend ignores
+frontend/node_modules/
+frontend/build/
+frontend/.env
+
+# Spring Boot backend ignores
+backend/target/
+backend/.mvn/
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/*.iml
+backend/*.log
+backend/*.class
+backend/src/main/resources/application.yml
+
+# General ignores
+.DS_Store
