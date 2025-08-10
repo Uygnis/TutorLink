@@ -1,7 +1,5 @@
 package com.csy.springbootauthbe.user.controller;
 
-
-
 import com.csy.springbootauthbe.user.utils.RegisterRequest;
 import com.csy.springbootauthbe.user.utils.UserResponse;
 import com.csy.springbootauthbe.user.service.UserService;
@@ -26,6 +24,11 @@ public class UserController {
     @GetMapping("/currentUser")
     public ResponseEntity<UserResponse> getCurrentUser() {
         return ResponseEntity.ok(service.getCurrentUser());
+    }
+
+    @GetMapping("/currentStudent")
+    public ResponseEntity<UserResponse> getCurrentStudent() {
+        return ResponseEntity.ok(service.getCurrentStudent());
     }
 
     @GetMapping("/test")

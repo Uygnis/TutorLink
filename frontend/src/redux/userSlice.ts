@@ -1,11 +1,19 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+export enum Role {
+  ADMIN = "ADMIN",
+  STUDENT = "STUDENT",
+  TUTOR = "TUTOR",
+  USER = "USER",
+}
+
 interface UserObj {
-  id: number;
+  id: string;
   name: string;
   email: string;
-  role: string;
-  token: string;
+  role: Role;
+  status?: string;
+  token?: string;
 }
 
 interface UserState {

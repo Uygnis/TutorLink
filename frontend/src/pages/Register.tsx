@@ -1,13 +1,14 @@
 import { useForm } from "react-hook-form";
 import { CloudIcon } from "@heroicons/react/24/solid";
-import { useNavigate, Link } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { LoginUser } from "@/api/userAPI";
+import { Link } from "react-router-dom";
+import { useAppDispatch } from "@/redux/store";
+import { RegisterUser } from "@/api/userAPI";
 import { setLoading } from "@/redux/loaderSlice";
-import { setUser } from "@/redux/userSlice";
 import { toast } from "react-toastify";
 
-const Login = () => {
+type Props = {};
+
+const Register = (props: Props) => {
   const {
     register,
     trigger,
@@ -16,42 +17,27 @@ const Login = () => {
   } = useForm();
 
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
 
   //Func: Handle form submission
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { email, password } = getValues();
+    const { firstname, lastname, email, password, role } = getValues();
     const isValid = await trigger();
 
     if (!isValid) return;
 
     try {
       dispatch(setLoading(true));
-
-      const response = await LoginUser(email, password);
+      const response = await RegisterUser(firstname, lastname, email, password, role);
       dispatch(setLoading(false));
-      const { user } = response.data;
 
-      // Store user data and token in local storage
-      localStorage.setItem("user", JSON.stringify(user));
-
-      toast.success(response.data.message);
-
-      // Update redux
-      dispatch(setUser(user));
-
-      // Redirect based on role
-      if (user.role === "ADMIN") {
-        navigate("/admin/dashboard");
-      } else if (user.role === "STUDENT") {
-        navigate("/student/dashboard");
+      if (response.status === 200) {
+        toast.success(response.data.message);
       } else {
-        navigate("/user/dashboard");
+        toast.error(response.data.message);
       }
     } catch (error: any) {
       dispatch(setLoading(false));
-      console.log(error);
       toast.error(error.message);
     }
   };
@@ -66,14 +52,44 @@ const Login = () => {
             <Link to={"/"}>
               <CloudIcon className="h-6 w-6 text-gray-400" />
             </Link>
-            <h1 className="font-bold text-xl">Login</h1>
-            <p className="text-sm text-gray-500">You will be redirected to the homepage</p>
+            <h1 className="font-bold text-xl">Register</h1>
+            <p className="text-sm text-gray-500">You will be redirected to the login page</p>
           </div>
-          {/* Login Form */}
+          {/* Register Form */}
           <form onSubmit={onSubmit} method="POST">
             {/* Input Fields */}
             <input
               className="bg-gray-200 px-2 py-1 rounded-md w-full"
+              type="text"
+              placeholder="First Name"
+              {...register("firstname", {
+                required: true,
+                maxLength: 100,
+              })}
+            />
+            {errors.firstname && (
+              <p className="mt-1 text-red-500 text-sm">
+                {errors.firstname.type === "required" && "This field is required."}
+                {errors.firstname.type === "maxLength" && "Max length is 100 char."}
+              </p>
+            )}
+            <input
+              className="mt-3 bg-gray-200 px-2 py-1 rounded-md w-full"
+              type="text"
+              placeholder="Last Name"
+              {...register("lastname", {
+                required: true,
+                maxLength: 100,
+              })}
+            />
+            {errors.lastname && (
+              <p className="mt-1 text-red-500 text-sm">
+                {errors.lastname.type === "required" && "This field is required."}
+                {errors.lastname.type === "maxLength" && "Max length is 100 char."}
+              </p>
+            )}
+            <input
+              className="mt-3 bg-gray-200 px-2 py-1 rounded-md w-full"
               type="text"
               placeholder="Email"
               {...register("email", {
@@ -101,6 +117,20 @@ const Login = () => {
               </p>
             )}
 
+            {/* Role dropdown */}
+            <select
+              className="mt-3 bg-gray-200 px-2 py-1 rounded-md w-full"
+              {...register("role", { required: true })}
+              defaultValue="">
+              <option value="" disabled>
+                Select role
+              </option>
+              <option value="ADMIN">Admin</option>
+              <option value="STUDENT">Student</option>
+              <option value="TUTOR">Tutor</option>
+            </select>
+            {errors.role && <p className="mt-1 text-red-500 text-sm">Role is required.</p>}
+
             {/* Submit Button */}
             <button
               type="submit"
@@ -110,9 +140,9 @@ const Login = () => {
           </form>
           {/* Register Link */}
           <div className="mt-3 text-sm">
-            Dont have an account ?{" "}
-            <Link className="text-primary" to="/register">
-              Register Now!
+            Have an account already?{" "}
+            <Link className="text-primary" to="/login">
+              Login Now!
             </Link>
           </div>
         </div>
@@ -121,4 +151,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

@@ -15,10 +15,8 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { name: "Internal", path: "/admin/dashboard" },
-    { name: "Patients", path: "/admin/patients" },
-    { name: "Wards", path: "/admin/wards" },
-    { name: "Transactions", path: "/admin/transactions" },
+    { name: "Home", path: "/admin/dashboard" },
+    { name: "Doctor", path: "/admin/doctors" },
   ];
 
   return (

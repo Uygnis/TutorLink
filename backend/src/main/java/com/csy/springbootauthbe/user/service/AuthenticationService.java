@@ -1,5 +1,6 @@
 package com.csy.springbootauthbe.user.service;
 
+import com.csy.springbootauthbe.user.entity.AccountStatus;
 import com.csy.springbootauthbe.user.utils.AuthenticationResponse;
 import com.csy.springbootauthbe.user.utils.LoginRequest;
 import com.csy.springbootauthbe.user.utils.RegisterRequest;
@@ -25,9 +26,23 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse register(RegisterRequest request) {
+
+        AccountStatus status = AccountStatus.ACTIVE;
+
         // Check if the email already exists in the database
         if (repository.existsByEmail(request.getEmail())) {
             throw new DataIntegrityViolationException("Email already exists");
+        }
+
+        Role userRole;
+        if ("Admin".equalsIgnoreCase(request.getRole())) {
+            userRole = Role.ADMIN;
+        } else if ("Student".equalsIgnoreCase(request.getRole())) {
+            userRole = Role.STUDENT;}
+        else if ("User".equalsIgnoreCase(request.getRole())) {
+                userRole = Role.USER;
+        } else {
+            throw new IllegalArgumentException("Invalid role: " + request.getRole());
         }
 
         var user = User.builder()
@@ -35,19 +50,20 @@ public class AuthenticationService {
                 .lastname(request.getLastname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.ADMIN)
+                .role(userRole)
+                .status(status)
                 .build();
 
         repository.save(user);
 
         var jwtToken = jwtService.generateToken(user);
 
-        // Build the UserResponse with MongoDB String ID
         UserResponse userObj = UserResponse.builder()
-                .id(user.getId()) // String now, not Integer
+                .id(user.getId())
                 .name(user.getFirstname() + " " + user.getLastname())
                 .email(user.getEmail())
                 .role(user.getRole())
+                .status(user.getStatus())
                 .token(jwtToken)
                 .build();
 
@@ -56,6 +72,7 @@ public class AuthenticationService {
                 .user(userObj)
                 .build();
     }
+
 
     public AuthenticationResponse login(LoginRequest request) {
         authenticationManager.authenticate(
