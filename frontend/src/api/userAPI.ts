@@ -6,16 +6,17 @@ export const LoginUser = async (email: string, password: string): Promise<AxiosR
   return await axios.post(url, data);
 };
 
-export const RegisterUser = async (
-  firstname: string,
-  lastname: string,
-  email: string,
-  password: string,
-  role: string
-): Promise<AxiosResponse<any>> => {
+export const RegisterUser = async (userData: {
+  firstname: string;
+  lastname: string;
+  email: string;
+  password: string;
+  role: string;
+  studentNumber?: string;
+  gradeLevel?: string;
+}): Promise<AxiosResponse<any>> => {
   const url: string = `${import.meta.env.VITE_APP_API}/auth/register`;
-  const data = { firstname, lastname, email, password, role };
-  return await axios.post(url, data);
+  return await axios.post(url, userData);
 };
 
 export const CurrentUser = async (authtoken: string) => {

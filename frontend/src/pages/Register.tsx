@@ -5,10 +5,13 @@ import { useAppDispatch } from "@/redux/store";
 import { RegisterUser } from "@/api/userAPI";
 import { setLoading } from "@/redux/loaderSlice";
 import { toast } from "react-toastify";
+import { useState } from "react";
 
 type Props = {};
 
 const Register = (props: Props) => {
+  const [selectedRole, setSelectedRole] = useState("");
+
   const {
     register,
     trigger,
@@ -21,14 +24,22 @@ const Register = (props: Props) => {
   //Func: Handle form submission
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { firstname, lastname, email, password, role } = getValues();
     const isValid = await trigger();
-
     if (!isValid) return;
+
+    const { firstname, lastname, email, password, role, studentNumber, gradeLevel } = getValues();
 
     try {
       dispatch(setLoading(true));
-      const response = await RegisterUser(firstname, lastname, email, password, role);
+      const response = await RegisterUser({
+        firstname,
+        lastname,
+        email,
+        password,
+        role,
+        // Only send student fields if role is STUDENT
+        ...(role === "STUDENT" && { studentNumber, gradeLevel }),
+      });
       dispatch(setLoading(false));
 
       if (response.status === 200) {
@@ -121,7 +132,10 @@ const Register = (props: Props) => {
             <select
               className="mt-3 bg-gray-200 px-2 py-1 rounded-md w-full"
               {...register("role", { required: true })}
-              defaultValue="">
+              defaultValue=""
+              onChange={(e) => {
+                setSelectedRole(e.target.value);
+              }}>
               <option value="" disabled>
                 Select role
               </option>
@@ -130,6 +144,37 @@ const Register = (props: Props) => {
               <option value="TUTOR">Tutor</option>
             </select>
             {errors.role && <p className="mt-1 text-red-500 text-sm">Role is required.</p>}
+
+            {/* Conditionally render student-specific fields */}
+            {selectedRole === "STUDENT" && (
+              <>
+                <input
+                  className="mt-3 bg-gray-200 px-2 py-1 rounded-md w-full"
+                  type="text"
+                  placeholder="Student Number"
+                  {...register("studentNumber", { required: true })}
+                />
+                {errors.studentNumber && (
+                  <p className="mt-1 text-red-500 text-sm">Student Number is required.</p>
+                )}
+
+                <select
+                  className="mt-3 bg-gray-200 px-2 py-1 rounded-md w-full"
+                  {...register("gradeLevel", { required: true })}
+                  defaultValue="">
+                  <option value="" disabled>
+                    Select Grade Level
+                  </option>
+                  <option value="Primary School">Primary School</option>
+                  <option value="Secondary School">Secondary School</option>
+                  <option value="Polytechnic">Polytechnic</option>
+                  <option value="JC">JC</option>
+                </select>
+                {errors.gradeLevel && (
+                  <p className="mt-1 text-red-500 text-sm">Grade Level is required.</p>
+                )}
+              </>
+            )}
 
             {/* Submit Button */}
             <button

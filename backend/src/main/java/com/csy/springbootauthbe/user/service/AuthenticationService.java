@@ -1,5 +1,7 @@
 package com.csy.springbootauthbe.user.service;
 
+import com.csy.springbootauthbe.student.dto.StudentDTO;
+import com.csy.springbootauthbe.student.service.StudentService;
 import com.csy.springbootauthbe.user.entity.AccountStatus;
 import com.csy.springbootauthbe.user.utils.AuthenticationResponse;
 import com.csy.springbootauthbe.user.utils.LoginRequest;
@@ -24,12 +26,12 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final StudentService studentService;
 
     public AuthenticationResponse register(RegisterRequest request) {
 
         AccountStatus status = AccountStatus.ACTIVE;
 
-        // Check if the email already exists in the database
         if (repository.existsByEmail(request.getEmail())) {
             throw new DataIntegrityViolationException("Email already exists");
         }
@@ -38,9 +40,9 @@ public class AuthenticationService {
         if ("Admin".equalsIgnoreCase(request.getRole())) {
             userRole = Role.ADMIN;
         } else if ("Student".equalsIgnoreCase(request.getRole())) {
-            userRole = Role.STUDENT;}
-        else if ("User".equalsIgnoreCase(request.getRole())) {
-                userRole = Role.USER;
+            userRole = Role.STUDENT;
+        } else if ("User".equalsIgnoreCase(request.getRole())) {
+            userRole = Role.USER;
         } else {
             throw new IllegalArgumentException("Invalid role: " + request.getRole());
         }
@@ -55,6 +57,17 @@ public class AuthenticationService {
                 .build();
 
         repository.save(user);
+
+        // If the user is a student, create Student entity
+        if (userRole == Role.STUDENT) {
+            var studentDTO = StudentDTO.builder()
+                    .userId(user.getId())
+                    .studentNumber(request.getStudentNumber())
+                    .gradeLevel(request.getGradeLevel())
+                    .build();
+
+            studentService.createStudent(studentDTO);
+        }
 
         var jwtToken = jwtService.generateToken(user);
 

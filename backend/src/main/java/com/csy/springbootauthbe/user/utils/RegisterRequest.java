@@ -16,4 +16,8 @@ public class RegisterRequest {
     private String email;
     private String password;
     private String role;
+
+    // Student-specific fields
+    private String studentNumber;
+    private String gradeLevel;
 }
