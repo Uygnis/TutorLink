@@ -1,5 +1,6 @@
 package com.csy.springbootauthbe.user.utils;
 
+import com.csy.springbootauthbe.user.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,4 +15,9 @@ public class RegisterRequest {
     private String lastname;
     private String email;
     private String password;
+    private String role;
+
+    // Student-specific fields
+    private String studentNumber;
+    private String gradeLevel;
 }

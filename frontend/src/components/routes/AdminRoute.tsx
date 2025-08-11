@@ -1,50 +1,47 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, Outlet } from "react-router-dom";
 import { useAppSelector } from "@/redux/store";
 import { toast } from "react-toastify";
 import Loading from "@/components/Loading";
 import { CurrentAdmin } from "@/api/userAPI";
 
 const AdminRoute = () => {
-  //States
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  //Variables
   const { user } = useAppSelector((state) => state.user);
-  const isToastDisplayedRef = useRef(false);
+  const navigate = useNavigate();
 
+  // Simulate loading delay (can be removed if not needed)
   useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
   }, []);
 
+  // Role check
   useEffect(() => {
-    if (user && user.token) {
+    if (user?.token) {
       CurrentAdmin(user.token)
-        .then((res) => {
-          setIsAdmin(true);
-        })
-        .catch((err) => {
-          setIsAdmin(false);
-        });
+        .then(() => setIsAdmin(true))
+        .catch(() => setIsAdmin(false));
+    } else {
+      setIsAdmin(false);
     }
   }, [user]);
+
+  // Redirect if not admin
+  useEffect(() => {
+    if (!loading && !isAdmin) {
+      toast.error("Please login as admin to continue");
+      navigate("/login", { replace: true });
+    }
+  }, [loading, isAdmin, navigate]);
 
   if (loading) {
     return <Loading />;
   }
 
-  if (!isAdmin) {
-    if (!isToastDisplayedRef.current) {
-      toast.error("Please login as admin to continue");
-      isToastDisplayedRef.current = true;
-    }
-    return <Navigate to="/login" />;
-  }
-
-  return <Outlet />;
+  return isAdmin ? <Outlet /> : null;
 };
 
 export default AdminRoute;

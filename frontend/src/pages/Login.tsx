@@ -32,14 +32,23 @@ const Login = () => {
       const response = await LoginUser(email, password);
       dispatch(setLoading(false));
       const { user } = response.data;
+
       // Store user data and token in local storage
       localStorage.setItem("user", JSON.stringify(user));
+
       toast.success(response.data.message);
+
       // Update redux
       dispatch(setUser(user));
-      // Redirect if user is admin or user
-      if (user.role === "ADMIN") navigate("/admin/dashboard");
-      else navigate("/user/dashboard");
+
+      // Redirect based on role
+      if (user.role === "ADMIN") {
+        navigate("/admin/dashboard");
+      } else if (user.role === "STUDENT") {
+        navigate("/student/dashboard");
+      } else {
+        navigate("/user/dashboard");
+      }
     } catch (error: any) {
       dispatch(setLoading(false));
       console.log(error);
@@ -99,6 +108,13 @@ const Login = () => {
               Submit
             </button>
           </form>
+          {/* Register Link */}
+          <div className="mt-3 text-sm">
+            Dont have an account ?{" "}
+            <Link className="text-primary" to="/register">
+              Register Now!
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -8,18 +8,17 @@ import { setUser } from "@/redux/userSlice";
 // Pages
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
-import AdminDashboard from "@/pages/admin/dashboard/AdminDashboard";
+import Register from "./pages/Register";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
 import UserDashboard from "@/pages/user/UserDashboard";
-import Patients from "@/pages/admin/Patients";
-import Wards from "@/pages/admin/Wards";
-import Transactions from "@/pages/admin/Transactions";
+import StudentDashboard from "./pages/student/StudentDashboard";
+import Doctors from "@/pages/admin/Doctors";
 
 //Component
 import Loading from "@/components/Loading";
 import AdminRoute from "@/components/routes/AdminRoute";
 import UserRoute from "@/components/routes/UserRoute";
-import Doctors from "./pages/admin/dashboard/Doctors";
-import Admins from "./pages/admin/dashboard/Admins";
+import StudentRoute from "@/components/routes/StudentRoute";
 
 function App() {
   // Redux
@@ -43,24 +42,22 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
           {/* Admin Protected Route */}
           <Route element={<AdminRoute />}>
-            <Route path="/admin/dashboard" element={<AdminDashboard />}>
-              {/* Nested routes */}
-              <Route index element={<Doctors />} /> {/* Default to doctors */}
-              <Route path="doctors" element={<Doctors />} />
-              <Route path="admins" element={<Admins />} />
-            </Route>
-
-            {/* Other admin routes */}
-            <Route path="/admin/patients" element={<Patients />} />
-            <Route path="/admin/wards" element={<Wards />} />
-            <Route path="/admin/transactions" element={<Transactions />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/doctors" element={<Doctors />} />
           </Route>
 
           {/* User Protected Route */}
           <Route element={<UserRoute />}>
             <Route path="/user/dashboard" element={<UserDashboard />} />
+          </Route>
+
+          {/* Student Protected Route */}
+          <Route element={<StudentRoute />}>
+            <Route path="/student/dashboard" element={<StudentDashboard />} />
           </Route>
         </Routes>
       </Router>

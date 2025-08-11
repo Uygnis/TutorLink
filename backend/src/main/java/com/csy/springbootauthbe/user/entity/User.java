@@ -23,16 +23,16 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "users") // MongoDB collection name
+@Document(collection = "users")
 public class User implements UserDetails {
 
     @Id
     private String id;
-
     private String firstname;
     private String lastname;
     private String email;
     private String password;
+    private AccountStatus status;
     private Role role;
 
     // Spring Security Functions

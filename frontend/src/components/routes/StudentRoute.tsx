@@ -3,11 +3,11 @@ import { useNavigate, Outlet } from "react-router-dom";
 import { useAppSelector } from "@/redux/store";
 import { toast } from "react-toastify";
 import Loading from "@/components/Loading";
-import { CurrentUser } from "@/api/userAPI";
+import { CurrentStudent } from "@/api/userAPI";
 
-const UserRoute = () => {
+const StudentRoute = () => {
   const [loading, setLoading] = useState(true);
-  const [isUser, setIsUser] = useState(false);
+  const [isStudent, setIsStudent] = useState(false);
 
   const { user } = useAppSelector((state) => state.user);
   const navigate = useNavigate();
@@ -19,26 +19,26 @@ const UserRoute = () => {
 
   useEffect(() => {
     if (user?.token) {
-      CurrentUser(user.token)
-        .then(() => setIsUser(true))
-        .catch(() => setIsUser(false));
+      CurrentStudent(user.token)
+        .then(() => setIsStudent(true))
+        .catch(() => setIsStudent(false));
     } else {
-      setIsUser(false);
+      setIsStudent(false);
     }
   }, [user]);
 
   useEffect(() => {
-    if (!loading && !isUser) {
-      toast.error("PPlease login as user to continue");
+    if (!loading && !isStudent) {
+      toast.error("Please login as student to continue");
       navigate("/login", { replace: true });
     }
-  }, [loading, isUser, navigate]);
+  }, [loading, isStudent, navigate]);
 
   if (loading) {
     return <Loading />;
   }
 
-  return isUser ? <Outlet /> : null;
+  return isStudent ? <Outlet /> : null;
 };
 
-export default UserRoute;
+export default StudentRoute;

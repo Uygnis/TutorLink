@@ -38,9 +38,29 @@ public class UserService {
     }
 
     public UserResponse getCurrentUser() {
+
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (user.getRole() != Role.USER) {
+            throw new AccessDeniedException("Only Users can access this endpoint.");
+        }
+
+        return createUserResponse(user);
+    }
+
+    public UserResponse getCurrentStudent() {
+
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (user.getRole() != Role.STUDENT) {
+            throw new AccessDeniedException("Only Students can access this endpoint.");
+        }
 
         return createUserResponse(user);
     }
@@ -87,6 +107,7 @@ public class UserService {
                 .name(user.getFirstname() + " " + user.getLastname())
                 .email(user.getEmail())
                 .role(user.getRole())
+                .status(user.getStatus())
                 .build();
     }
 }
