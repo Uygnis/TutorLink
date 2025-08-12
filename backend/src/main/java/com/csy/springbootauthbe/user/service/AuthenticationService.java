@@ -2,6 +2,8 @@ package com.csy.springbootauthbe.user.service;
 
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.service.StudentService;
+import com.csy.springbootauthbe.tutor.dto.TutorDTO;
+import com.csy.springbootauthbe.tutor.service.TutorService;
 import com.csy.springbootauthbe.user.entity.AccountStatus;
 import com.csy.springbootauthbe.user.utils.AuthenticationResponse;
 import com.csy.springbootauthbe.user.utils.LoginRequest;
@@ -27,6 +29,7 @@ public class AuthenticationService {
     private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
     private final StudentService studentService;
+    private final TutorService tutorService;
 
     public AuthenticationResponse register(RegisterRequest request) {
 
@@ -36,16 +39,7 @@ public class AuthenticationService {
             throw new DataIntegrityViolationException("Email already exists");
         }
 
-        Role userRole;
-        if ("Admin".equalsIgnoreCase(request.getRole())) {
-            userRole = Role.ADMIN;
-        } else if ("Student".equalsIgnoreCase(request.getRole())) {
-            userRole = Role.STUDENT;
-        } else if ("User".equalsIgnoreCase(request.getRole())) {
-            userRole = Role.USER;
-        } else {
-            throw new IllegalArgumentException("Invalid role: " + request.getRole());
-        }
+        Role userRole = getUserRole(request);
 
         var user = User.builder()
                 .firstname(request.getFirstname())
@@ -67,6 +61,14 @@ public class AuthenticationService {
                     .build();
 
             studentService.createStudent(studentDTO);
+        }
+
+        // If the user is a tutor, create tutor entity
+        if (userRole == Role.TUTOR){
+            TutorDTO tutorDTO = TutorDTO.builder()
+                    .userId(user.getId()).build();
+
+            tutorService.createTutor(tutorDTO);
         }
 
         var jwtToken = jwtService.generateToken(user);
@@ -109,5 +111,21 @@ public class AuthenticationService {
                 .message("User Login successfully.")
                 .user(userObj)
                 .build();
+    }
+
+    private static Role getUserRole(RegisterRequest request) {
+        Role userRole;
+        if ("Admin".equalsIgnoreCase(request.getRole())) {
+            userRole = Role.ADMIN;
+        } else if ("Student".equalsIgnoreCase(request.getRole())) {
+            userRole = Role.STUDENT;
+        } else if ("Tutor".equalsIgnoreCase(request.getRole())) {
+            userRole = Role.TUTOR;
+        } else if ("User".equalsIgnoreCase(request.getRole())) {
+            userRole = Role.USER;
+        } else {
+            throw new IllegalArgumentException("Invalid role: " + request.getRole());
+        }
+        return userRole;
     }
 }

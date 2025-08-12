@@ -19,6 +19,8 @@ import Loading from "@/components/Loading";
 import AdminRoute from "@/components/routes/AdminRoute";
 import UserRoute from "@/components/routes/UserRoute";
 import StudentRoute from "@/components/routes/StudentRoute";
+import TutorRoute from "./components/routes/TutorRoute";
+import TutorDashboard from "./pages/tutor/TutorDashboard";
 
 function App() {
   // Redux
@@ -53,6 +55,10 @@ function App() {
           {/* User Protected Route */}
           <Route element={<UserRoute />}>
             <Route path="/user/dashboard" element={<UserDashboard />} />
+          </Route>
+
+          <Route element={<UserRoute />}>
+            <Route path="/tutor/dashboard" element={<TutorDashboard />} />
           </Route>
 
           {/* Student Protected Route */}

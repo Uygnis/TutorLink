@@ -46,6 +46,8 @@ const Login = () => {
         navigate("/admin/dashboard");
       } else if (user.role === "STUDENT") {
         navigate("/student/dashboard");
+      } else if (user.role === "TUTOR") {
+        navigate("/tutor/dashboard");
       } else {
         navigate("/user/dashboard");
       }
@@ -67,7 +69,9 @@ const Login = () => {
               <CloudIcon className="h-6 w-6 text-gray-400" />
             </Link>
             <h1 className="font-bold text-xl">Login</h1>
-            <p className="text-sm text-gray-500">You will be redirected to the homepage</p>
+            <p className="text-sm text-gray-500">
+              You will be redirected to the homepage
+            </p>
           </div>
           {/* Login Form */}
           <form onSubmit={onSubmit} method="POST">
@@ -97,14 +101,16 @@ const Login = () => {
             />
             {errors.password && (
               <p className="mt-1 text-red-500 text-sm">
-                {errors.password.type === "required" && "This field is required."}
+                {errors.password.type === "required" &&
+                  "This field is required."}
               </p>
             )}
 
             {/* Submit Button */}
             <button
               type="submit"
-              className="mt-3 rounded-lg bg-primary text-white w-full px-20 py-2 transition duration-500 hover:bg-gray-200 hover:text-primary ">
+              className="mt-3 rounded-lg bg-primary text-white w-full px-20 py-2 transition duration-500 hover:bg-gray-200 hover:text-primary "
+            >
               Submit
             </button>
           </form>
