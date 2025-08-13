@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { RegisterUser, UpdateAdmin } from "@/api/userAPI";
+import { RegisterUser } from "@/api/userAPI";
 import { setLoading } from "@/redux/loaderSlice";
-import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { useAppDispatch } from "@/redux/store";
 import { toast } from "react-toastify";
 
 type Props = {
@@ -22,7 +22,7 @@ const CreateAdminModal = ({ isOpen, onClose, admin }: Props) => {
   } = useForm();
 
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.user);
+  //const { user } = useAppSelector((state) => state.user);
 
   useEffect(() => {
     if (admin) {
@@ -41,14 +41,20 @@ const CreateAdminModal = ({ isOpen, onClose, admin }: Props) => {
 
     try {
       dispatch(setLoading(true));
-      const token = user?.token;
+      //const token = user?.token;
       let response;
 
-      if (admin) {
-        response = await UpdateAdmin(admin.id, { email, password }, token);
-      } else {
-        response = await RegisterUser(firstname, lastname, email, password);
-      }
+      // if (admin) {
+      //   response = await UpdateAdmin(admin.id, { email, password }, token);
+      // } else {
+      response = await RegisterUser({
+          firstname,
+          lastname,
+          email,
+          password,
+          role: "user",
+        });
+      // }
 
       dispatch(setLoading(false));
 

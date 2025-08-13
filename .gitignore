@@ -16,3 +16,5 @@ backend/src/main/resources/application.yml
 
 # General ignores
 .DS_Store
+backend/application.yml
+.idea/checkstyle-idea.xml

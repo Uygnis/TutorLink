@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
 import { CloudIcon } from "@heroicons/react/24/solid";
-type Props = {};
 
-const Home = (props: Props) => {
+const Home = () => {
   return (
     <div className="h-screen bg-primary flex items-center justify-center p-5 overflow-hidden">
       {/* Container */}

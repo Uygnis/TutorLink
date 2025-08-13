@@ -7,9 +7,7 @@ import { setLoading } from "@/redux/loaderSlice";
 import { toast } from "react-toastify";
 import { useState } from "react";
 
-type Props = {};
-
-const Register = (props: Props) => {
+const Register = () => {
   const [selectedRole, setSelectedRole] = useState("");
 
   const {

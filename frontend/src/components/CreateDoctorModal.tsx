@@ -36,6 +36,9 @@ const CreateDoctorModal = ({ isOpen, onClose, doctor }: Props) => {
     try {
       dispatch(setLoading(true));
       const token = user?.token;
+      if (!token) {
+        throw new Error("Token is missing");
+      }
 
       if (doctor) {
         // Edit mode
