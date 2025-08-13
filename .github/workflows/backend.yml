@@ -43,8 +43,9 @@ jobs:
       - name: Generate Coverage
         run: mvn jacoco:report
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v5
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: target/site/jacoco/jacoco.xml
           fail_ci_if_error: true
 
