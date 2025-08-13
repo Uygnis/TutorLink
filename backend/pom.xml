@@ -101,6 +101,15 @@
 			<version>6.2.3</version>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- spins up a MongoDB server inside your test JVM -->
+		<dependency>
+			<groupId>de.flapdoodle.embed</groupId>
+			<artifactId>de.flapdoodle.embed.mongo</artifactId>
+			<version>4.21.0</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
