@@ -50,10 +50,11 @@ jobs:
           mkdir -p ~/app
           cd ~/app
           if [ ! -f docker-compose.yml ]; then
-            git clone https://github.com/saltedfishxx/TutorLink.git
+            git clone https://github.com/saltedfishxx/TutorLink.git .
           else
             git pull
           fi
+
       
 
     # 5. SSH to EC2 and deploy
