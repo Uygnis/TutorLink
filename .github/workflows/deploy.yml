@@ -38,7 +38,7 @@ jobs:
         username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
         source: "docker-images/*.tar"
-        target: "/home/ubuntu/app/docker-images"
+        target: "/home/ubuntu/app/"
 
     - name: Ensure docker-compose.yml
       uses: appleboy/ssh-action@v1.0.0
