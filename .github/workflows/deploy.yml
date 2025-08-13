@@ -1,9 +1,9 @@
-name: Deploy Frontend & Backend to EC2
+name: Build and Deploy Docker Images to EC2
 
 on:
   push:
     branches:
-      - main  # change if needed
+      - main
 
 jobs:
   deploy:
@@ -11,27 +11,45 @@ jobs:
     environment: development
 
     steps:
+    # 1. Checkout repo
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Upload entire repo to EC2
-    - name: Upload project to EC2
+    # 2. Build Docker images
+    - name: Build backend image
+      run: docker build -t backend:latest ./backend
+
+    - name: Build frontend image
+      run: docker build -t frontend:latest ./frontend
+
+    # 3. Save images as tar files
+    - name: Save Docker images
+      run: |
+        mkdir -p docker-images
+        docker save backend:latest -o docker-images/backend.tar
+        docker save frontend:latest -o docker-images/frontend.tar
+
+    # 4. Copy images to EC2
+    - name: Copy images to EC2
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
+        username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
-        source: "."
-        target: "/home/${{ secrets.EC2_USER }}/app"
+        source: "docker-images/*.tar"
+        target: "/home/ubuntu/app/docker-images"
 
-    # SSH and build/run both containers
-    - name: SSH to EC2 and deploy with docker-compose
+    # 5. SSH to EC2 and deploy
+    - name: Deploy on EC2
       uses: appleboy/ssh-action@v1.0.0
       with:
         host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
+        username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
+          cd ~/app/docker-images
+          docker load -i backend.tar
+          docker load -i frontend.tar
           cd ~/app
           docker compose down
-          docker compose up -d --build
+          docker compose up -d
