@@ -8,8 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      NODE_ENV: development   # Environment for build & run
+    environment: development
 
     steps:
     - name: Checkout code
