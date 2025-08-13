@@ -9,9 +9,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow.name == 'Backend Pipeline'
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
