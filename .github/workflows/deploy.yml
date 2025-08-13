@@ -32,22 +32,26 @@ jobs:
         ls -l docker-images/
         ls -l docker-compose.yml
 
-    # 4. Copy files to EC2 using plain scp
+    # 4. Write SSH key from secret to file
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
+    # 5. Copy files to EC2 using plain scp
     - name: Copy Docker images and docker-compose.yml to EC2
       run: |
-        # Make sure SSH key has correct permissions
-        chmod 600 ${{ secrets.EC2_SSH_KEY }}
-        # Copy files
-        scp -i ${{ secrets.EC2_SSH_KEY }} \
+        scp -i ~/.ssh/id_rsa \
           docker-images/backend.tar \
           docker-images/frontend.tar \
           docker-compose.yml \
           ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/
 
-    # 5. SSH to EC2 and deploy
+    # 6. SSH to EC2 and deploy
     - name: Deploy Docker images on EC2
       run: |
-        ssh -i ${{ secrets.EC2_SSH_KEY }} ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
           mkdir -p ~/app/docker-images
           mv ~/app/backend.tar ~/app/docker-images/
           mv ~/app/frontend.tar ~/app/docker-images/
