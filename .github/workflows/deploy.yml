@@ -28,6 +28,7 @@ jobs:
         mkdir -p docker-images
         docker save backend:latest -o docker-images/backend.tar
         docker save frontend:latest -o docker-images/frontend.tar
+        chmod 644 docker-images/*.tar   # make them readable by scp-action
 
     # 4. Copy images to EC2
     - name: Copy images to EC2
