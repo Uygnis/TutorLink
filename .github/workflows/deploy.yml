@@ -32,30 +32,20 @@ jobs:
         ls -l docker-images/
         ls -l docker-compose.yml
 
-    # 4. Prepare SCP folder
-    - name: Prepare files for SCP
-      run: |
-        mkdir -p scp
-        cp docker-images/backend.tar scp/backend.tar
-        cp docker-images/frontend.tar scp/frontend.tar
-        cp docker-compose.yml scp/docker-compose.yml
-        ls -l scp/
-
-    # 5. Copy files to EC2 (disable tar)
-    - name: Copy files to EC2
+    # 4. Copy images and docker-compose.yml to EC2
+    - name: Copy Docker images and docker-compose.yml to EC2
       uses: appleboy/scp-action@v1.0.0
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
         source: |
-          scp/backend.tar
-          scp/frontend.tar
-          scp/docker-compose.yml
+          docker-images/backend.tar
+          docker-images/frontend.tar
+          docker-compose.yml
         target: /home/ubuntu/app
-        tar: false
 
-    # 6. SSH to EC2 and deploy
+    # 5. SSH to EC2 and deploy
     - name: Deploy Docker images on EC2
       uses: appleboy/ssh-action@v1.0.0
       with:
