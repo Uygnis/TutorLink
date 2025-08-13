@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.EnumSet;
 import java.util.List;
 
 @Service
@@ -44,7 +45,8 @@ public class UserService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        if (user.getRole() != Role.USER) {
+        EnumSet<Role> roles = EnumSet.allOf(Role.class);
+        if (!roles.contains(user.getRole())) {
             throw new AccessDeniedException("Only Users can access this endpoint.");
         }
 
