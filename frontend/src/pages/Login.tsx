@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { CloudIcon } from "@heroicons/react/24/solid";
 import { useNavigate, Link } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { useAppDispatch } from "@/redux/store";
 import { LoginUser } from "@/api/userAPI";
 import { setLoading } from "@/redux/loaderSlice";
 import { setUser } from "@/redux/userSlice";
