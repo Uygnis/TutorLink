@@ -1,0 +1,60 @@
+name: Deploy to EC2
+
+on:
+  workflow_run:
+    workflows: ["Frontend Pipeline", "Backend Pipeline"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow.name == 'Backend Pipeline'
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # Your deploy steps go here
+      - run: echo "Deploying after both pipelines succeeded..."
+
+      # Configure AWS CLI
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Login to Amazon ECR
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+          | docker login --username AWS --password-stdin ${{ secrets.ECR_FRONTEND_URI }}
+
+      # Build & push frontend
+      - name: Build & Push Frontend
+        run: |
+          docker build -t ${{ secrets.ECR_FRONTEND_URI }}:latest ./frontend
+          docker push ${{ secrets.ECR_FRONTEND_URI }}:latest
+
+      # Build & push backend
+      - name: Build & Push Backend
+        run: |
+          docker build -t ${{ secrets.ECR_BACKEND_URI }}:latest ./backend
+          docker push ${{ secrets.ECR_BACKEND_URI }}:latest
+
+      # Deploy on EC2 via SSH
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+              | docker login --username AWS --password-stdin ${{ secrets.ECR_FRONTEND_URI }}
+            cd /home/ubuntu
+            docker-compose pull
+            docker-compose up -d

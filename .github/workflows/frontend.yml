@@ -1,0 +1,43 @@
+name: Frontend Pipeline
+
+on:
+  push:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend.yml'
+  pull_request:
+    paths:
+      - 'frontend/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: development
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Create .env file
+        run: |
+          echo "${{ secrets.FRONTEND_ENV_FILE }}" > .env
+
+      - name: Build project
+        run: npm run build
+
+      # Optional deploy step
+      # - name: Deploy to hosting
+      #   run: <deploy command>
