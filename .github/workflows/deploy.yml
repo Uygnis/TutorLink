@@ -1,4 +1,4 @@
-name: Build & Deploy Docker Images to EC2
+name: Build and Deploy Docker Images to EC2
 
 on:
   push:
@@ -28,10 +28,11 @@ jobs:
         mkdir -p docker-images
         docker save backend:latest -o docker-images/backend.tar
         docker save frontend:latest -o docker-images/frontend.tar
-        chmod 644 docker-images/*.tar
+        chmod 644 docker-images/*.tar   # make them readable by scp-action
+        ls -l docker-images/
 
-    # 4. Copy images and docker-compose.yml to EC2
-    - name: Copy images and docker-compose.yml to EC2
+    # 4. Copy images to EC2
+    - name: Copy Docker images to EC2
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.EC2_HOST }}
@@ -42,8 +43,9 @@ jobs:
           docker-compose.yml
         target: /home/ubuntu/app
 
+
     # 5. SSH to EC2 and deploy
-    - name: Deploy Docker images on EC2
+    - name: Deploy on EC2
       uses: appleboy/ssh-action@v1.0.0
       with:
         host: ${{ secrets.EC2_HOST }}
