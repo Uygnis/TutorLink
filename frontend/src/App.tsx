@@ -19,7 +19,6 @@ import Loading from "@/components/Loading";
 import AdminRoute from "@/components/routes/AdminRoute";
 import UserRoute from "@/components/routes/UserRoute";
 import StudentRoute from "@/components/routes/StudentRoute";
-import TutorRoute from "./components/routes/TutorRoute";
 import TutorDashboard from "./pages/tutor/TutorDashboard";
 
 function App() {
