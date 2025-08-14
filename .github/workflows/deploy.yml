@@ -1,49 +1,48 @@
 name: Build & Deploy Docker Images to EC2
 
 on:
+  workflow_dispatch:       # manual trigger
   workflow_run:
-    workflows: 
+    workflows:
       - Frontend Pipeline
       - Backend Pipeline
     types:
       - completed
-  workflow_dispatch:
 
 jobs:
   deploy:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    environment: development
 
     steps:
       # 1. Checkout repository
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # ===== FRONTEND =====
-      - name: Create frontend .env
+      # ----- BACKEND -----
+      - name: Create backend application.yml from secret
         run: |
-          echo "${{ secrets.FRONTEND_ENV_FILE }}" > frontend/.env
+          mkdir -p backend/src/main/resources
+          echo "${{ secrets.BACKEND_APP_YML }}" > backend/src/main/resources/application.yml
 
-      - name: Build frontend Docker image
-        run: |
-          # Read the variable from the .env file
-          ARG_PAIR=$(grep VITE_APP_API frontend/.env)
-          docker build \
-            --build-arg $ARG_PAIR \
-            -t frontend:latest ./frontend
-
-      - name: Build backend image
+      - name: Build backend Docker image
         run: docker build -t backend:latest ./backend
 
-      # 3. Save images as tar files
+      # ----- FRONTEND -----
+      - name: Create frontend .env from secret
+        run: echo "${{ secrets.FRONTEND_ENV_FILE }}" > frontend/.env
+
+      - name: Build frontend Docker image
+        run: docker build -t frontend:latest ./frontend
+
+      # ----- Save Docker images -----
       - name: Save Docker images
         run: |
           mkdir -p docker-images
           docker save frontend:latest -o docker-images/frontend.tar
           docker save backend:latest -o docker-images/backend.tar
 
-      # 4. Copy Docker images to EC2 using scp-action
+      # ----- Copy Docker images + docker-compose.yml to EC2 -----
       - name: Copy Docker images via SCP
         uses: appleboy/scp-action@master
         with:
@@ -51,10 +50,10 @@ jobs:
           username: ubuntu
           port: 22
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-images/frontend.tar,docker-images/backend.tar"
+          source: "docker-images/frontend.tar,docker-images/backend.tar,docker-compose.yml"
           target: "/home/ubuntu/TutorLink/"
 
-      # 5. Deploy Docker images on EC2 using ssh-action
+      # ----- Deploy containers on EC2 -----
       - name: Deploy Docker images on EC2
         uses: appleboy/ssh-action@master
         with:
@@ -65,5 +64,6 @@ jobs:
             cd /home/ubuntu/TutorLink/docker-images
             sudo docker load -i frontend.tar
             sudo docker load -i backend.tar
+            cd /home/ubuntu/TutorLink
             sudo docker compose down
             sudo docker compose up -d
