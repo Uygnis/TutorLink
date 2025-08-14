@@ -11,7 +11,7 @@ jobs:
     environment: development
 
     steps:
-      # 1. Checkout repo
+      # 1. Checkout repository
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -28,37 +28,37 @@ jobs:
             --build-arg $ARG_PAIR \
             -t frontend:latest ./frontend
 
-      # ===== BACKEND =====
-      - name: Create backend application.yml
-        run: |
-          mkdir -p backend/src/main/resources
-          echo "${{ secrets.BACKEND_APP_YML }}" > backend/src/main/resources/application.yml
-
-      - name: Build backend Docker image
+      - name: Build backend image
         run: docker build -t backend:latest ./backend
 
-      # ===== PACKAGE DOCKER IMAGES =====
+      # 3. Save images as tar files
       - name: Save Docker images
         run: |
-          mkdir docker-images
+          mkdir -p docker-images
           docker save frontend:latest -o docker-images/frontend.tar
           docker save backend:latest -o docker-images/backend.tar
 
-      # ===== COPY IMAGES TO EC2 =====
-      - name: Copy Docker images to EC2
-        run: |
-          scp -i ~/.ssh/id_rsa \
-            docker-images/frontend.tar \
-            docker-images/backend.tar \
-            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/TutorLink/
+      # 4. Copy Docker images to EC2 using scp-action
+      - name: Copy Docker images via SCP
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          port: 22
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-images/frontend.tar,docker-images/backend.tar"
+          target: "/home/ubuntu/TutorLink/"
 
-      # ===== LOAD & RUN ON EC2 =====
-      - name: Load images and restart containers
-        run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-            cd ~/TutorLink
-            docker load -i frontend.tar
-            docker load -i backend.tar
-            docker compose down
-            docker compose up -d
-          EOF
+      # 5. Deploy Docker images on EC2 using ssh-action
+      - name: Deploy Docker images on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/TutorLink/docker-images
+            sudo docker load -i frontend.tar
+            sudo docker load -i backend.tar
+            sudo docker compose down
+            sudo docker compose up -d
