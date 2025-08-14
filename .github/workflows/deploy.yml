@@ -1,12 +1,16 @@
 name: Build & Deploy Docker Images to EC2
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: 
+      - Frontend Pipeline
+      - Backend Pipeline
+    types:
+      - completed
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: development
 
@@ -22,8 +26,8 @@ jobs:
 
       - name: Build frontend Docker image
         run: |
-          # Extract the key and value from the secret
-          ARG_PAIR="${{ secrets.FRONTEND_ENV_FILE }}"
+          # Split secret into key=value pair
+          ARG_PAIR=${{ secrets.FRONTEND_ENV_FILE }}
           docker build \
             --build-arg $ARG_PAIR \
             -t frontend:latest ./frontend
