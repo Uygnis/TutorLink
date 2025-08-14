@@ -11,8 +11,8 @@ jobs:
     environment: development
 
     steps:
-      # 1. Checkout repo
-      - name: Checkout repository
+      # 1. Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       # 2. Build frontend and backend Docker images
@@ -29,31 +29,27 @@ jobs:
           docker save frontend:latest -o docker-images/frontend.tar
           docker save backend:latest -o docker-images/backend.tar
 
-      # 4. Setup SSH key
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+      # 4. Copy Docker images to EC2 using scp-action
+      - name: Copy Docker images via SCP
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          port: 22
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-images/frontend.tar,docker-images/backend.tar"
+          target: "/home/ubuntu/TutorLink/"
 
-      # 5. Setup known hosts to avoid host key verification errors
-      - name: Setup known hosts
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_HOST_KEY }}" > ~/.ssh/known_hosts
-
-      # 6. Copy Docker images to EC2
-      - name: Copy Docker images
-        run: |
-          scp -i ~/.ssh/id_rsa docker-images/*.tar ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/TutorLink/
-
-      # 7. Load images and deploy on EC2
+      # 5. Deploy Docker images on EC2 using ssh-action
       - name: Deploy Docker images on EC2
-        run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-            cd ~/TutorLink
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/TutorLink
             docker load -i frontend.tar
             docker load -i backend.tar
             docker compose down
             docker compose up -d
-          EOF
