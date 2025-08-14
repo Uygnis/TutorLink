@@ -14,6 +14,8 @@ import com.csy.springbootauthbe.user.entity.Role;
 import com.csy.springbootauthbe.user.entity.User;
 import com.csy.springbootauthbe.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,11 +33,15 @@ public class AuthenticationService {
     private final StudentService studentService;
     private final TutorService tutorService;
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
+
     public AuthenticationResponse register(RegisterRequest request) {
+        logger.info("Register request received: email={}, role={}", request.getEmail(), request.getRole());
 
         AccountStatus status = AccountStatus.ACTIVE;
 
         if (repository.existsByEmail(request.getEmail())) {
+            logger.warn("Registration failed: Email already exists - {}", request.getEmail());
             throw new DataIntegrityViolationException("Email already exists");
         }
 
@@ -51,27 +57,28 @@ public class AuthenticationService {
                 .build();
 
         repository.save(user);
+        logger.info("User saved successfully: id={}, email={}", user.getId(), user.getEmail());
 
-        // If the user is a student, create Student entity
+        // Create student entity if role is STUDENT
         if (userRole == Role.STUDENT) {
             var studentDTO = StudentDTO.builder()
                     .userId(user.getId())
                     .studentNumber(request.getStudentNumber())
                     .gradeLevel(request.getGradeLevel())
                     .build();
-
             studentService.createStudent(studentDTO);
+            logger.info("Student entity created for userId={}", user.getId());
         }
 
-        // If the user is a tutor, create tutor entity
-        if (userRole == Role.TUTOR){
-            TutorDTO tutorDTO = TutorDTO.builder()
-                    .userId(user.getId()).build();
-
+        // Create tutor entity if role is TUTOR
+        if (userRole == Role.TUTOR) {
+            TutorDTO tutorDTO = TutorDTO.builder().userId(user.getId()).build();
             tutorService.createTutor(tutorDTO);
+            logger.info("Tutor entity created for userId={}", user.getId());
         }
 
         var jwtToken = jwtService.generateToken(user);
+        logger.info("JWT generated for userId={}", user.getId());
 
         UserResponse userObj = UserResponse.builder()
                 .id(user.getId())
@@ -82,30 +89,44 @@ public class AuthenticationService {
                 .token(jwtToken)
                 .build();
 
+        logger.info("Registration successful for userId={}", user.getId());
+
         return AuthenticationResponse.builder()
                 .message("User Registered successfully.")
                 .user(userObj)
                 .build();
     }
 
-
     public AuthenticationResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        logger.info("Login request received: email={}", request.getEmail());
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+            logger.info("Authentication successful for email={}", request.getEmail());
+        } catch (Exception e) {
+            logger.error("Authentication failed for email={}. Error: {}", request.getEmail(), e.getMessage());
+            throw e;
+        }
 
         var user = repository.findByEmail(request.getEmail())
-                .orElseThrow();
+                .orElseThrow(() -> {
+                    logger.error("User not found for email={}", request.getEmail());
+                    return new IllegalArgumentException("User not found");
+                });
 
         var jwtToken = jwtService.generateToken(user);
+        logger.info("JWT generated for login: userId={}", user.getId());
 
         UserResponse userObj = UserResponse.builder()
-                .id(user.getId()) // String ID
+                .id(user.getId())
                 .name(user.getFirstname() + " " + user.getLastname())
                 .email(user.getEmail())
                 .role(user.getRole())
                 .token(jwtToken)
                 .build();
+
+        logger.info("Login successful for userId={}", user.getId());
 
         return AuthenticationResponse.builder()
                 .message("User Login successfully.")
