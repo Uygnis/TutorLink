@@ -1,57 +1,68 @@
-name: Deploy to EC2
+name: Build & Deploy Docker Images to EC2
 
 on:
+  workflow_dispatch:       # manual trigger
   workflow_run:
-    workflows: ["Frontend Pipeline", "Backend Pipeline"]
+    workflows:
+      - Frontend Pipeline
+      - Backend Pipeline
     types:
       - completed
 
 jobs:
   deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    environment: development
+
     steps:
+      # 1. Checkout repository
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Your deploy steps go here
-      - run: echo "Deploying after both pipelines succeeded..."
+      # ----- BACKEND -----
+      - name: Create backend application.yml
+        run: echo "${{ secrets.BACKEND_APP_YML }}" > backend/application.yml
 
-      # Configure AWS CLI
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Build backend Docker image
+        run: docker build -t backend:latest ./backend
 
-      # Login to Amazon ECR
-      - name: Login to ECR
+      # ----- FRONTEND -----
+      - name: Create frontend .env from secret
+        run: echo "${{ secrets.FRONTEND_ENV_FILE }}" > frontend/.env
+
+      - name: Build frontend Docker image
+        run: docker build -t frontend:latest ./frontend
+
+      # ----- Save Docker images -----
+      - name: Save Docker images
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
-          | docker login --username AWS --password-stdin ${{ secrets.ECR_FRONTEND_URI }}
+          mkdir -p docker-images
+          docker save frontend:latest -o docker-images/frontend.tar
+          docker save backend:latest -o docker-images/backend.tar
 
-      # Build & push frontend
-      - name: Build & Push Frontend
-        run: |
-          docker build -t ${{ secrets.ECR_FRONTEND_URI }}:latest ./frontend
-          docker push ${{ secrets.ECR_FRONTEND_URI }}:latest
-
-      # Build & push backend
-      - name: Build & Push Backend
-        run: |
-          docker build -t ${{ secrets.ECR_BACKEND_URI }}:latest ./backend
-          docker push ${{ secrets.ECR_BACKEND_URI }}:latest
-
-      # Deploy on EC2 via SSH
-      - name: Deploy on EC2
-        uses: appleboy/ssh-action@v1.2.0
+      # ----- Copy Docker images + docker-compose.yml to EC2 -----
+      - name: Copy Docker images via SCP
+        uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
+          username: ubuntu
+          port: 22
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-images/frontend.tar,docker-images/backend.tar"
+          target: "/home/ubuntu/TutorLink/"
+
+      # ----- Deploy containers on EC2 -----
+      - name: Deploy Docker images on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
-              | docker login --username AWS --password-stdin ${{ secrets.ECR_FRONTEND_URI }}
-            cd /home/ubuntu
-            docker-compose pull
-            docker-compose up -d
+            cd /home/ubuntu/TutorLink/docker-images
+            sudo docker load -i frontend.tar
+            sudo docker load -i backend.tar
+            cd /home/ubuntu/TutorLink
+            sudo docker compose down
+            sudo docker compose up -d
