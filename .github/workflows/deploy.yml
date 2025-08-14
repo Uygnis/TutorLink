@@ -11,54 +11,49 @@ jobs:
     environment: development
 
     steps:
-    # 1. Checkout repo
-    - name: Checkout code
-      uses: actions/checkout@v4
+      # 1. Checkout repo
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-    # 2. Build Docker images
-    - name: Build backend image
-      run: docker build -t backend:latest ./backend
+      # ===== FRONTEND =====
+      - name: Create frontend .env
+        run: |
+          echo "${{ secrets.FRONTEND_ENV_FILE }}" > frontend/.env
 
-    - name: Build frontend image
-      run: docker build -t frontend:latest ./frontend
+      - name: Build frontend Docker image
+        run: docker build -t frontend:latest ./frontend
 
-    # 3. Save images as tar files
-    - name: Save Docker images
-      run: |
-        mkdir -p docker-images
-        docker save backend:latest -o docker-images/backend.tar
-        docker save frontend:latest -o docker-images/frontend.tar
-        chmod 644 docker-images/backend.tar docker-images/frontend.tar
-        ls -l docker-images/
-        ls -l docker-compose.yml
+      # ===== BACKEND =====
+      - name: Create backend application.yml
+        run: |
+          mkdir -p backend/src/main/resources
+          echo "${{ secrets.BACKEND_APP_YML }}" > backend/src/main/resources/application.yml
 
-    # 4. Write SSH key from secret to file
-    - name: Setup SSH key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
+      - name: Build backend Docker image
+        run: docker build -t backend:latest ./backend
 
-    # 5. Copy files to EC2 using plain scp
-    - name: Copy Docker images and docker-compose.yml to EC2
-      run: |
-        scp -i ~/.ssh/id_rsa \
-          docker-images/backend.tar \
-          docker-images/frontend.tar \
-          docker-compose.yml \
-          ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/
+      # ===== PACKAGE DOCKER IMAGES =====
+      - name: Save Docker images
+        run: |
+          mkdir docker-images
+          docker save frontend:latest -o docker-images/frontend.tar
+          docker save backend:latest -o docker-images/backend.tar
 
-    # 6. SSH to EC2 and deploy
-    - name: Deploy Docker images on EC2
-      run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-          mkdir -p ~/app/docker-images
-          mv ~/app/backend.tar ~/app/docker-images/
-          mv ~/app/frontend.tar ~/app/docker-images/
-          cd ~/app/docker-images
-          docker load -i backend.tar
-          docker load -i frontend.tar
-          cd ~/app
-          docker compose down
-          docker compose up -d
-        EOF
+      # ===== COPY IMAGES TO EC2 =====
+      - name: Copy Docker images to EC2
+        run: |
+          scp -i ~/.ssh/id_rsa \
+            docker-images/frontend.tar \
+            docker-images/backend.tar \
+            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/TutorLink/
+
+      # ===== LOAD & RUN ON EC2 =====
+      - name: Load images and restart containers
+        run: |
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+            cd ~/TutorLink
+            docker load -i frontend.tar
+            docker load -i backend.tar
+            docker compose down
+            docker compose up -d
+          EOF
