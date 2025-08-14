@@ -27,11 +27,9 @@ jobs:
 
       - name: Build frontend Docker image
         run: |
-          # Split secret into key=value pair
-          ARG_PAIR=${{ secrets.FRONTEND_ENV_FILE }}
           docker build \
-            --build-arg $ARG_PAIR \
-            -t frontend:latest ./frontend
+          --build-arg ${{ secrets.FRONTEND_ENV_FILE }} \
+          -t frontend:latest ./frontend
 
       - name: Build backend image
         run: docker build -t backend:latest ./backend
