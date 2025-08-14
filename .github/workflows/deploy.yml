@@ -21,7 +21,12 @@ jobs:
           echo "${{ secrets.FRONTEND_ENV_FILE }}" > frontend/.env
 
       - name: Build frontend Docker image
-        run: docker build -t frontend:latest ./frontend
+        run: |
+          # Extract the key and value from the secret
+          ARG_PAIR="${{ secrets.FRONTEND_ENV_FILE }}"
+          docker build \
+            --build-arg $ARG_PAIR \
+            -t frontend:latest ./frontend
 
       # ===== BACKEND =====
       - name: Create backend application.yml
