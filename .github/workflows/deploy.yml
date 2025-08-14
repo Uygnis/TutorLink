@@ -48,7 +48,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/TutorLink
+            cd /home/ubuntu/TutorLink/docker-images
             sudo docker load -i frontend.tar
             sudo docker load -i backend.tar
             sudo docker compose down
