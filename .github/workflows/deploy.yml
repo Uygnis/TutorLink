@@ -27,8 +27,9 @@ jobs:
 
       - name: Build frontend Docker image
         run: |
-          # Read the variable from the .env file
-          ARG_PAIR=$(grep VITE_APP_API frontend/.env)
+          # Read the variable from the .env file (strip any extra spaces)
+          ARG_PAIR=$(grep -E '^VITE_APP_API=' frontend/.env | tr -d '\r\n')
+          echo "Using build-arg: $ARG_PAIR"
           docker build \
             --build-arg $ARG_PAIR \
             -t frontend:latest ./frontend
