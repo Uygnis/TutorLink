@@ -50,7 +50,7 @@ jobs:
           username: ubuntu
           port: 22
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-images/frontend.tar,docker-images/backend.tar,docker-compose.yml"
+          source: "docker-images/frontend.tar,docker-images/backend.tar"
           target: "/home/ubuntu/TutorLink/"
 
       # ----- Deploy containers on EC2 -----
