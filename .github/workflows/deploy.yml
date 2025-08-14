@@ -39,6 +39,11 @@ jobs:
           docker save frontend:latest -o docker-images/frontend.tar
           docker save backend:latest -o docker-images/backend.tar
 
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh
+          
       # ===== COPY IMAGES TO EC2 =====
       - name: Copy Docker images to EC2
         run: |
