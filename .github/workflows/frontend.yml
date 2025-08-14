@@ -1,13 +1,10 @@
 name: Frontend Pipeline
 
 on:
-  push:
+  pull_request: 
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend.yml'
-  pull_request:
-    paths:
-      - 'frontend/**'
   workflow_dispatch:
 
 jobs:
