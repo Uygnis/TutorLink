@@ -1,5 +1,6 @@
 package com.csy.springbootauthbe.config;
 
+import jakarta.servlet.Filter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,18 +21,18 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable()) // disable CSRF for API
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**", "/v1/auth/**").permitAll()
-                .anyRequest().authenticated()                   // everything else needs JWT
-            )
-            .sessionManagement(session -> session
+        http.csrf().disable()
+                .authorizeHttpRequests()
+                .requestMatchers("/v1/auth/**")
+                .permitAll()
+                .anyRequest()
+                .authenticated()
+                .and()
+                .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authenticationProvider(authProvider)
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
+                .and()
+                .authenticationProvider(authProvider)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }
