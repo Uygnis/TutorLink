@@ -27,9 +27,11 @@ jobs:
 
       - name: Build frontend Docker image
         run: |
+          # Read the variable from the .env file
+          ARG_PAIR=$(grep VITE_APP_API frontend/.env)
           docker build \
-          --build-arg ${{ secrets.FRONTEND_ENV_FILE }} \
-          -t frontend:latest ./frontend
+            --build-arg $ARG_PAIR \
+            -t frontend:latest ./frontend
 
       - name: Build backend image
         run: docker build -t backend:latest ./backend
