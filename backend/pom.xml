@@ -53,11 +53,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
 		</dependency>
@@ -146,7 +141,6 @@
 						</goals>
 						<configuration>
 							<outputDirectory>${project.reporting.outputDirectory}</outputDirectory>
-							<output>file</output>
 						</configuration>
 					</execution>
 				</executions>
