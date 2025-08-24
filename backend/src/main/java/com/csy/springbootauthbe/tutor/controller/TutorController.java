@@ -17,7 +17,7 @@ public class TutorController {
 
     private final TutorService tutorService;
 
-    @GetMapping("/by-user/{userId}")
+    @GetMapping("/{userId}")
     public ResponseEntity<TutorDTO> getTutorByUserId(@PathVariable String userId) {
         Optional<TutorDTO> tutorOpt = tutorService.getTutorByUserId(userId);
         return tutorOpt.map(ResponseEntity::ok)

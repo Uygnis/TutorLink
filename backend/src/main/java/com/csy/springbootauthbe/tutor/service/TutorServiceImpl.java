@@ -37,6 +37,7 @@ public class TutorServiceImpl implements TutorService {
                 .orElseThrow(() -> new UsernameNotFoundException("Tutor not found"));
         tutor.setHourlyRate(updatedData.getHourlyRate());
         tutor.setQualifications(updatedData.getQualifications());
+        tutor.setAvailability(updatedData.getAvailability());
         tutorRepository.save(tutor);
         return createTutorResponse(tutor);
     }

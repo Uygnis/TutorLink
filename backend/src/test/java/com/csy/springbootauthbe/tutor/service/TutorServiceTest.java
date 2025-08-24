@@ -34,7 +34,7 @@ public class TutorServiceTest {
     private TutorMapper mapper;
 
     @InjectMocks
-    private TutorService tutorService;
+    private TutorServiceImpl tutorService;
 
     private Tutor tutorEntity;
     private TutorDTO tutorDTO;
@@ -63,8 +63,9 @@ public class TutorServiceTest {
     @Test
     void createTutor_shouldReturnTutorDTO() {
         //prepare
+        when(mapper.toEntity(any(TutorDTO.class))).thenReturn(tutorEntity);
         when(tutorRepository.save(any(Tutor.class))).thenReturn(tutorEntity);
-        when(mapper.toDTO(tutorEntity)).thenReturn(tutorDTO);
+        when(mapper.toDTO(any(Tutor.class))).thenReturn(tutorDTO);
 
         //act
         TutorDTO saved = tutorService.createTutor(tutorDTO);
@@ -75,7 +76,7 @@ public class TutorServiceTest {
 
         // verify
         verify(tutorRepository).save(any(Tutor.class));
-        verify(mapper).toDTO(tutorEntity);
+        verify(mapper).toDTO(any(Tutor.class));
     }
 
     @Test
@@ -114,8 +115,9 @@ public class TutorServiceTest {
     @Test
     void updateTutor_shouldReturnTutorResponse() {
         // prepare
+        when(tutorRepository.findByUserId(tutorRequest.getUserId()))
+                .thenReturn(Optional.of(tutorEntity));
         when(tutorRepository.save(any(Tutor.class))).thenReturn(tutorEntity);
-        when(mapper.toDTO(tutorEntity)).thenReturn(tutorDTO);
 
         // act
         TutorResponse updated = tutorService.updateTutor(tutorRequest.getUserId(), tutorRequest);
@@ -125,7 +127,6 @@ public class TutorServiceTest {
 
         // verify
         verify(tutorRepository).save(any(Tutor.class));
-        verify(mapper).toDTO(tutorEntity);
     }
 
 }
