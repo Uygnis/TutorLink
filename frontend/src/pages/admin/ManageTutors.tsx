@@ -5,12 +5,13 @@ import { GetAllTutors, DeleteUser } from "@/api/adminAPI";
 import { toast } from "react-toastify";
 import { useAppSelector } from "@/redux/store";
 import CreateTutorModal from "@/components/CreateTutorModal";
+import { Tutor } from "@/types/TutorSearchRequest";
 
 const ManageTutors = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tutors, setTutors] = useState<TutorDetails[]>([]);
-  const [selectedTutor, setSelectedTutor] = useState<TutorDetails | null>(null);
+  const [tutors, setTutors] = useState<Tutor[]>([]);
+  const [selectedTutor, setSelectedTutor] = useState<Tutor | null>(null);
 
   const { user } = useAppSelector((state) => state.user);
 
@@ -121,6 +122,11 @@ const ManageTutors = () => {
               </tbody>
             </table>
           </div>
+          <CreateTutorModal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            tutor={selectedTutor}
+          />
         </div>
       </div>
     </div>

@@ -26,7 +26,11 @@ const CreateTutorModal = ({ isOpen, onClose, tutor }: Props) => {
 
   useEffect(() => {
     if (tutor) {
-      setValue("email", tutor.email);
+      reset({
+        email: tutor.email,
+        firstname: tutor.firstname,
+        lastname: tutor.lastname,
+      });
     } else {
       reset();
     }
@@ -48,12 +52,12 @@ const CreateTutorModal = ({ isOpen, onClose, tutor }: Props) => {
       //   response = await UpdateTutor(tutor.id, { email, password }, token);
       // } else {
       response = await RegisterUser({
-          firstname,
-          lastname,
-          email,
-          password,
-          role: "user",
-        });
+        firstname,
+        lastname,
+        email,
+        password,
+        role: "user",
+      });
       // }
 
       dispatch(setLoading(false));
@@ -77,36 +81,35 @@ const CreateTutorModal = ({ isOpen, onClose, tutor }: Props) => {
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-xl font-semibold mb-4">{tutor ? "Edit Tutor" : "Add New Tutor"}</h2>
         <form onSubmit={onSubmit}>
-          {!tutor && (
-            <>
-              <input
-                className="bg-gray-200 px-3 py-2 rounded-md w-full mb-2"
-                type="text"
-                placeholder="First Name"
-                {...register("firstname", { required: true, maxLength: 100 })}
-              />
-              {errors.firstname && <p className="text-sm text-red-500">First name is required</p>}
-
-              <input
-                className="bg-gray-200 px-3 py-2 rounded-md w-full mb-2"
-                type="text"
-                placeholder="Last Name"
-                {...register("lastname", { required: true, maxLength: 100 })}
-              />
-              {errors.lastname && <p className="text-sm text-red-500">Last name is required</p>}
-            </>
-          )}
-
           <input
-            className="bg-gray-200 px-3 py-2 rounded-md w-full mb-2"
+            className="bg-gray-200 px-3 py-2 rounded-md w-full mb-2
+            read-only:bg-gray-300 read-only:text-gray-500 read-only:cursor-not-allowed"
             type="text"
             placeholder="Email"
             {...register("email", {
               required: true,
               pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
             })}
+            readOnly={!!tutor} // 👈 makes email read-only if editing
           />
           {errors.email && <p className="text-sm text-red-500">Valid email is required</p>}
+
+
+          <input
+            className="bg-gray-200 px-3 py-2 rounded-md w-full mb-2"
+            type="text"
+            placeholder="First Name"
+            {...register("firstname", { required: true, maxLength: 100 })}
+          />
+          {errors.firstname && <p className="text-sm text-red-500">First name is required</p>}
+
+          <input
+            className="bg-gray-200 px-3 py-2 rounded-md w-full mb-2"
+            type="text"
+            placeholder="Last Name"
+            {...register("lastname", { required: true, maxLength: 100 })}
+          />
+          {errors.lastname && <p className="text-sm text-red-500">Last name is required</p>}
 
           <input
             className="bg-gray-200 px-3 py-2 rounded-md w-full mb-2"
