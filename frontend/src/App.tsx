@@ -11,15 +11,16 @@ import Login from "@/pages/Login";
 import Register from "./pages/Register";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import UserDashboard from "@/pages/user/UserDashboard";
-import StudentDashboard from "./pages/student/StudentDashboard";
+import StudentDashboard from "@/pages/student/StudentDashboard";
 import Doctors from "@/pages/admin/Doctors";
+import TutorDashboard from "@/pages/tutor/TutorDashboard";
+import FindTutor from "@/pages/student/FindTutor";
 
 //Component
 import Loading from "@/components/Loading";
 import AdminRoute from "@/components/routes/AdminRoute";
 import UserRoute from "@/components/routes/UserRoute";
 import StudentRoute from "@/components/routes/StudentRoute";
-import TutorDashboard from "./pages/tutor/TutorDashboard";
 
 function App() {
   // Redux
@@ -63,6 +64,7 @@ function App() {
           {/* Student Protected Route */}
           <Route element={<StudentRoute />}>
             <Route path="/student/dashboard" element={<StudentDashboard />} />
+            <Route path="/student/find-tutor" element={<FindTutor />} />
           </Route>
         </Routes>
       </Router>
