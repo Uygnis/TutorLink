@@ -23,6 +23,7 @@ import StudentRoute from "@/components/routes/StudentRoute";
 import ManageTutors from "./pages/admin/ManageTutors";
 import ManageStudents from "./pages/admin/ManageStudents";
 import ViewTutorProfile from "./pages/tutor/TutorProfile";
+import ManageAdmins from "./pages/admin/ManageAdmins";
 
 function App() {
   // Redux
@@ -53,6 +54,7 @@ function App() {
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/tutors" element={<ManageTutors />} />
             <Route path="/admin/students" element={<ManageStudents />} />
+            <Route path="/admin/admins" element={<ManageAdmins />} />
           </Route>
 
           {/* User Protected Route */}

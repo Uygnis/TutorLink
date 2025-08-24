@@ -80,10 +80,10 @@ const StudentDashboard = () => {
                       <strong>Email:</strong> {user?.email}
                     </p>
                     <p>
-                      <strong>Student Number:</strong> {studentDetails.student.studentNumber}
+                      <strong>Student Number:</strong> {studentDetails.studentNumber}
                     </p>
                     <p>
-                      <strong>Grade Level:</strong> {studentDetails.student.gradeLevel}
+                      <strong>Grade Level:</strong> {studentDetails.gradeLevel}
                     </p>
                   </div>
                 ) : (
