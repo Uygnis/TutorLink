@@ -14,4 +14,5 @@ public class TutorDTO {
     private String userId;
     private Double hourlyRate;
     private Map<String, Availability> availability;
+    private String subject;
 }

@@ -16,6 +16,7 @@ import java.util.Map;
 @NoArgsConstructor
 public class TutorResponse {
     private String id;
+    private String subject;
     private List<QualificationFile> qualifications;
     private Double hourlyRate;
     private Map<String, Availability> availability;

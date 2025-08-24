@@ -2,7 +2,8 @@ type TutorDetails = {
   userId: string;
   hourlyRate: number;
   qualifications: File[]; // store uploaded files
-  availability: {};
+  availability: DayAvailability;
+  subject: string;
 };
 
 type TutorCredentials = {
