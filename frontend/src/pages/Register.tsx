@@ -25,7 +25,7 @@ const Register = () => {
     const isValid = await trigger();
     if (!isValid) return;
 
-    const { firstname, lastname, email, password, role, studentNumber, gradeLevel } = getValues();
+    const { firstname, lastname, email, password, role, studentNumber, gradeLevel, permissions } = getValues();
 
     try {
       dispatch(setLoading(true));
@@ -37,6 +37,7 @@ const Register = () => {
         role,
         // Only send student fields if role is STUDENT
         ...(role === "STUDENT" && { studentNumber, gradeLevel }),
+        ...(role === "ADMIN" && {permissions}),
       });
       dispatch(setLoading(false));
 
@@ -172,6 +173,43 @@ const Register = () => {
                   <p className="mt-1 text-red-500 text-sm">Grade Level is required.</p>
                 )}
               </>
+            )}
+
+            {/* Conditionally render admin-specific permissions */}
+            {selectedRole === "ADMIN" && (
+              <div className="mt-3">
+                <label className="font-semibold">Admin Permissions:</label>
+                <div className="mt-2 space-y-2">
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" value="MANAGE_USERS" {...register("permissions")} />
+                    <span>Manage Users</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" value="MANAGE_TUTORS" {...register("permissions")} />
+                    <span>Manage Tutors</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" value="MANAGE_ADMINS" {...register("permissions")} />
+                    <span>Manage Admins</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" value="SUSPEND_USER" {...register("permissions")} />
+                    <span>Suspend User</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" value="DELETE_USER" {...register("permissions")} />
+                    <span>Delete User</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" value="APPROVE_TUTOR" {...register("permissions")} />
+                    <span>Approve Tutor</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input type="checkbox" value="EDIT_ROLES" {...register("permissions")} />
+                    <span>Edit Roles</span>
+                  </label>
+                </div>
+              </div>
             )}
 
             {/* Submit Button */}

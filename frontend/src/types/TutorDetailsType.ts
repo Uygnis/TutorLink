@@ -1,0 +1,4 @@
+interface TutorDetails {
+    id: String;
+  }
+  

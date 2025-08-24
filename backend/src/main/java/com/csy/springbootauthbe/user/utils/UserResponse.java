@@ -1,5 +1,10 @@
 package com.csy.springbootauthbe.user.utils;
 
+import java.util.List;
+
+import com.csy.springbootauthbe.admin.entity.Permissions;
+import com.csy.springbootauthbe.admin.util.AdminResponse;
+import com.csy.springbootauthbe.student.util.StudentResponse;
 import com.csy.springbootauthbe.user.entity.AccountStatus;
 import com.csy.springbootauthbe.user.entity.Role;
 import lombok.AllArgsConstructor;
@@ -18,4 +23,7 @@ public class UserResponse {
     private Role role;
     private AccountStatus status;
     private String token;
+
+    private StudentResponse student; // null if not student
+    private AdminResponse admin;     // null if not admin
 }

@@ -1,4 +1,4 @@
-package com.csy.springbootauthbe.admin.dto;
+package com.csy.springbootauthbe.admin.util;
 
 import java.util.List;
 
@@ -12,8 +12,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AdminDTO {
-    private String id;
-    private String userId;
+public class AdminResponse {
     private List<Permissions> permissions;
 }

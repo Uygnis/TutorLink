@@ -5,13 +5,18 @@ import com.csy.springbootauthbe.admin.entity.Admin;
 import com.csy.springbootauthbe.admin.entity.Permissions;
 import com.csy.springbootauthbe.admin.mapper.AdminMapper;
 import com.csy.springbootauthbe.admin.repository.AdminRepository;
+import com.csy.springbootauthbe.admin.util.AdminResponse;
+import com.csy.springbootauthbe.student.repository.StudentRepository;
+import com.csy.springbootauthbe.student.util.StudentResponse;
 import com.csy.springbootauthbe.user.entity.AccountStatus;
 import com.csy.springbootauthbe.user.entity.Role;
 import com.csy.springbootauthbe.user.entity.User;
 import com.csy.springbootauthbe.user.repository.UserRepository;
+import com.csy.springbootauthbe.user.utils.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -21,6 +26,7 @@ public class AdminServiceImpl implements AdminService {
     private final AdminMapper adminMapper;
     private final AdminRepository adminRepository;
     private final UserRepository userRepository;
+    private final StudentRepository studentRepository;
 
     @Override
     public AdminDTO createAdmin(AdminDTO adminDTO) {
@@ -35,6 +41,43 @@ public class AdminServiceImpl implements AdminService {
                 .map(adminMapper::toDTO);
     }
 
+    public List<UserResponse> getUsersByType(Role role) {
+        List<User> users = userRepository.findAllByRole(role);
+
+        return users.stream()
+            .map(user -> {
+                UserResponse.UserResponseBuilder builder = UserResponse.builder()
+                    .id(user.getId())
+                    .name(user.getFirstname() + " " + user.getLastname())
+                    .email(user.getEmail())
+                    .role(user.getRole())
+                    .status(user.getStatus());
+
+                if (role == Role.STUDENT) {
+                    studentRepository.findByUserId(user.getId()).ifPresent(student ->
+                        builder.student(StudentResponse.builder()
+                            .studentNumber(student.getStudentNumber())
+                            .gradeLevel(student.getGradeLevel())
+                            .build()
+                        )
+                    );
+                }
+
+                if (role == Role.ADMIN) {
+                    adminRepository.findByUserId(user.getId()).ifPresent(admin ->
+                        builder.admin(AdminResponse.builder()
+                            .permissions(admin.getPermissions())
+                            .build()
+                        )
+                    );
+                }
+
+                return builder.build();
+            })
+            .toList();
+    }
+
+    @Override
     public void updateUserRole(String adminUserId, String targetUserId, Role newRole) {
         // Load admin making the change
         User adminUser = userRepository.findById(adminUserId)
@@ -72,7 +115,7 @@ public class AdminServiceImpl implements AdminService {
         userRepository.save(targetUser);
     }
 
-
+    @Override
     public void deleteUser(String adminUserId, String targetUserId) {
         User adminUser = userRepository.findById(adminUserId)
                 .orElseThrow(() -> new RuntimeException("Admin user not found"));

@@ -1,5 +1,7 @@
 package com.csy.springbootauthbe.user.service;
 
+import com.csy.springbootauthbe.admin.dto.AdminDTO;
+import com.csy.springbootauthbe.admin.service.AdminService;
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.service.StudentService;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
@@ -32,6 +34,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final StudentService studentService;
     private final TutorService tutorService;
+    private final AdminService adminService;
 
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
 
@@ -76,6 +79,18 @@ public class AuthenticationService {
             tutorService.createTutor(tutorDTO);
             logger.info("Tutor entity created for userId={}", user.getId());
         }
+
+        // Create admin entity if role is ADMIN
+        if (userRole == Role.ADMIN) {
+            AdminDTO adminDTO = AdminDTO.builder()
+                .userId(user.getId())
+                .permissions(request.getPermissions())
+                .build();
+            adminService.createAdmin(adminDTO);
+            logger.info("Admin entity created for userId={}", user.getId());
+        }
+
+
 
         var jwtToken = jwtService.generateToken(user);
         logger.info("JWT generated for userId={}", user.getId());
