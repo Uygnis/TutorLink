@@ -1,23 +1,15 @@
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { setUser } from "@/redux/userSlice";
+import { useAppSelector } from "@/redux/store";
 import { GetStudentByUserId } from "@/api/studentAPI";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import Navbar from "@/components/Navbar";
 
 const StudentDashboard = () => {
   const [studentDetails, setStudentDetails] = useState<StudentDetails | null>(null);
 
   const { user } = useAppSelector((state) => state.user);
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    dispatch(setUser(null));
-    navigate("/login");
-  };
 
   const fetchStudentDetails = async (id: string) => {
     try {
@@ -49,35 +41,57 @@ const StudentDashboard = () => {
   }, [user, navigate]);
 
   return (
-    <div className="h-screen bg-primary flex items-center justify-center p-5 overflow-hidden">
-      <div className="flex flex-col items-center ">
-        <div className="bg-white h-full w-[400px] rounded-md p-5">
-          <div className="p-5 text-center">
-            <h1 className="font-bold text-xl">Welcome, Student Dashboard</h1>
-            {studentDetails ? (
-              <div className="mt-4 text-left">
-                <p>
-                  <strong>Full Name:</strong> {user?.name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {user?.email}
-                </p>
-                <p>
-                  <strong>Student Number:</strong> {studentDetails.studentNumber}
-                </p>
-                <p>
-                  <strong>Grade Level:</strong> {studentDetails.gradeLevel}
-                </p>
+    <div>
+      <Navbar />
+      <div className="min-h-screen bg-[#f2f2f2] p-6">
+        <h1 className="font-bold text-xl mb-5 ">Welcome to your Dashboard ! </h1>
+        {/* Two-column layout */}
+        <div className="flex gap-6">
+          {/* Left side (Upcoming + Past Sessions) */}
+          <div className="flex flex-col w-[70%] space-y-6">
+            {/* Upcoming Sessions */}
+            <div className="bg-white rounded-md shadow-md p-5">
+              <h2 className="font-bold text-lg mb-3">Upcoming Sessions</h2>
+              <div className="h-40 flex items-center justify-center text-gray-400">
+                No upcoming sessions yet.
               </div>
-            ) : (
-              <p>Loading student details...</p>
-            )}
+            </div>
+
+            {/* Past Sessions */}
+            <div className="bg-white rounded-md shadow-md p-5">
+              <h2 className="font-bold text-lg mb-3">Past Sessions</h2>
+              <div className="h-40 flex items-center justify-center text-gray-400">
+                No past sessions yet.
+              </div>
+            </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="mt-3 rounded-lg bg-primary text-white w-full px-20 py-2 transition duration-500 hover:bg-gray-200 hover:text-primary">
-            Logout
-          </button>
+
+          {/* Right side (Student Profile Card) */}
+          <div className="w-[30%]">
+            <div className="bg-white rounded-md shadow-md p-5">
+              <div className="text-center">
+                <h1 className="font-bold text-xl">Student Profile</h1>
+                {studentDetails ? (
+                  <div className="mt-4 text-left">
+                    <p>
+                      <strong>Full Name:</strong> {user?.name}
+                    </p>
+                    <p>
+                      <strong>Email:</strong> {user?.email}
+                    </p>
+                    <p>
+                      <strong>Student Number:</strong> {studentDetails.studentNumber}
+                    </p>
+                    <p>
+                      <strong>Grade Level:</strong> {studentDetails.gradeLevel}
+                    </p>
+                  </div>
+                ) : (
+                  <p>Loading student details...</p>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
