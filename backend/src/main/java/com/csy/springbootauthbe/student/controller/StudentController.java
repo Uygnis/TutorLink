@@ -2,13 +2,13 @@ package com.csy.springbootauthbe.student.controller;
 
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.service.StudentService;
+import com.csy.springbootauthbe.student.utils.TutorSearchRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.bson.Document;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -25,5 +25,9 @@ public class StudentController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @PostMapping("/search")
+    public List<Document> searchTutors(@RequestBody TutorSearchRequest request) {
+        return studentService.searchTutors(request);
+    }
 
 }
