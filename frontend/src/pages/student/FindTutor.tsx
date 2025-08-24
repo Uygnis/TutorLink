@@ -1,7 +1,7 @@
 import Navbar from "@/components/Navbar";
 import { useState, useEffect } from "react";
 import { SearchTutors } from "@/api/studentAPI";
-import { TutorSearchRequest } from "@/types/TutorSearchRequest";
+import { TutorSearchRequest, Tutor } from "@/types/TutorSearchRequest";
 import { useAppSelector } from "@/redux/store";
 import { Range } from "react-range";
 
@@ -14,7 +14,7 @@ const FindTutor = () => {
   const [subject, setSubject] = useState("");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100]);
   const [availability, setAvailability] = useState("");
-  const [tutorResults, setTutorResults] = useState<any[]>([]);
+  const [tutorResults, setTutorResults] = useState<Tutor[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filtersCleared, setFiltersCleared] = useState(false);
@@ -50,7 +50,7 @@ const FindTutor = () => {
       subject: subject || undefined,
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
-      availability: availability || undefined,
+      availability: availability || undefined, // <-- the string
     };
 
     try {
@@ -220,8 +220,12 @@ const FindTutor = () => {
                   <p className="text-md">
                     Available:{" "}
                     {Object.entries(tutor.availability)
-                      .filter(([day, value]) => value.enabled)
-                      .map(([day]) => day.charAt(0).toUpperCase() + day.slice(1).toLowerCase())
+                      .filter(([_, value]) => value.enabled)
+                      .map(([day, value]) => {
+                        // Format e.g. "Monday (09:00 - 17:00)"
+                        const dayName = day.charAt(0).toUpperCase() + day.slice(1).toLowerCase();
+                        return `${dayName} (${value.start} - ${value.end})`;
+                      })
                       .join(", ")}
                   </p>
                 </div>

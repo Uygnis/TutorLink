@@ -1,4 +1,4 @@
-type DayAvailability = {
+export type DayAvailability = {
   [day: string]: { start: string; end: string; enabled: boolean };
 };
 

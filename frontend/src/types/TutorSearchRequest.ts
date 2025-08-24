@@ -5,3 +5,16 @@ export interface TutorSearchRequest {
   maxPrice?: number;
   availability?: string; // e.g., MONDAY, WEEKDAY, EVENING
 }
+
+export type DayAvailability = {
+  [day: string]: { start: string; end: string; enabled: boolean };
+};
+
+export interface Tutor {
+  _id: string;
+  firstname: string;
+  lastname: string;
+  subject: string;
+  hourlyRate: number;
+  availability: DayAvailability;
+}
