@@ -1,11 +1,17 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppDispatch } from "@/redux/store";
 import { setUser } from "@/redux/userSlice";
+import { navConfig } from "@/components/NavLinks";
 
 const Navbar = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const role = user?.role || "ADMIN";
+
+  const navLinks = navConfig[role] || [];
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -14,16 +20,10 @@ const Navbar = () => {
     navigate("/login");
   };
 
-  const navLinks = [
-    { name: "Home", path: "/admin/dashboard" },
-    { name: "Doctor", path: "/admin/doctors" },
-  ];
-
   return (
-    <div className="w-full bg-primary  h-16 flex items-stretch justify-between px-6">
-      {/* Left side */}
+    <div className="w-full bg-white h-16 flex items-stretch justify-between px-6 border-b border-gray-300 sticky top-0 z-50">
       <div className="flex items-stretch space-x-6">
-        <div className="text-2xl font-bold text-white flex items-center">🏥</div>
+        <div className="text-2xl font-bold text-primary flex items-center">TutorLink</div>
 
         {navLinks.map((link) => {
           const isActive =
@@ -33,10 +33,10 @@ const Navbar = () => {
             <a
               key={link.path}
               href={link.path}
-              className={`flex items-center px-4 text-sm font-medium transition ${
+              className={`flex items-center px-4 text-medium transition ${
                 isActive
-                  ? "bg-white text-primary h-full"
-                  : "text-white hover:bg-white hover:text-primary"
+                  ? "text-white font-bold bg-primary my-4 rounded-lg"
+                  : "text-gray-600 hover:bg-gray-200 hover:text-primary"
               }`}>
               {link.name}
             </a>
@@ -44,11 +44,10 @@ const Navbar = () => {
         })}
       </div>
 
-      {/* Logout Button */}
       <div className="flex items-center">
         <button
           onClick={handleLogout}
-          className="rounded-lg bg-white text-primary px-4 py-2 transition duration-300 hover:bg-gray-200 hover:text-primary">
+          className="rounded-lg bg-primary text-white px-4 py-2 transition duration-300 hover:bg-gray-200 hover:text-primary">
           Logout
         </button>
       </div>
