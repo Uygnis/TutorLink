@@ -85,6 +85,9 @@ const TutorDashboard = () => {
                     <p>
                       <strong>Email:</strong> {user?.email}
                     </p>
+                    <p>
+                      <strong>Specialization:</strong> {tutorDetails.subject}
+                    </p>
                     {/* Edit Button */}
                     <div className="mt-4 text-right">
                       <button

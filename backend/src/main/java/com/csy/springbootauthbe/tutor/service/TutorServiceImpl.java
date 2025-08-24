@@ -54,6 +54,7 @@ public class TutorServiceImpl implements TutorService {
                 .id(tutor.getId())
                 .hourlyRate(tutor.getHourlyRate())
                 .qualifications(tutor.getQualifications())
+                .availability(tutor.getAvailability())
                 .build();
     }
 

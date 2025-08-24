@@ -19,6 +19,7 @@ const ViewTutorProfile = () => {
 
   const defaultProfile = {
     userId: "",
+    subject: "",
     hourlyRate: 0,
     qualifications: [],
     availability: defaultAvailability,
@@ -41,6 +42,7 @@ const ViewTutorProfile = () => {
         const newProfile: TutorDetails = {
           userId: res.data.userId || defaultProfile.userId,
           hourlyRate: res.data.hourlyRate || defaultProfile.hourlyRate,
+          subject: res.data.subject || defaultProfile.subject,
           qualifications:
             res.data.qualifications || defaultProfile.qualifications, // files handled separately
           availability: res.data.availability || defaultProfile.availability,
