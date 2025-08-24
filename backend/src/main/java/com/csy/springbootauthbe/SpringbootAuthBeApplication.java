@@ -10,5 +10,3 @@ public class SpringbootAuthBeApplication {
 		SpringApplication.run(SpringbootAuthBeApplication.class, args);
 	}
 }
-
-

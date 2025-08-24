@@ -4,6 +4,9 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
+import java.util.Map;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -13,9 +16,13 @@ public class Tutor {
 
     @Id
     private String id;
-
-    // Reference to User document for login credentials
+    private String subject;
+    // Reference to User document for login credentials, composite
     private String userId;
+    private Double hourlyRate;
 
+    // List of uploaded qualifications
+    private List<QualificationFile> qualifications;
+    private Map<String, Availability> availability;
 }
 
