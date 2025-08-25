@@ -6,11 +6,17 @@ const BASE_URL = `/tutors`;
 export const UpdateTutorProfile = async (
   token: string,
   userId: string,
-  data: TutorDetails
+  data: FormData
 ): Promise<AxiosResponse<any>> => {
   const url = `${BASE_URL}/${userId}`;
   const api = getApiInstance(token);
-  return await api.put(url, data);
+
+  return await api.put(url, data, {
+    headers: {
+      ...api.defaults.headers.common,
+      "Content-Type": "multipart/form-data",
+    },
+  });
 };
 
 export const GetTutorProfile = async (

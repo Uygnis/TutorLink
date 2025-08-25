@@ -12,8 +12,8 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QualificationFile {
-    private String fileName;
-    private FileType fileType;   // "pdf", "jpg", "png"
-    private String url;        // S3/Cloud URL or GridFS ID
+    private String name;
+    private String type;   // "pdf", "jpg", "png"
+    private String path;        // S3/Cloud URL or GridFS ID
     private Date uploadedAt;
 }
