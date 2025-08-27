@@ -14,6 +14,7 @@ interface UserObj {
   role: Role;
   status?: string;
   token?: string;
+  permissions?: string[];
 }
 
 interface UserState {

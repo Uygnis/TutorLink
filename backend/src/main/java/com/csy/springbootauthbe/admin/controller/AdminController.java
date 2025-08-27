@@ -28,14 +28,14 @@ public class AdminController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/tutors")
-    public ResponseEntity<List<UserResponse>> getAllTutors() { return ResponseEntity.ok(adminService.getUsersByType(Role.TUTOR));}
+    @GetMapping("/tutors/{adminId}")
+    public ResponseEntity<List<UserResponse>> getAllTutors(@PathVariable String adminId) { return ResponseEntity.ok(adminService.viewTutors(adminId));}
 
-    @GetMapping("/students")
-    public ResponseEntity<List<UserResponse>> getAllStudents() { return ResponseEntity.ok(adminService.getUsersByType(Role.STUDENT));}
+    @GetMapping("/students/{adminId}")
+    public ResponseEntity<List<UserResponse>> getAllStudents(@PathVariable String adminId) { return ResponseEntity.ok(adminService.viewStudents(adminId));}
 
-    @GetMapping("/admins")
-    public ResponseEntity<List<UserResponse>> getAllAdmins() { return ResponseEntity.ok(adminService.getUsersByType(Role.ADMIN));}
+    @GetMapping("/admins/{adminId}")
+    public ResponseEntity<List<UserResponse>> getAllAdmins(@PathVariable String adminId) { return ResponseEntity.ok(adminService.viewAdmins(adminId));}
 
 
 }

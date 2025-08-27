@@ -4,27 +4,27 @@ const BASE_URL = `${import.meta.env.VITE_APP_API}/admins`;
 
 export const GetAdminByUserId = async (
   id: string,
-  authtoken: string
+  authtoken?: string
 ): Promise<AxiosResponse<any>> => {
   return await axios.get(`${BASE_URL}/by-user/${id}`, {
     headers: { Authorization: `Bearer ${authtoken}` },
   });
 };
 
-export const GetAllTutors = async (authtoken: string): Promise<AxiosResponse<any>> => {
-  return await axios.get(`${BASE_URL}/tutors`, {
+export const GetAllTutors = async (userId:string, authtoken: string): Promise<AxiosResponse<any>> => {
+  return await axios.get(`${BASE_URL}/tutors/${userId}`, {
     headers: { Authorization: `Bearer ${authtoken}` },
   });
 };
 
-export const GetAllStudents = async (authtoken: string): Promise<AxiosResponse<any>> => {
-  return await axios.get(`${BASE_URL}/students`, {
+export const GetAllStudents = async (userId:string, authtoken: string): Promise<AxiosResponse<any>> => {
+  return await axios.get(`${BASE_URL}/students/${userId}`, {
     headers: { Authorization: `Bearer ${authtoken}` },
   });
 };
 
-export const GetAllAdmins = async (authtoken: string): Promise<AxiosResponse<any>> => {
-  return await axios.get(`${BASE_URL}/admins`, {
+export const GetAllAdmins = async (userId:string, authtoken: string): Promise<AxiosResponse<any>> => {
+  return await axios.get(`${BASE_URL}/admins/${userId}`, {
     headers: { Authorization: `Bearer ${authtoken}` },
   });
 };

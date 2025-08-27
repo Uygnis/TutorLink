@@ -1,6 +1,6 @@
 import Navbar from "@/components/Navbar";
 import { useEffect, useState } from "react";
-import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { EyeIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { GetAllTutors, DeleteUser } from "@/api/adminAPI";
 import { toast } from "react-toastify";
 import { useAppSelector } from "@/redux/store";
@@ -14,13 +14,14 @@ const ManageTutors = () => {
   const [selectedTutor, setSelectedTutor] = useState<Tutor | null>(null);
 
   const { user } = useAppSelector((state) => state.user);
+  const currentPermissions: string[] = user?.permissions || []; 
 
   const fetchTutors = async () => {
     try {
       const token = user?.token;
       if (!token) return;
 
-      const response = await GetAllTutors(token);
+      const response = await GetAllTutors(user.id, token);
       console.log("Admin API Response:", response.data);
       setTutors(response.data);
     } catch (error: any) {
@@ -99,7 +100,7 @@ const ManageTutors = () => {
                     <td className="px-4 py-2">{tutor.email}</td>
                     <td
                       className={`px-4 py-2 ${
-                        tutor.status === "Active" ? "text-green-600" : "text-red-600"
+                        tutor.status === "ACTIVE" ? "text-green-600" : "text-red-600"
                       }`}>
                       {tutor.status}
                     </td>
@@ -107,15 +108,18 @@ const ManageTutors = () => {
                       <button
                         onClick={() => handleOpenModal(tutor)}
                         className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-blue-200 transition inline-flex items-center space-x-1">
-                        <PencilIcon className="h-4 w-4" />
-                        <span>Edit</span>
+                        <EyeIcon className="h-4 w-4" />
+                        <span>View</span>
                       </button>
-                      <button
-                        onClick={() => handleDelete(tutor.id)}
-                        className="bg-red-100 text-red-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-red-200 transition inline-flex items-center space-x-1">
-                        <TrashIcon className="h-4 w-4" />
-                        <span>Delete</span>
-                      </button>
+                      {currentPermissions.includes("DELETE_TUTOR") && (
+                        <button
+                          onClick={() => handleDelete(tutor.id)}
+                          className="bg-red-100 text-red-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-red-200 transition inline-flex items-center space-x-1"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                          <span>Delete</span>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

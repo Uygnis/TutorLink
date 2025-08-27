@@ -37,7 +37,7 @@ const Register = () => {
         role,
         // Only send student fields if role is STUDENT
         ...(role === "STUDENT" && { studentNumber, gradeLevel }),
-        ...(role === "ADMIN" && {permissions}),
+        ...(role === "ADMIN" && { permissions }),
       });
       dispatch(setLoading(false));
 
@@ -179,38 +179,67 @@ const Register = () => {
             {selectedRole === "ADMIN" && (
               <div className="mt-3">
                 <label className="font-semibold">Admin Permissions:</label>
-                <div className="mt-2 space-y-2">
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" value="MANAGE_USERS" {...register("permissions")} />
-                    <span>Manage Users</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" value="MANAGE_TUTORS" {...register("permissions")} />
-                    <span>Manage Tutors</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" value="MANAGE_ADMINS" {...register("permissions")} />
-                    <span>Manage Admins</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" value="SUSPEND_USER" {...register("permissions")} />
-                    <span>Suspend User</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" value="DELETE_USER" {...register("permissions")} />
-                    <span>Delete User</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" value="APPROVE_TUTOR" {...register("permissions")} />
-                    <span>Approve Tutor</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" value="EDIT_ROLES" {...register("permissions")} />
-                    <span>Edit Roles</span>
-                  </label>
+
+                <div className="grid grid-cols-2 gap-6 mt-4">
+                  {/* Left Column */}
+                  <div className="space-y-6">
+                    {/* Student Management */}
+                    <div>
+                      <p className="font-medium text-gray-700">Student Management</p>
+                      <div className="mt-2 space-y-2">
+                        <label className="flex items-center space-x-2">
+                          <input type="checkbox" value="VIEW_STUDENTS" {...register("permissions")} />
+                          <span>View Students</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input type="checkbox" value="SUSPEND_STUDENT" {...register("permissions")} />
+                          <span>Suspend Student</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Admin Management (stacked under student) */}
+                    <div>
+                      <p className="font-medium text-gray-700">Admin Management</p>
+                      <div className="mt-2 space-y-2">
+                        <label className="flex items-center space-x-2">
+                          <input type="checkbox" value="VIEW_ADMIN" {...register("permissions")} />
+                          <span>View Admins</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input type="checkbox" value="CREATE_ADMIN" {...register("permissions")} />
+                          <span>Create Admin</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column (Tutor Management) */}
+                  <div>
+                    <p className="font-medium text-gray-700">Tutor Management</p>
+                    <div className="mt-2 space-y-2">
+                      <label className="flex items-center space-x-2">
+                        <input type="checkbox" value="VIEW_TUTORS" {...register("permissions")} />
+                        <span>View Tutors</span>
+                      </label>
+                      <label className="flex items-center space-x-2">
+                        <input type="checkbox" value="APPROVE_TUTOR" {...register("permissions")} />
+                        <span>Approve Tutor</span>
+                      </label>
+                      <label className="flex items-center space-x-2">
+                        <input type="checkbox" value="REJECT_TUTOR" {...register("permissions")} />
+                        <span>Reject Tutor</span>
+                      </label>
+                      <label className="flex items-center space-x-2">
+                        <input type="checkbox" value="SUSPEND_TUTOR" {...register("permissions")} />
+                        <span>Suspend Tutor</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
+
 
             {/* Submit Button */}
             <button

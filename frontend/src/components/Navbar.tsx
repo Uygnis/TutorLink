@@ -1,17 +1,50 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAppDispatch } from "@/redux/store";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { setUser } from "@/redux/userSlice";
 import { navConfig } from "@/components/NavLinks";
+import { useEffect } from "react";
+import { GetAdminByUserId } from "@/api/adminAPI";
 
 const Navbar = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const { user } = useAppSelector((state) => state.user);
   const role = user?.role || "ADMIN";
 
-  const navLinks = navConfig[role] || [];
+  // Fetch admin permissions once on page load
+  useEffect(() => {
+    if (role !== "ADMIN" || !user?.id || !user?.token) return;
+    if (user.permissions && user.permissions.length > 0) return;
+
+    const fetchPermissions = async () => {
+      try {
+        const response = await GetAdminByUserId(user.id, user.token);
+        const perms = response.data.permissions || [];
+
+        // ✅ Merge into user object and push to redux + localStorage
+        const updatedUser = { ...user, permissions: perms };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        dispatch(setUser(updatedUser));
+      } catch (err) {
+        console.error("Failed to fetch admin permissions", err);
+      }
+    };
+
+    fetchPermissions();
+  }, [role, user, dispatch]);
+
+  // Filter nav links by required permissions
+  const navLinks =
+    (navConfig[role] || []).filter(
+      (link) =>
+        !link.requiredPermissions ||
+        link.requiredPermissions.length === 0 ||
+        link.requiredPermissions.some((perm: string) =>
+          user?.permissions?.includes(perm)
+        )
+    );
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -37,7 +70,8 @@ const Navbar = () => {
                 isActive
                   ? "text-white font-bold bg-primary my-4 rounded-lg"
                   : "text-gray-600 hover:bg-gray-200 hover:text-primary"
-              }`}>
+              }`}
+            >
               {link.name}
             </a>
           );
@@ -47,7 +81,8 @@ const Navbar = () => {
       <div className="flex items-center">
         <button
           onClick={handleLogout}
-          className="rounded-lg bg-primary text-white px-4 py-2 transition duration-300 hover:bg-gray-200 hover:text-primary">
+          className="rounded-lg bg-primary text-white px-4 py-2 transition duration-300 hover:bg-gray-200 hover:text-primary"
+        >
           Logout
         </button>
       </div>

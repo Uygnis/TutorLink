@@ -1,6 +1,6 @@
 import Navbar from "@/components/Navbar";
 import { useEffect, useState } from "react";
-import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { PlusIcon, PencilIcon, TrashIcon, EyeIcon } from "@heroicons/react/24/solid";
 import { GetAllAdmins, DeleteUser } from "@/api/adminAPI";
 import { toast } from "react-toastify";
 import { useAppSelector } from "@/redux/store";
@@ -12,14 +12,14 @@ const ManageAdmins = () => {
   const [selectedAdmin, setSelectedAdmin] = useState<AdminDetails | null>(null);
 
   const { user } = useAppSelector((state) => state.user);
+  const currentPermissions: string[] = user?.permissions || []; 
 
   const fetchAdmins = async () => {
     try {
       const token = user?.token;
       if (!token) return;
 
-      const response = await GetAllAdmins(token);
-      console.log("Admin API Response:", response.data);
+      const response = await GetAllAdmins(user.id, token);
       setAdmins(response.data);
     } catch (error: any) {
       toast.error("Failed to fetch admins");
@@ -61,10 +61,10 @@ const ManageAdmins = () => {
   useEffect(() => {
     fetchAdmins();
   }, []);
+
   return (
     <div>
       <Navbar />
-
       <div className="p-6">
         <div>
           {/* Search Bar */}
@@ -97,29 +97,35 @@ const ManageAdmins = () => {
                     <td className="px-4 py-2">{admin.email}</td>
                     <td
                       className={`px-4 py-2 ${
-                        admin.status === "Active" ? "text-green-600" : "text-red-600"
-                      }`}>
+                        admin.status === "ACTIVE" ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
                       {admin.status}
                     </td>
                     <td className="px-4 py-2 space-x-2">
                       <button
                         onClick={() => handleOpenModal(admin)}
-                        className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-blue-200 transition inline-flex items-center space-x-1">
-                        <PencilIcon className="h-4 w-4" />
-                        <span>Edit</span>
+                        className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-blue-200 transition inline-flex items-center space-x-1"
+                      >
+                        <EyeIcon className="h-4 w-4" />
+                        <span>View</span>
                       </button>
-                      <button
-                        onClick={() => handleDelete(admin.id)}
-                        className="bg-red-100 text-red-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-red-200 transition inline-flex items-center space-x-1">
-                        <TrashIcon className="h-4 w-4" />
-                        <span>Delete</span>
-                      </button>
+                      {currentPermissions.includes("DELETE_ADMIN") && (
+                        <button
+                          onClick={() => handleDelete(admin.id)}
+                          className="bg-red-100 text-red-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-red-200 transition inline-flex items-center space-x-1"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                          <span>Delete</span>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
           {/* <CreateAdminModal
             isOpen={isModalOpen}
             onClose={handleCloseModal}
