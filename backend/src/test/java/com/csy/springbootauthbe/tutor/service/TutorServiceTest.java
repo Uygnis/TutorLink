@@ -1,6 +1,7 @@
 package com.csy.springbootauthbe.tutor.service;
 
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
+import com.csy.springbootauthbe.tutor.entity.QualificationFile;
 import com.csy.springbootauthbe.tutor.entity.Tutor;
 import com.csy.springbootauthbe.tutor.mapper.TutorMapper;
 import com.csy.springbootauthbe.tutor.repository.TutorRepository;
@@ -16,7 +17,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,6 +46,8 @@ public class TutorServiceTest {
 
     @BeforeEach
     void setUp() {
+        ArrayList<MultipartFile> files = new ArrayList<>();
+
         tutorEntity = new Tutor();
         tutorEntity.setId("t1");
         tutorEntity.setUserId("user123");
@@ -54,6 +59,7 @@ public class TutorServiceTest {
         tutorRequest = new TutorRequest();
         tutorRequest.setUserId(tutorDTO.getUserId());
         tutorRequest.setHourlyRate(10d);
+        tutorRequest.setQualifications(files);
 
         tutorResponse = new TutorResponse();
         tutorResponse.setId("t1");

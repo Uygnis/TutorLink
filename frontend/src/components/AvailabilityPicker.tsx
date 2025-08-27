@@ -36,7 +36,6 @@ const AvailabilityPicker = ({ value, onChange }: AvailabilityPickerProps) => {
 
   return (
     <div className="mt-4">
-      <label className="block text-sm font-medium">Availability</label>
       <div className="space-y-2">
         {daysOfWeek.map((day) => (
           <div key={day} className="flex items-center space-x-2">
@@ -56,7 +55,7 @@ const AvailabilityPicker = ({ value, onChange }: AvailabilityPickerProps) => {
               onChange={(e) =>
                 handleAvailabilityChange(day, "start", e.target.value)
               }
-              className="border border-gray-300 rounded p-1 w-24"
+              className="border border-gray-300 rounded p-1 w-md"
             />
             <span>-</span>
             <input
@@ -66,7 +65,7 @@ const AvailabilityPicker = ({ value, onChange }: AvailabilityPickerProps) => {
               onChange={(e) =>
                 handleAvailabilityChange(day, "end", e.target.value)
               }
-              className="border border-gray-300 rounded p-1 w-24"
+              className="border border-gray-300 rounded p-1 w-md"
             />
           </div>
         ))}

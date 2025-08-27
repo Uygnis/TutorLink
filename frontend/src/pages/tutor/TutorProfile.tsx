@@ -5,7 +5,8 @@ import { UpdateTutorProfile, GetTutorProfile } from "@/api/tutorAPI";
 import { toast } from "react-toastify";
 import { useAppSelector } from "@/redux/store";
 import Navbar from "@/components/Navbar";
-import AvailabilityPicker from "./availability/AvailabilityPicker";
+import AvailabilityPicker from "../../components/AvailabilityPicker";
+import { TrashIcon } from "@heroicons/react/24/outline";
 
 const ViewTutorProfile = () => {
   const navigate = useNavigate();
@@ -71,14 +72,37 @@ const ViewTutorProfile = () => {
     },
   });
 
+  const handleDelete = (fileToDelete: File) => {
+    console.log(fileToDelete);
+    setProfile((prev) => ({
+      ...prev,
+      qualifications: prev.qualifications.filter(
+        (f) => !(f.name === fileToDelete.name && f.size === fileToDelete.size)
+      ),
+    }));
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+
+    console.log("Name ", name);
+    console.log("value ", value);
     setProfile((prev) => ({
       ...prev,
       [name as keyof TutorDetails]:
         name === "hourlyRate" ? Number(value) : value,
+    }));
+  };
+
+  const handleBlur = () => {
+    setProfile((prev) => ({
+      ...prev,
+      hourlyRate:
+        prev.hourlyRate < 0
+          ? prev.hourlyRate * -1
+          : Number(prev.hourlyRate.toFixed(2)),
     }));
   };
 
@@ -89,7 +113,16 @@ const ViewTutorProfile = () => {
       return;
     }
     console.log(profile);
-    await UpdateTutorProfile(user.token, profile.userId, profile);
+    const formData = new FormData();
+    formData.append("userId", profile.userId);
+    formData.append("hourlyRate", profile.hourlyRate.toString());
+    formData.append("subject", profile.subject);
+    formData.append("availability", JSON.stringify(profile.availability));
+    profile.qualifications.forEach((file) => {
+      formData.append(`qualifications`, file);
+    });
+
+    await UpdateTutorProfile(user.token, profile.userId, formData);
     toast.success("Profile updated successfully");
   };
 
@@ -117,8 +150,8 @@ const ViewTutorProfile = () => {
                 placeholder="Enter name"
               />
             </div>
-
             <div>
+              <label className="block text-sm font-medium">Availability</label>
               <AvailabilityPicker
                 value={profile.availability}
                 onChange={(newAvailability) =>
@@ -139,8 +172,11 @@ const ViewTutorProfile = () => {
                 name="hourlyRate"
                 value={profile.hourlyRate}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className="mt-1 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none"
                 placeholder="Enter rate"
+                min={0}
+                step={0.01}
               />
             </div>
 
@@ -182,7 +218,20 @@ const ViewTutorProfile = () => {
               {/* Preview of uploaded files */}
               <ul className="mt-2 text-sm text-gray-700">
                 {profile.qualifications.map((file, idx) => (
-                  <li key={idx}>📄 {file.name}</li>
+                  <li key={idx}>
+                    <div className="flex justify-between items-center">
+                      📄 {file.name}
+                      <span>
+                        <button
+                          type="button"
+                          className="p-2 rounded-lg hover:bg-red-100 text-red-500"
+                          onClick={() => handleDelete(file)}
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
+                      </span>
+                    </div>
+                  </li>
                 ))}
               </ul>
             </div>
