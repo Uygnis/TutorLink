@@ -1,5 +1,8 @@
 package com.csy.springbootauthbe.user.utils;
 
+import java.util.List;
+
+import com.csy.springbootauthbe.admin.entity.Permissions;
 import com.csy.springbootauthbe.user.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,4 +23,7 @@ public class RegisterRequest {
     // Student-specific fields
     private String studentNumber;
     private String gradeLevel;
+
+    // Admin-specific fields
+    private List<Permissions> permissions;
 }

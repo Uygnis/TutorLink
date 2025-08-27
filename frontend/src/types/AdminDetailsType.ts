@@ -1,0 +1,4 @@
+interface AdminDetails {
+    permissions: String[]
+  }
+  
