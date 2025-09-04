@@ -6,7 +6,6 @@ import com.csy.springbootauthbe.tutor.entity.QualificationFile;
 import com.csy.springbootauthbe.tutor.service.TutorService;
 import com.csy.springbootauthbe.tutor.utils.TutorRequest;
 import com.csy.springbootauthbe.tutor.utils.TutorResponse;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 @RestController
@@ -35,13 +36,19 @@ public class TutorController {
                                                      @RequestParam("hourlyRate") Integer hourlyRate,
                                                      @RequestParam("subject") String subject,
                                                      @RequestParam("availability") String availabilityJson,
-                                                     @RequestParam("qualifications") List<MultipartFile> qualifications) throws JsonProcessingException {
+                                                     @RequestParam(value  = "qualifications", required = false) String qualificationsJson,
+                                                     @RequestParam(value  = "fileUploads", required = false) List<MultipartFile> fileUploads) throws IOException, NoSuchAlgorithmException {
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Availability> availability =
                 mapper.readValue(availabilityJson, new TypeReference<>() {});
+        List<QualificationFile> qualifications = mapper.readValue(
+                qualificationsJson,
+                new TypeReference<>() {}
+        );
         TutorRequest request = new TutorRequest();
         request.setQualifications(qualifications);
+        request.setFileUploads(fileUploads);
         request.setAvailability(availability);
         request.setHourlyRate(hourlyRate.doubleValue());
         request.setSubject(subject);

@@ -16,4 +16,7 @@ public class QualificationFile {
     private String type;   // "pdf", "jpg", "png"
     private String path;        // S3/Cloud URL or GridFS ID
     private Date uploadedAt;
+    private Date updatedAt;
+    private String hash;
+    private boolean isDeleted;
 }

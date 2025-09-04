@@ -19,6 +19,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -47,10 +49,12 @@ public class TutorServiceTest {
     @BeforeEach
     void setUp() {
         ArrayList<MultipartFile> files = new ArrayList<>();
+        ArrayList<QualificationFile> qualificationFiles = new ArrayList<>();
 
         tutorEntity = new Tutor();
         tutorEntity.setId("t1");
         tutorEntity.setUserId("user123");
+        tutorEntity.setQualifications(qualificationFiles);
 
         tutorDTO = new TutorDTO();
         tutorDTO.setId("t1");
@@ -59,7 +63,8 @@ public class TutorServiceTest {
         tutorRequest = new TutorRequest();
         tutorRequest.setUserId(tutorDTO.getUserId());
         tutorRequest.setHourlyRate(10d);
-        tutorRequest.setQualifications(files);
+        tutorRequest.setFileUploads(files);
+        tutorRequest.setQualifications(qualificationFiles);
 
         tutorResponse = new TutorResponse();
         tutorResponse.setId("t1");
@@ -119,7 +124,7 @@ public class TutorServiceTest {
     }
 
     @Test
-    void updateTutor_shouldReturnTutorResponse() {
+    void updateTutor_shouldReturnTutorResponse() throws NoSuchAlgorithmException, IOException {
         // prepare
         when(tutorRepository.findByUserId(tutorRequest.getUserId()))
                 .thenReturn(Optional.of(tutorEntity));

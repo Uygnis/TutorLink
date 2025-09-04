@@ -8,6 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -20,23 +22,29 @@ public class AwsService {
     @Value("${aws.s3.bucket}")
     private String bucketName;
 
-    public String uploadFile(MultipartFile file, String folder) {
-        String key = folder + "/" + UUID.randomUUID() + "-" + file.getOriginalFilename();
-
+    public AwsResponse uploadFile(MultipartFile file, String folder) {
+        String key = folder + "/" + file.getOriginalFilename();
+        AwsResponse res = new AwsResponse();
         try {
-            s3Client.putObject(
+            PutObjectResponse response =s3Client.putObject(
                     PutObjectRequest.builder()
                             .bucket(bucketName)
                             .key(key)
                             .contentType(file.getContentType())
                             .contentLength(file.getSize())
+                            .checksumAlgorithm(ChecksumAlgorithm.SHA256)
                             .build(),
                     RequestBody.fromInputStream(file.getInputStream(), file.getSize())
             );
+
+            res.setHash(response.checksumSHA256());
+            res.setKey(key);
         } catch (IOException e) {
             throw new RuntimeException("Failed to upload file", e);
         }
 
-        return key; // or s3Client.utilities().getUrl(...) to get full URL
+        return res; // or s3Client.utilities().getUrl(...) to get full URL
     }
+
+
 }
