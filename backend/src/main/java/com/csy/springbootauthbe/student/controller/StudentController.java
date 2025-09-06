@@ -1,6 +1,7 @@
 package com.csy.springbootauthbe.student.controller;
 
 import com.csy.springbootauthbe.student.dto.StudentDTO;
+import com.csy.springbootauthbe.student.dto.TutorProfileDTO;
 import com.csy.springbootauthbe.student.service.StudentService;
 import com.csy.springbootauthbe.student.utils.TutorSearchRequest;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +27,17 @@ public class StudentController {
     }
 
     @PostMapping("/search")
-    public List<Document> searchTutors(@RequestBody TutorSearchRequest request) {
+    public List<TutorProfileDTO> searchTutors(@RequestBody TutorSearchRequest request) {
         return studentService.searchTutors(request);
     }
+
+    @GetMapping("/tutors/{id}")
+    public ResponseEntity<TutorProfileDTO> getTutorById(@PathVariable String id) {
+        return studentService.getTutorById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+
 
 }

@@ -5,8 +5,8 @@ import com.csy.springbootauthbe.student.dto.StudentDTO;
 import java.util.List;
 import java.util.Optional;
 
+import com.csy.springbootauthbe.student.dto.TutorProfileDTO;
 import com.csy.springbootauthbe.student.utils.TutorSearchRequest;
-import org.bson.Document;
 
 public interface StudentService {
 
@@ -14,6 +14,8 @@ public interface StudentService {
 
     Optional<StudentDTO> getStudentByUserId(String userId);
 
-    List<Document> searchTutors(TutorSearchRequest req);
+    List<TutorProfileDTO> searchTutors(TutorSearchRequest req);
+    Optional<TutorProfileDTO> getTutorById(String tutorId);
+
 
 }

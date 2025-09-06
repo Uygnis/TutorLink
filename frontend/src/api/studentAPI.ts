@@ -20,3 +20,9 @@ export const SearchTutors = async (
     headers: { Authorization: `Bearer ${authtoken}` },
   });
 };
+
+export const GetTutorById = async (id: string, authtoken: string): Promise<AxiosResponse<any>> => {
+  return await axios.get(`${BASE_URL}/tutors/${id}`, {
+    headers: { Authorization: `Bearer ${authtoken}` },
+  });
+};

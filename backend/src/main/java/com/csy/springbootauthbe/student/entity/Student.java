@@ -12,12 +12,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Student {
 
     @Id
-    private String id;
-
-    // Reference to User document for login credentials
-    private String userId;
-
-    // Student-specific details
+    private String id; // // MongoDB _id
+    private String userId; // Reference to User document for login credentials
     private String studentNumber;
     private String gradeLevel;
 

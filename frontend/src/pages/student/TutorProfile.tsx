@@ -1,0 +1,151 @@
+import Navbar from "@/components/Navbar";
+import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { GetTutorById } from "@/api/studentAPI";
+import { useAppSelector } from "@/redux/store";
+import AvailabilityCalendar from "@/components/AvailabilityCalendar";
+
+const TutorProfile = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAppSelector((state) => state.user);
+
+  const [tutor, setTutor] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTutor = async () => {
+      if (!id || !user?.token) return;
+
+      try {
+        const res = await GetTutorById(id, user.token);
+        const data = res.data;
+
+        const tutorWithDefaults = {
+          ...data,
+          description:
+            data.description ||
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+          rating: data.rating ?? 4.5,
+          studentsCount: data.studentsCount ?? 20,
+          lessonsCount: data.lessonsCount ?? 50,
+          lessonTypes: data.lessonTypes ?? ["Beginner Lesson", "Advanced Lesson"],
+          reviews: data.reviews ?? [
+            {
+              studentName: "Alice Tan",
+              rating: 5,
+              comment: "Great tutor!",
+            },
+          ],
+        };
+
+        console.log("data", tutorWithDefaults);
+        setTutor(tutorWithDefaults);
+      } catch (err) {
+        console.error("Failed to fetch tutor:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTutor();
+  }, [id, user]);
+
+  const handleSlotClick = (date: Date, slot: { start: string; end: string }) => {
+    alert(`Selected: ${date.toDateString()} | ${slot.start} - ${slot.end}`);
+  };
+
+  if (loading) return <p className="text-center mt-8">Loading...</p>;
+  if (!tutor) return <p className="text-center mt-8">Tutor not found</p>;
+
+  return (
+    <div>
+      <Navbar />
+      <div className="min-h-screen bg-[#f9f9f9] p-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
+          ← Back
+        </button>
+
+        {/* Tutor Profile */}
+        <div className="bg-white rounded-lg shadow-md mb-6 p-6 flex flex-col md:flex-row gap-6">
+          <img
+            src={tutor.profileImage || "/src/assets/tutor.jpg"}
+            alt={tutor.firstname}
+            className="w-32 h-32 rounded-full object-cover border shadow"
+          />
+          <div>
+            <h1 className="text-3xl font-bold">
+              {tutor.firstname} {tutor.lastname}
+            </h1>
+            <p className="text-gray-600 mt-3">{tutor.description}</p>
+
+            {/* Subjects with Badge Style */}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-gray-700">Subject:</span>
+              {tutor.subject?.split(",").map((sub: string, idx: number) => (
+                <span
+                  key={idx}
+                  className="bg-blue-100 text-blue-800 text-sm font-semibold px-2 py-1 rounded-full">
+                  {sub.trim()}
+                </span>
+              ))}
+            </div>
+
+            <p className="mt-3 text-primary font-bold text-xl">SGD {tutor.hourlyRate}/hr</p>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="bg-white rounded-lg shadow-md mb-6 p-6 grid grid-cols-3 text-center gap-4">
+          <div>
+            <p className="text-2xl font-bold">{tutor.rating} ⭐</p>
+            <p className="text-gray-500">Rating</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{tutor.studentsCount}</p>
+            <p className="text-gray-500">Students</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{tutor.lessonsCount}</p>
+            <p className="text-gray-500">Lessons</p>
+          </div>
+        </div>
+
+        {/* Lesson Types */}
+        <div className="bg-white rounded-lg shadow-md mb-6 p-6">
+          <h2 className="text-xl font-semibold mb-3">Lesson Types</h2>
+          <ul className="list-disc pl-5 text-gray-700">
+            {tutor.lessonTypes.map((type: string, idx: number) => (
+              <li key={idx}>{type}</li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Availability Calendar */}
+        <AvailabilityCalendar availability={tutor.availability} onSlotClick={handleSlotClick} />
+
+        {/* Reviews */}
+        <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+          <h2 className="text-xl font-semibold mb-3">Student Reviews</h2>
+          {tutor.reviews.length > 0 ? (
+            <div className="space-y-4">
+              {tutor.reviews.map((review: any, idx: number) => (
+                <div key={idx} className="border-b pb-3">
+                  <p className="font-semibold">{review.studentName}</p>
+                  <p className="text-yellow-500">{review.rating} ⭐</p>
+                  <p className="text-gray-700">{review.comment}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">No reviews yet.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TutorProfile;

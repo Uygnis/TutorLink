@@ -4,6 +4,7 @@ import { SearchTutors } from "@/api/studentAPI";
 import { TutorSearchRequest, Tutor } from "@/types/TutorSearchRequest";
 import { useAppSelector } from "@/redux/store";
 import { Range } from "react-range";
+import { useNavigate } from "react-router-dom";
 
 const STEP = 1;
 const MIN = 0;
@@ -20,6 +21,7 @@ const FindTutor = () => {
   const [filtersCleared, setFiltersCleared] = useState(false);
 
   const { user } = useAppSelector((state) => state.user);
+  const navigate = useNavigate();
 
   // Fetch all tutors on page load
   useEffect(() => {
@@ -210,7 +212,7 @@ const FindTutor = () => {
 
             {tutorResults.map((tutor) => (
               <div
-                key={tutor._id?.toString()}
+                key={tutor.id?.toString()}
                 className="bg-white rounded-lg shadow-md p-5 flex flex-col justify-between h-full">
                 <div>
                   <h3 className="text-xl font-semibold">
@@ -232,7 +234,9 @@ const FindTutor = () => {
 
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-xl font-bold text-primary">SGD {tutor.hourlyRate}/hr</span>
-                  <button className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/80 transition">
+                  <button
+                    onClick={() => navigate(`/student/view-tutor/${tutor.id?.toString()}`)}
+                    className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/80 transition">
                     View Profile
                   </button>
                 </div>

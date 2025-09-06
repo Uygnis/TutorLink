@@ -8,22 +8,23 @@ import { setUser } from "@/redux/userSlice";
 // Pages
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
-import Register from "./pages/Register";
+import Register from "@/pages/Register";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import UserDashboard from "@/pages/user/UserDashboard";
 import StudentDashboard from "@/pages/student/StudentDashboard";
 import TutorDashboard from "@/pages/tutor/TutorDashboard";
 import FindTutor from "@/pages/student/FindTutor";
+import ManageTutors from "@/pages/admin/ManageTutors";
+import ManageStudents from "@/pages/admin/ManageStudents";
+import ViewTutorProfile from "@/pages/tutor/TutorProfile";
+import ManageAdmins from "@/pages/admin/ManageAdmins";
+import TutorProfile from "@/pages/student/TutorProfile";
 
 //Component
 import Loading from "@/components/Loading";
 import AdminRoute from "@/components/routes/AdminRoute";
 import UserRoute from "@/components/routes/UserRoute";
 import StudentRoute from "@/components/routes/StudentRoute";
-import ManageTutors from "./pages/admin/ManageTutors";
-import ManageStudents from "./pages/admin/ManageStudents";
-import ViewTutorProfile from "./pages/tutor/TutorProfile";
-import ManageAdmins from "./pages/admin/ManageAdmins";
 
 function App() {
   // Redux
@@ -71,6 +72,7 @@ function App() {
           <Route element={<StudentRoute />}>
             <Route path="/student/dashboard" element={<StudentDashboard />} />
             <Route path="/student/find-tutor" element={<FindTutor />} />
+            <Route path="/student/view-tutor/:id" element={<TutorProfile />} />
           </Route>
         </Routes>
       </Router>
