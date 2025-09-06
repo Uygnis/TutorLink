@@ -11,7 +11,7 @@ export type DayAvailability = {
 };
 
 export interface Tutor {
-  _id: string;
+  id: string;
   firstname: string;
   lastname: string;
   subject: string;
