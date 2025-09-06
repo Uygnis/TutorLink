@@ -1,6 +1,7 @@
 package com.csy.springbootauthbe.tutor.utils;
 
 import com.csy.springbootauthbe.tutor.entity.Availability;
+import com.csy.springbootauthbe.tutor.entity.QualificationFile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +19,8 @@ public class TutorRequest {
     private String userId;
     private String subject;
     private Double hourlyRate;
-    private List<MultipartFile> qualifications;
+    private List<MultipartFile> fileUploads;
+    private List<QualificationFile> qualifications;
     private Map<String, Availability> availability;
 }
 
