@@ -1,5 +1,6 @@
 package com.csy.springbootauthbe.tutor.service;
 
+import com.csy.springbootauthbe.common.aws.AwsResponse;
 import com.csy.springbootauthbe.common.aws.AwsService;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
 import com.csy.springbootauthbe.tutor.entity.QualificationFile;
@@ -13,9 +14,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Optional;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+
 
 @Service
 @RequiredArgsConstructor
@@ -38,27 +41,75 @@ public class TutorServiceImpl implements TutorService {
     }
 
     @Override
-    public TutorResponse updateTutor(String userId, TutorRequest updatedData) {
+    public TutorResponse updateTutor(String userId, TutorRequest updatedData)
+            throws NoSuchAlgorithmException, IOException {
+
         Tutor tutor = tutorRepository.findByUserId(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("Tutor not found"));
+
         tutor.setHourlyRate(updatedData.getHourlyRate());
-        ArrayList<QualificationFile> qualifications = new ArrayList<>();
-        for(MultipartFile file : updatedData.getQualifications()){
-            String awsFileLocKey = awsService.uploadFile(file, userId);
-
-            QualificationFile qFile = new QualificationFile();
-            qFile.setName(file.getOriginalFilename());
-            qFile.setType(file.getContentType());
-            qFile.setUploadedAt(new Date());
-            qFile.setPath(awsFileLocKey);
-            qualifications.add(qFile);
-
-        }
-        tutor.setQualifications(qualifications);
         tutor.setAvailability(updatedData.getAvailability());
 
+        List<QualificationFile> qualifications = tutor.getQualifications();
+        Set<String> newHashes = new HashSet<>();
+
+        // Handle new file uploads
+        if (updatedData.getFileUploads() != null) {
+            for (MultipartFile file : updatedData.getFileUploads()) {
+                String hash = hash(file);
+
+                // Add hash to newHashes set
+                newHashes.add(hash);
+
+                // Only upload if not already in DB
+                boolean exists = qualifications.stream()
+                        .anyMatch(f -> f.getHash().equals(hash));
+                if (!exists) {
+                    QualificationFile qFile = new QualificationFile();
+                    qFile.setName(file.getOriginalFilename());
+                    qFile.setType(file.getContentType());
+                    qFile.setUploadedAt(new Date());
+                    qFile.setHash(hash);
+
+                    AwsResponse awsRes = awsService.uploadFile(file, userId);
+                    qFile.setPath(awsRes.getKey());
+                    qFile.setDeleted(false);
+
+                    qualifications.add(qFile);
+                }
+            }
+        }
+
+        //include existing metadata from updatedData
+        if (updatedData.getQualifications() != null) {
+            for (QualificationFile metaFile : updatedData.getQualifications()) {
+                newHashes.add(metaFile.getHash());
+            }
+        }
+
+        // Update deleted status
+        for (QualificationFile oldFile : qualifications) {
+            oldFile.setDeleted(!newHashes.contains(oldFile.getHash()));
+            if (!oldFile.isDeleted() && oldFile.getUpdatedAt() != null) {
+                oldFile.setUpdatedAt(null); // reset deletedAt if file is now active
+            } else if (oldFile.isDeleted() && oldFile.getUpdatedAt() == null) {
+                oldFile.setUpdatedAt(new Date()); // mark deletion timestamp
+            }
+        }
+
+        tutor.setQualifications(qualifications);
+
         tutorRepository.save(tutor);
+
         return createTutorResponse(tutor);
+    }
+
+
+
+    private String hash(MultipartFile file) throws NoSuchAlgorithmException, IOException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(file.getBytes());
+        return Base64.getEncoder().encodeToString(hash);
     }
 
     @Override

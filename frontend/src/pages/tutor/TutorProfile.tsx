@@ -24,6 +24,7 @@ const ViewTutorProfile = () => {
     hourlyRate: 0,
     qualifications: [],
     availability: defaultAvailability,
+    fileUploads: [],
   };
 
   const [profile, setProfile] = useState<TutorDetails>(defaultProfile);
@@ -47,6 +48,7 @@ const ViewTutorProfile = () => {
           qualifications:
             res.data.qualifications || defaultProfile.qualifications, // files handled separately
           availability: res.data.availability || defaultProfile.availability,
+          fileUploads: [],
         };
         setProfile(newProfile);
         console.log("Fetched profile:", newProfile);
@@ -58,10 +60,24 @@ const ViewTutorProfile = () => {
   }, [user]);
 
   const onDrop = (acceptedFiles: File[]) => {
-    setProfile((prev) => ({
-      ...prev,
-      qualifications: [...prev.qualifications, ...acceptedFiles],
-    }));
+    setProfile((prev) => {
+      // existing files
+      const existingFiles = prev.fileUploads;
+      const existingMetas = prev.qualifications;
+
+      // filter new files, skip duplicates by name + size
+      const newOnes = acceptedFiles.filter(
+        (file) =>
+          !existingFiles.some(
+            (f) => f.name === file.name && f.size === file.size
+          ) && !existingMetas.some((f) => f.name === file.name) // metadata only has name
+      );
+
+      return {
+        ...prev,
+        fileUploads: [...existingFiles, ...newOnes],
+      };
+    });
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -76,8 +92,19 @@ const ViewTutorProfile = () => {
     console.log(fileToDelete);
     setProfile((prev) => ({
       ...prev,
-      qualifications: prev.qualifications.filter(
+      fileUploads: prev.fileUploads.filter(
         (f) => !(f.name === fileToDelete.name && f.size === fileToDelete.size)
+      ),
+    }));
+  };
+
+  const handleQualificationDelete = (fileToDelete: QualificationFileType) => {
+    console.log(fileToDelete);
+    setProfile((prev) => ({
+      ...prev,
+      qualifications: prev.qualifications.filter(
+        (f: QualificationFileType) =>
+          !(f.name === fileToDelete.name && f.hash === fileToDelete.hash)
       ),
     }));
   };
@@ -118,9 +145,10 @@ const ViewTutorProfile = () => {
     formData.append("hourlyRate", profile.hourlyRate.toString());
     formData.append("subject", profile.subject);
     formData.append("availability", JSON.stringify(profile.availability));
-    profile.qualifications.forEach((file) => {
-      formData.append(`qualifications`, file);
+    profile.fileUploads.forEach((file) => {
+      formData.append(`fileUploads`, file);
     });
+    formData.append(`qualifications`, JSON.stringify(profile.qualifications));
 
     await UpdateTutorProfile(user.token, profile.userId, formData);
     toast.success("Profile updated successfully");
@@ -217,7 +245,7 @@ const ViewTutorProfile = () => {
 
               {/* Preview of uploaded files */}
               <ul className="mt-2 text-sm text-gray-700">
-                {profile.qualifications.map((file, idx) => (
+                {profile.fileUploads.map((file, idx) => (
                   <li key={idx}>
                     <div className="flex justify-between items-center">
                       📄 {file.name}
@@ -233,6 +261,26 @@ const ViewTutorProfile = () => {
                     </div>
                   </li>
                 ))}
+                {profile.qualifications.map((file, idx) =>
+                  !file.deleted ? (
+                    <li key={idx}>
+                      <div className="flex justify-between items-center">
+                        📄 {file.name}
+                        <span>
+                          <button
+                            type="button"
+                            className="p-2 rounded-lg hover:bg-red-100 text-red-500"
+                            onClick={() => handleQualificationDelete(file)}
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </span>
+                      </div>
+                    </li>
+                  ) : (
+                    <li></li>
+                  )
+                )}
               </ul>
             </div>
 
