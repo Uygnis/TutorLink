@@ -1,5 +1,6 @@
 package com.csy.springbootauthbe.student.service;
 
+import com.csy.springbootauthbe.common.sequence.SequenceGeneratorService;
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.entity.Student;
 import com.csy.springbootauthbe.student.mapper.StudentMapper;
@@ -23,15 +24,22 @@ public class StudentServiceImpl implements StudentService {
     private final StudentRepository studentRepository;
     private final StudentMapper studentMapper;
     private final MongoTemplate mongoTemplate;
+    private final SequenceGeneratorService sequenceGenerator;
 
     @Override
     public StudentDTO createStudent(StudentDTO studentDTO) {
         log.info("Creating student with data: {}", studentDTO);
+
+        // generate next student number here
+        String studentNumber = sequenceGenerator.getNextStudentId();
+        studentDTO.setStudentNumber(studentNumber);
+
         Student student = studentMapper.toEntity(studentDTO);
         Student saved = studentRepository.save(student);
         log.info("Student saved with ID: {}", saved.getId());
         return studentMapper.toDTO(saved);
     }
+
 
     @Override
     public Optional<StudentDTO> getStudentByUserId(String userId) {

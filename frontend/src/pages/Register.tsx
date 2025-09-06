@@ -5,10 +5,12 @@ import { useAppDispatch } from "@/redux/store";
 import { RegisterUser } from "@/api/userAPI";
 import { setLoading } from "@/redux/loaderSlice";
 import { toast } from "react-toastify";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getNextStudentId } from "@/api/sequenceAPI";
 
 const Register = () => {
   const [selectedRole, setSelectedRole] = useState("");
+  const [studentNumber, setStudentNumber] = useState("");
 
   const {
     register,
@@ -25,7 +27,7 @@ const Register = () => {
     const isValid = await trigger();
     if (!isValid) return;
 
-    const { firstname, lastname, email, password, role, studentNumber, gradeLevel, permissions } = getValues();
+    const { firstname, lastname, email, password, role, gradeLevel, permissions } = getValues();
 
     try {
       dispatch(setLoading(true));
@@ -51,6 +53,14 @@ const Register = () => {
       toast.error(error.message);
     }
   };
+
+  useEffect(() => {
+    if (selectedRole === "STUDENT") {
+      getNextStudentId()
+        .then((id) => setStudentNumber(id))
+        .catch((err) => console.error(err));
+    }
+  }, [selectedRole]);
 
   return (
     <div className="h-screen bg-primary flex items-center justify-center p-5 overflow-hidden">
@@ -151,11 +161,12 @@ const Register = () => {
                   className="mt-3 bg-gray-200 px-2 py-1 rounded-md w-full"
                   type="text"
                   placeholder="Student Number"
-                  {...register("studentNumber", { required: true })}
+                  value={studentNumber}
+                  readOnly
                 />
-                {errors.studentNumber && (
-                  <p className="mt-1 text-red-500 text-sm">Student Number is required.</p>
-                )}
+
+                {/* Hidden registered field */}
+                <input type="hidden" value={studentNumber} {...register("studentNumber")} />
 
                 <select
                   className="mt-3 bg-gray-200 px-2 py-1 rounded-md w-full"
@@ -188,11 +199,19 @@ const Register = () => {
                       <p className="font-medium text-gray-700">Student Management</p>
                       <div className="mt-2 space-y-2">
                         <label className="flex items-center space-x-2">
-                          <input type="checkbox" value="VIEW_STUDENTS" {...register("permissions")} />
+                          <input
+                            type="checkbox"
+                            value="VIEW_STUDENTS"
+                            {...register("permissions")}
+                          />
                           <span>View Students</span>
                         </label>
                         <label className="flex items-center space-x-2">
-                          <input type="checkbox" value="SUSPEND_STUDENT" {...register("permissions")} />
+                          <input
+                            type="checkbox"
+                            value="SUSPEND_STUDENT"
+                            {...register("permissions")}
+                          />
                           <span>Suspend Student</span>
                         </label>
                       </div>
@@ -207,7 +226,11 @@ const Register = () => {
                           <span>View Admins</span>
                         </label>
                         <label className="flex items-center space-x-2">
-                          <input type="checkbox" value="CREATE_ADMIN" {...register("permissions")} />
+                          <input
+                            type="checkbox"
+                            value="CREATE_ADMIN"
+                            {...register("permissions")}
+                          />
                           <span>Create Admin</span>
                         </label>
                       </div>
@@ -239,7 +262,6 @@ const Register = () => {
                 </div>
               </div>
             )}
-
 
             {/* Submit Button */}
             <button
