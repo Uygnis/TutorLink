@@ -75,7 +75,7 @@ public class AuthenticationService {
 
         // Create tutor entity if role is TUTOR
         if (userRole == Role.TUTOR) {
-            TutorDTO tutorDTO = TutorDTO.builder().userId(user.getId()).build();
+            TutorDTO tutorDTO = TutorDTO.builder().userId(user.getId()).subject(request.getSubject()).build();
             tutorService.createTutor(tutorDTO);
             logger.info("Tutor entity created for userId={}", user.getId());
         }

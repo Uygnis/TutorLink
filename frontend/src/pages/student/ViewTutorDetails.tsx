@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { GetTutorById } from "@/api/studentAPI";
 import { useAppSelector } from "@/redux/store";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
+import defaultProfile from "../../assets/default-profile-pic.jpg";
 
-const TutorProfile = () => {
+const ViewTutorDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.user);
@@ -25,11 +26,11 @@ const TutorProfile = () => {
           ...data,
           description:
             data.description ||
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
           rating: data.rating ?? 4.5,
           studentsCount: data.studentsCount ?? 20,
           lessonsCount: data.lessonsCount ?? 50,
-          lessonTypes: data.lessonTypes ?? ["Beginner Lesson", "Advanced Lesson"],
+          lessonType: data.lessonType ?? ["Beginner Lesson", "Advanced Lesson"],
           reviews: data.reviews ?? [
             {
               studentName: "Alice Tan",
@@ -68,32 +69,67 @@ const TutorProfile = () => {
           ← Back
         </button>
 
-        {/* Tutor Profile */}
-        <div className="bg-white rounded-lg shadow-md mb-6 p-6 flex flex-col md:flex-row gap-6">
-          <img
-            src={tutor.profileImage || "/src/assets/tutor.jpg"}
-            alt={tutor.firstname}
-            className="w-32 h-32 rounded-full object-cover border shadow"
-          />
-          <div>
-            <h1 className="text-3xl font-bold">
-              {tutor.firstname} {tutor.lastname}
-            </h1>
-            <p className="text-gray-600 mt-3">{tutor.description}</p>
+        {/* Tutor Profile + Qualifications */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
+          {/* Tutor Profile (60%) */}
+          <div className="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row gap-6 md:col-span-3 max-h-[320px]">
+            <img
+              src={tutor.profileImageUrl || defaultProfile}
+              alt={tutor.firstname}
+              className="w-32 h-32 rounded-full object-cover border shadow"
+            />
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold">
+                {tutor.firstname} {tutor.lastname}
+              </h1>
+              {/* Truncate description with ellipsis */}
+              <p className="text-gray-600 mt-3 line-clamp-6">{tutor.description}</p>
 
-            {/* Subjects with Badge Style */}
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-gray-700">Subject:</span>
-              {tutor.subject?.split(",").map((sub: string, idx: number) => (
-                <span
-                  key={idx}
-                  className="bg-blue-100 text-blue-800 text-sm font-semibold px-2 py-1 rounded-full">
-                  {sub.trim()}
-                </span>
-              ))}
+              {/* Subjects with Badge Style */}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-gray-700">Subject:</span>
+                {tutor.subject?.split(",").map((sub: string, idx: number) => (
+                  <span
+                    key={idx}
+                    className="bg-blue-100 text-blue-800 text-sm font-semibold px-2 py-1 rounded-full">
+                    {sub.trim()}
+                  </span>
+                ))}
+              </div>
+
+              <p className="mt-3 mb-4 text-primary font-bold text-xl">SGD {tutor.hourlyRate}/hr</p>
             </div>
+          </div>
 
-            <p className="mt-3 text-primary font-bold text-xl">SGD {tutor.hourlyRate}/hr</p>
+          {/* Qualifications (40%) */}
+          <div className="bg-white rounded-lg shadow-md p-6 md:col-span-2 max-h-[320px] overflow-y-auto">
+            <h2 className="text-xl font-semibold mb-3">Qualifications</h2>
+            {tutor.qualifications && tutor.qualifications.length > 0 ? (
+              <ul className="space-y-3">
+                {tutor.qualifications.map((q: any, idx: number) => (
+                  <li key={idx} className="border rounded-lg p-3 flex justify-between items-center">
+                    <div>
+                      <p className="font-semibold">{q.name}</p>
+                      <p className="text-gray-500 text-sm">{q.type}</p>
+                      {q.uploadedAt && (
+                        <p className="text-xs text-gray-400">
+                          Uploaded: {new Date(q.uploadedAt).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <a
+                      href={q.path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline text-sm">
+                      View
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No qualifications uploaded.</p>
+            )}
           </div>
         </div>
 
@@ -117,7 +153,7 @@ const TutorProfile = () => {
         <div className="bg-white rounded-lg shadow-md mb-6 p-6">
           <h2 className="text-xl font-semibold mb-3">Lesson Types</h2>
           <ul className="list-disc pl-5 text-gray-700">
-            {tutor.lessonTypes.map((type: string, idx: number) => (
+            {tutor.lessonType.map((type: string, idx: number) => (
               <li key={idx}>{type}</li>
             ))}
           </ul>
@@ -148,4 +184,4 @@ const TutorProfile = () => {
   );
 };
 
-export default TutorProfile;
+export default ViewTutorDetails;

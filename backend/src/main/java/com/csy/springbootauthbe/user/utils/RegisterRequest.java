@@ -26,4 +26,7 @@ public class RegisterRequest {
 
     // Admin-specific fields
     private List<Permissions> permissions;
+
+    // Tutor-specific fields
+    private String subject;
 }

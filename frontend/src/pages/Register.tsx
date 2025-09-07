@@ -27,7 +27,16 @@ const Register = () => {
     const isValid = await trigger();
     if (!isValid) return;
 
-    const { firstname, lastname, email, password, role, gradeLevel, permissions } = getValues();
+    const {
+      firstname,
+      lastname,
+      email,
+      password,
+      role,
+      gradeLevel,
+      permissions,
+      subject,
+    } = getValues();
 
     try {
       dispatch(setLoading(true));
@@ -40,6 +49,7 @@ const Register = () => {
         // Only send student fields if role is STUDENT
         ...(role === "STUDENT" && { studentNumber, gradeLevel }),
         ...(role === "ADMIN" && { permissions }),
+        ...(role === "TUTOR" && { subject }),
       });
       dispatch(setLoading(false));
 
@@ -73,7 +83,9 @@ const Register = () => {
               <CloudIcon className="h-6 w-6 text-gray-400" />
             </Link>
             <h1 className="font-bold text-xl">Register</h1>
-            <p className="text-sm text-gray-500">You will be redirected to the login page</p>
+            <p className="text-sm text-gray-500">
+              You will be redirected to the login page
+            </p>
           </div>
           {/* Register Form */}
           <form onSubmit={onSubmit} method="POST">
@@ -89,8 +101,10 @@ const Register = () => {
             />
             {errors.firstname && (
               <p className="mt-1 text-red-500 text-sm">
-                {errors.firstname.type === "required" && "This field is required."}
-                {errors.firstname.type === "maxLength" && "Max length is 100 char."}
+                {errors.firstname.type === "required" &&
+                  "This field is required."}
+                {errors.firstname.type === "maxLength" &&
+                  "Max length is 100 char."}
               </p>
             )}
             <input
@@ -104,8 +118,10 @@ const Register = () => {
             />
             {errors.lastname && (
               <p className="mt-1 text-red-500 text-sm">
-                {errors.lastname.type === "required" && "This field is required."}
-                {errors.lastname.type === "maxLength" && "Max length is 100 char."}
+                {errors.lastname.type === "required" &&
+                  "This field is required."}
+                {errors.lastname.type === "maxLength" &&
+                  "Max length is 100 char."}
               </p>
             )}
             <input
@@ -133,7 +149,8 @@ const Register = () => {
             />
             {errors.password && (
               <p className="mt-1 text-red-500 text-sm">
-                {errors.password.type === "required" && "This field is required."}
+                {errors.password.type === "required" &&
+                  "This field is required."}
               </p>
             )}
 
@@ -144,7 +161,8 @@ const Register = () => {
               defaultValue=""
               onChange={(e) => {
                 setSelectedRole(e.target.value);
-              }}>
+              }}
+            >
               <option value="" disabled>
                 Select role
               </option>
@@ -152,7 +170,9 @@ const Register = () => {
               <option value="STUDENT">Student</option>
               <option value="TUTOR">Tutor</option>
             </select>
-            {errors.role && <p className="mt-1 text-red-500 text-sm">Role is required.</p>}
+            {errors.role && (
+              <p className="mt-1 text-red-500 text-sm">Role is required.</p>
+            )}
 
             {/* Conditionally render student-specific fields */}
             {selectedRole === "STUDENT" && (
@@ -166,12 +186,17 @@ const Register = () => {
                 />
 
                 {/* Hidden registered field */}
-                <input type="hidden" value={studentNumber} {...register("studentNumber")} />
+                <input
+                  type="hidden"
+                  value={studentNumber}
+                  {...register("studentNumber")}
+                />
 
                 <select
                   className="mt-3 bg-gray-200 px-2 py-1 rounded-md w-full"
                   {...register("gradeLevel", { required: true })}
-                  defaultValue="">
+                  defaultValue=""
+                >
                   <option value="" disabled>
                     Select Grade Level
                   </option>
@@ -181,7 +206,9 @@ const Register = () => {
                   <option value="JC">JC</option>
                 </select>
                 {errors.gradeLevel && (
-                  <p className="mt-1 text-red-500 text-sm">Grade Level is required.</p>
+                  <p className="mt-1 text-red-500 text-sm">
+                    Grade Level is required.
+                  </p>
                 )}
               </>
             )}
@@ -196,7 +223,9 @@ const Register = () => {
                   <div className="space-y-6">
                     {/* Student Management */}
                     <div>
-                      <p className="font-medium text-gray-700">Student Management</p>
+                      <p className="font-medium text-gray-700">
+                        Student Management
+                      </p>
                       <div className="mt-2 space-y-2">
                         <label className="flex items-center space-x-2">
                           <input
@@ -219,10 +248,16 @@ const Register = () => {
 
                     {/* Admin Management (stacked under student) */}
                     <div>
-                      <p className="font-medium text-gray-700">Admin Management</p>
+                      <p className="font-medium text-gray-700">
+                        Admin Management
+                      </p>
                       <div className="mt-2 space-y-2">
                         <label className="flex items-center space-x-2">
-                          <input type="checkbox" value="VIEW_ADMIN" {...register("permissions")} />
+                          <input
+                            type="checkbox"
+                            value="VIEW_ADMIN"
+                            {...register("permissions")}
+                          />
                           <span>View Admins</span>
                         </label>
                         <label className="flex items-center space-x-2">
@@ -239,22 +274,40 @@ const Register = () => {
 
                   {/* Right Column (Tutor Management) */}
                   <div>
-                    <p className="font-medium text-gray-700">Tutor Management</p>
+                    <p className="font-medium text-gray-700">
+                      Tutor Management
+                    </p>
                     <div className="mt-2 space-y-2">
                       <label className="flex items-center space-x-2">
-                        <input type="checkbox" value="VIEW_TUTORS" {...register("permissions")} />
+                        <input
+                          type="checkbox"
+                          value="VIEW_TUTORS"
+                          {...register("permissions")}
+                        />
                         <span>View Tutors</span>
                       </label>
                       <label className="flex items-center space-x-2">
-                        <input type="checkbox" value="APPROVE_TUTOR" {...register("permissions")} />
+                        <input
+                          type="checkbox"
+                          value="APPROVE_TUTOR"
+                          {...register("permissions")}
+                        />
                         <span>Approve Tutor</span>
                       </label>
                       <label className="flex items-center space-x-2">
-                        <input type="checkbox" value="REJECT_TUTOR" {...register("permissions")} />
+                        <input
+                          type="checkbox"
+                          value="REJECT_TUTOR"
+                          {...register("permissions")}
+                        />
                         <span>Reject Tutor</span>
                       </label>
                       <label className="flex items-center space-x-2">
-                        <input type="checkbox" value="SUSPEND_TUTOR" {...register("permissions")} />
+                        <input
+                          type="checkbox"
+                          value="SUSPEND_TUTOR"
+                          {...register("permissions")}
+                        />
                         <span>Suspend Tutor</span>
                       </label>
                     </div>
@@ -263,10 +316,40 @@ const Register = () => {
               </div>
             )}
 
+            {/* Conditionally render tutor-specific fields */}
+            {selectedRole === "TUTOR" && (
+              <>
+                {/* Hidden registered field */}
+                <select
+                  className="mt-3 bg-gray-200 px-2 py-1 rounded-md w-full"
+                  {...register("subject", { required: true })}
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Select Subject
+                  </option>
+                  <option value="English">English</option>
+                  <option value="Mathematics">Mathematics</option>
+                  <option value="Biology">Biology</option>
+                  <option value="Chemistry">Chemistry</option>
+                  <option value="Physics">Physics</option>
+                  <option value="Geography">Geography</option>
+                  <option value="History">History</option>
+                  <option value="Literature">Literature</option>
+                </select>
+                {errors.subject && (
+                  <p className="mt-1 text-red-500 text-sm">
+                    Subject is required.
+                  </p>
+                )}
+              </>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
-              className="mt-3 rounded-lg bg-primary text-white w-full px-20 py-2 transition duration-500 hover:bg-gray-200 hover:text-primary ">
+              className="mt-3 rounded-lg bg-primary text-white w-full px-20 py-2 transition duration-500 hover:bg-gray-200 hover:text-primary "
+            >
               Submit
             </button>
           </form>

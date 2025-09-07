@@ -1,7 +1,7 @@
 package com.csy.springbootauthbe.user.utils;
 
 import com.csy.springbootauthbe.admin.util.AdminResponse;
-import com.csy.springbootauthbe.student.util.StudentResponse;
+import com.csy.springbootauthbe.student.utils.StudentResponse;
 import com.csy.springbootauthbe.tutor.utils.TutorResponse;
 import com.csy.springbootauthbe.user.entity.AccountStatus;
 import com.csy.springbootauthbe.user.entity.Role;

@@ -9,23 +9,23 @@ export const navConfig: Record<string, NavLink[]> = {
     {
       name: "Dashboard",
       path: "/admin/dashboard",
-      requiredPermissions: [] // always visible
+      requiredPermissions: [], // always visible
     },
     {
       name: "Students",
       path: "/admin/students",
-      requiredPermissions: ["VIEW_STUDENTS"]
+      requiredPermissions: ["VIEW_STUDENTS"],
     },
     {
       name: "Tutors",
       path: "/admin/tutors",
-      requiredPermissions: ["VIEW_TUTORS"]
+      requiredPermissions: ["VIEW_TUTORS"],
     },
     {
       name: "Admins",
       path: "/admin/admins",
-      requiredPermissions: ["VIEW_ADMIN"]
-    }
+      requiredPermissions: ["VIEW_ADMIN"],
+    },
   ],
   STUDENT: [
     { name: "Home", path: "/student/dashboard", requiredPermissions: [] },

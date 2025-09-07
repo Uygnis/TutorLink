@@ -3,7 +3,11 @@ export interface TutorSearchRequest {
   subject?: string;
   minPrice?: number;
   maxPrice?: number;
-  availability?: string; // e.g., MONDAY, WEEKDAY, EVENING
+  availability?: string;
+  description?: string;
+  lessonType?: string[];
+  profileImageUrl?: string;
+  qualifications?: QualificationFileType[];
 }
 
 export type DayAvailability = {
@@ -17,4 +21,8 @@ export interface Tutor {
   subject: string;
   hourlyRate: number;
   availability: DayAvailability;
+  description?: string;
+  lessonType?: string[];
+  profileImageUrl?: string;
+  qualifications?: QualificationFileType[];
 }
