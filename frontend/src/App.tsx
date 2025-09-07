@@ -18,7 +18,8 @@ import ManageTutors from "@/pages/admin/ManageTutors";
 import ManageStudents from "@/pages/admin/ManageStudents";
 import ViewTutorProfile from "@/pages/tutor/TutorProfile";
 import ManageAdmins from "@/pages/admin/ManageAdmins";
-import TutorProfile from "@/pages/student/TutorProfile";
+import ViewTutorDetails from "@/pages/student/ViewTutorDetails";
+import StudentProfile from "@/pages/student/StudentProfile";
 
 //Component
 import Loading from "@/components/Loading";
@@ -72,7 +73,8 @@ function App() {
           <Route element={<StudentRoute />}>
             <Route path="/student/dashboard" element={<StudentDashboard />} />
             <Route path="/student/find-tutor" element={<FindTutor />} />
-            <Route path="/student/view-tutor/:id" element={<TutorProfile />} />
+            <Route path="/student/view-tutor/:id" element={<ViewTutorDetails />} />
+            <Route path="/student/profile" element={<StudentProfile />} />
           </Route>
         </Routes>
       </Router>

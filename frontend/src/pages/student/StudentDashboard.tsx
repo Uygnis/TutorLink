@@ -4,9 +4,12 @@ import { GetStudentByUserId } from "@/api/studentAPI";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Navbar from "@/components/Navbar";
+import ProfilePicModal from "@/components/ProfilePicModal";
+import defaultProfile from "../../assets/default-profile-pic.jpg";
 
 const StudentDashboard = () => {
   const [studentDetails, setStudentDetails] = useState<StudentDetails | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { user } = useAppSelector((state) => state.user);
   const navigate = useNavigate();
@@ -20,6 +23,7 @@ const StudentDashboard = () => {
       }
 
       const response = await GetStudentByUserId(id, user.token);
+      console.log("student data", response.data);
       setStudentDetails(response.data);
     } catch (error: any) {
       toast.error("Failed to fetch student details");
@@ -73,6 +77,14 @@ const StudentDashboard = () => {
                 <h1 className="font-bold text-xl">Student Profile</h1>
                 {studentDetails ? (
                   <div className="mt-4 text-left">
+                    {/* Profile Picture */}
+                    <div className="flex justify-center mb-3">
+                      <img
+                        src={studentDetails.profileImageUrl || defaultProfile}
+                        alt="Profile"
+                        className="w-24 h-24 rounded-full object-cover border"
+                      />
+                    </div>
                     <p>
                       <strong>Full Name:</strong> {user?.name}
                     </p>
@@ -85,6 +97,26 @@ const StudentDashboard = () => {
                     <p>
                       <strong>Grade Level:</strong> {studentDetails.gradeLevel}
                     </p>
+
+                    {/* Edit Button */}
+                    <div className="mt-4 flex justify-center">
+                      <button
+                        onClick={() => navigate("/student/profile")}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                        Edit Profile
+                      </button>
+                      <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+                        Change Profile Pic
+                      </button>
+                    </div>
+                    {/* 🔹 Modal */}
+                    <ProfilePicModal
+                      isOpen={isModalOpen}
+                      onClose={() => setIsModalOpen(false)}
+                      refreshProfile={() => fetchStudentDetails(user!.id)}
+                    />
                   </div>
                 ) : (
                   <p>Loading student details...</p>

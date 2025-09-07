@@ -4,8 +4,9 @@ interface StudentDetails {
   email: string;
   studentNumber: string;
   gradeLevel: string;
+  profileImageUrl: string;
   student: {
     studentNumber: string;
     gradeLevel: string;
-  }
+  };
 }

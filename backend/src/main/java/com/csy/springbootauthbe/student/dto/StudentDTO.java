@@ -11,4 +11,5 @@ public class StudentDTO {
     private String userId;
     private String studentNumber;
     private String gradeLevel;
+    private String profileImageUrl;
 }

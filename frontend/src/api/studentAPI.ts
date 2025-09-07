@@ -26,3 +26,19 @@ export const GetTutorById = async (id: string, authtoken: string): Promise<Axios
     headers: { Authorization: `Bearer ${authtoken}` },
   });
 };
+
+export const UploadProfilePicture = async (
+  studentId: string,
+  file: File,
+  authtoken: string
+): Promise<AxiosResponse<any>> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return await axios.post(`${BASE_URL}/${studentId}/profile-picture`, formData, {
+    headers: {
+      Authorization: `Bearer ${authtoken}`,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};

@@ -5,7 +5,7 @@ import { GetTutorById } from "@/api/studentAPI";
 import { useAppSelector } from "@/redux/store";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 
-const TutorProfile = () => {
+const ViewTutorDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.user);
@@ -148,4 +148,4 @@ const TutorProfile = () => {
   );
 };
 
-export default TutorProfile;
+export default ViewTutorDetails;

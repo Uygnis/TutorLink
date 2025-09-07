@@ -1,4 +1,4 @@
-package com.csy.springbootauthbe.student.util;
+package com.csy.springbootauthbe.student.utils;
 
 
 import lombok.AllArgsConstructor;

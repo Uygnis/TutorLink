@@ -1,5 +1,7 @@
 package com.csy.springbootauthbe.student.service;
 
+import com.csy.springbootauthbe.common.aws.AwsResponse;
+import com.csy.springbootauthbe.common.aws.AwsService;
 import com.csy.springbootauthbe.common.sequence.SequenceGeneratorService;
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.dto.TutorProfileDTO;
@@ -15,6 +17,7 @@ import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.bson.types.ObjectId;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -27,6 +30,10 @@ public class StudentServiceImpl implements StudentService {
     private final StudentMapper studentMapper;
     private final MongoTemplate mongoTemplate;
     private final SequenceGeneratorService sequenceGenerator;
+    private final AwsService awsService;
+
+    private static final String DEFAULT_PROFILE_URL =
+            "https://tutorlink-s3.s3.us-east-1.amazonaws.com/profilePicture/default-profile-pic.jpg";
 
     @Override
     public StudentDTO createStudent(StudentDTO studentDTO) {
@@ -36,17 +43,21 @@ public class StudentServiceImpl implements StudentService {
         String studentNumber = sequenceGenerator.getNextStudentId();
         studentDTO.setStudentNumber(studentNumber);
 
+        // Set default profile pic
+        studentDTO.setProfileImageUrl(DEFAULT_PROFILE_URL);
+
         Student student = studentMapper.toEntity(studentDTO);
         Student saved = studentRepository.save(student);
         log.info("Student saved with ID: {}", saved.getId());
         return studentMapper.toDTO(saved);
     }
 
-
     @Override
     public Optional<StudentDTO> getStudentByUserId(String userId) {
-        log.debug("Fetching student by userId: {}", userId);
-        return studentRepository.findByUserId(userId).map(studentMapper::toDTO);
+        log.info("Fetching student by userId: {}", userId);
+        Optional<Student> studentOpt = studentRepository.findByUserId(userId);
+        studentOpt.ifPresent(student -> log.info("Found student entity: {}", student));
+        return studentOpt.map(studentMapper::toDTO);
     }
 
     @Override
@@ -137,7 +148,41 @@ public class StudentServiceImpl implements StudentService {
         return Optional.of(mapToTutorDTO(docs.get(0)));
     }
 
-    /* Helper Mapper */
+    @Override
+    public StudentDTO updateProfilePicture(String studentId, MultipartFile file) {
+        log.info("Updating profile picture for studentId: {}", studentId);
+
+        Student student = studentRepository.findByUserId(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        // Delete old profile picture if it's not default
+        if (student.getProfileImageUrl() != null &&
+                !student.getProfileImageUrl().equals(DEFAULT_PROFILE_URL)) {
+            String oldKey = awsService.extractKeyFromUrl(student.getProfileImageUrl());
+            if (oldKey != null) {
+                awsService.deleteProfilePic(oldKey);
+                log.info("Deleted old profile picture from S3: {}", oldKey);
+            }
+        }
+
+        // Upload new file and get hash + key
+        AwsResponse uploadRes = awsService.uploadProfilePic(file, "profilePicture");
+        String newKey = uploadRes.getKey();
+        String newHash = uploadRes.getHash();
+
+        // Construct public URL
+        String fileUrl = "https://" + awsService.bucketName + ".s3.amazonaws.com/" + newKey;
+        log.info("Uploaded new profile picture: {}, hash: {}", fileUrl, newHash);
+
+        student.setProfileImageUrl(fileUrl);
+
+        Student saved = studentRepository.save(student);
+        return studentMapper.toDTO(saved);
+    }
+
+
+
+    /* ======= Helper Methods  ====================================================== */
     private TutorProfileDTO mapToTutorDTO(Document doc) {
         TutorProfileDTO dto = new TutorProfileDTO();
         dto.setId(doc.getObjectId("_id").toHexString());
@@ -150,8 +195,6 @@ public class StudentServiceImpl implements StudentService {
     }
 
 
-
-    /* Helper Class */
     private static final Map<String, String> DAY_MAP = Map.ofEntries(
             Map.entry("MONDAY", "Mon"),
             Map.entry("TUESDAY", "Tue"),
