@@ -2,14 +2,16 @@ import { useState } from "react";
 import { useAppSelector } from "@/redux/store";
 import { toast } from "react-toastify";
 import { UploadProfilePicture } from "@/api/studentAPI";
+import { UploadTutorProfilePicture } from "@/api/tutorAPI";
 
 interface ProfilePicModalProps {
   isOpen: boolean;
   onClose: () => void;
   refreshProfile: () => void;
+  userType: "student" | "tutor";
 }
 
-const ProfilePicModal = ({ isOpen, onClose, refreshProfile }: ProfilePicModalProps) => {
+const ProfilePicModal = ({ isOpen, onClose, refreshProfile, userType }: ProfilePicModalProps) => {
   const { user } = useAppSelector((state) => state.user);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -30,7 +32,12 @@ const ProfilePicModal = ({ isOpen, onClose, refreshProfile }: ProfilePicModalPro
     }
 
     try {
-      await UploadProfilePicture(user.id, file, user.token);
+      if (userType === "student") {
+        await UploadProfilePicture(user.id, file, user.token);
+      } else {
+        await UploadTutorProfilePicture(user.id, file, user.token);
+      }
+
       toast.success("Profile picture updated!");
       onClose();
       refreshProfile();
@@ -39,7 +46,6 @@ const ProfilePicModal = ({ isOpen, onClose, refreshProfile }: ProfilePicModalPro
       toast.error("Failed to upload profile picture");
     }
   };
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-md shadow-md p-6 w-[400px] text-center relative">

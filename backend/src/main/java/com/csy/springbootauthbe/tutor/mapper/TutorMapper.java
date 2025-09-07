@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface TutorMapper {
 
+    @Mapping(source = "profileImageUrl", target = "profileImageUrl")
     @Mapping(target = "qualifications", expression = "java(filterQualifications(tutor.getQualifications()))")
     TutorDTO toDTO(Tutor tutor);
 

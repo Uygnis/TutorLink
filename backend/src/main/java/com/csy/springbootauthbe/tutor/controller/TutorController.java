@@ -1,5 +1,6 @@
 package com.csy.springbootauthbe.tutor.controller;
 
+import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
 import com.csy.springbootauthbe.tutor.entity.Availability;
 import com.csy.springbootauthbe.tutor.entity.QualificationFile;
@@ -62,6 +63,13 @@ public class TutorController {
         tutorService.deleteTutor(userId);
         return ResponseEntity.ok("Tutor info deleted successfully.");
     }
+
+    @PostMapping("/{id}/profile-picture")
+    public ResponseEntity<TutorDTO> uploadProfilePicture(@PathVariable String id,
+                                                           @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(tutorService.updateProfilePicture(id, file));
+    }
+
 
 
 }

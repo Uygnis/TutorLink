@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { GetTutorById } from "@/api/studentAPI";
 import { useAppSelector } from "@/redux/store";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
+import defaultProfile from "../../assets/default-profile-pic.jpg";
 
 const ViewTutorDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -71,9 +72,9 @@ const ViewTutorDetails = () => {
         {/* Tutor Profile + Qualifications */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
           {/* Tutor Profile (60%) */}
-          <div className="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row gap-6 md:col-span-3 max-h-[300px]">
+          <div className="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row gap-6 md:col-span-3 max-h-[320px]">
             <img
-              src={tutor.profileImage || "/src/assets/tutor.jpg"}
+              src={tutor.profileImageUrl || defaultProfile}
               alt={tutor.firstname}
               className="w-32 h-32 rounded-full object-cover border shadow"
             />
@@ -96,12 +97,12 @@ const ViewTutorDetails = () => {
                 ))}
               </div>
 
-              <p className="mt-3 text-primary font-bold text-xl">SGD {tutor.hourlyRate}/hr</p>
+              <p className="mt-3 mb-4 text-primary font-bold text-xl">SGD {tutor.hourlyRate}/hr</p>
             </div>
           </div>
 
           {/* Qualifications (40%) */}
-          <div className="bg-white rounded-lg shadow-md p-6 md:col-span-2 max-h-[300px] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-md p-6 md:col-span-2 max-h-[320px] overflow-y-auto">
             <h2 className="text-xl font-semibold mb-3">Qualifications</h2>
             {tutor.qualifications && tutor.qualifications.length > 0 ? (
               <ul className="space-y-3">

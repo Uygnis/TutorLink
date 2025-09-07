@@ -5,6 +5,7 @@ import { TutorSearchRequest, Tutor } from "@/types/TutorSearchRequest";
 import { useAppSelector } from "@/redux/store";
 import { Range } from "react-range";
 import { useNavigate } from "react-router-dom";
+import defaultProfile from "../../assets/default-profile-pic.jpg";
 
 const STEP = 1;
 const MIN = 0;
@@ -213,25 +214,45 @@ const FindTutor = () => {
             {tutorResults.map((tutor) => (
               <div
                 key={tutor.id?.toString()}
-                className="bg-white rounded-lg shadow-md p-5 flex flex-col justify-between h-full">
-                <div>
-                  <h3 className="text-xl font-semibold">
-                    {tutor.firstname} {tutor.lastname}
-                  </h3>
-                  <p className="text-md my-3">Teaches: {tutor.subject} </p>
-                  <p className="text-md">
-                    Available:{" "}
-                    {Object.entries(tutor.availability)
-                      .filter(([_, value]) => value.enabled)
-                      .map(([day, value]) => {
-                        // Format e.g. "Monday (09:00 - 17:00)"
-                        const dayName = day.charAt(0).toUpperCase() + day.slice(1).toLowerCase();
-                        return `${dayName} (${value.start} - ${value.end})`;
-                      })
-                      .join(", ")}
-                  </p>
+                className="bg-white rounded-lg shadow-md p-5 flex flex-col h-full">
+                {/* top area: 30% image, 70% details */}
+                <div className="flex flex-col md:flex-row gap-4 items-start">
+                  {/* Image (30%) */}
+                  <div className="flex-shrink-0 md:w-1/3 flex justify-center md:justify-start">
+                    <img
+                      src={tutor.profileImageUrl || defaultProfile}
+                      alt={`${tutor.firstname} ${tutor.lastname}`}
+                      className="w-24 h-24 rounded-full object-cover border shadow"
+                    />
+                  </div>
+
+                  {/* Details (70%) */}
+                  <div className="flex-1 md:w-2/3 flex flex-col">
+                    <div className="flex justify-between items-start gap-4">
+                      <div>
+                        <h3 className="text-xl font-semibold">
+                          {tutor.firstname} {tutor.lastname}
+                        </h3>
+                        <p className="text-md text-gray-600 mt-1">Teaches: {tutor.subject}</p>
+
+                        <p className="text-sm text-gray-600 mt-2">
+                          Available:&nbsp;
+                          {tutor.availability &&
+                            Object.entries(tutor.availability)
+                              .filter(([_, value]: any) => value.enabled)
+                              .map(([day, value]: any) => {
+                                const dayName =
+                                  day.charAt(0).toUpperCase() + day.slice(1).toLowerCase();
+                                return `${dayName} (${value.start} - ${value.end})`;
+                              })
+                              .join(", ")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
+                {/* bottom: rate + action */}
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-xl font-bold text-primary">SGD {tutor.hourlyRate}/hr</span>
                   <button

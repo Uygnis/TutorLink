@@ -111,11 +111,12 @@ const StudentDashboard = () => {
                         Change Profile Pic
                       </button>
                     </div>
-                    {/* 🔹 Modal */}
+                    {/* Modal */}
                     <ProfilePicModal
                       isOpen={isModalOpen}
                       onClose={() => setIsModalOpen(false)}
                       refreshProfile={() => fetchStudentDetails(user!.id)}
+                      userType="student"
                     />
                   </div>
                 ) : (
