@@ -24,5 +24,9 @@ public class Tutor {
     // List of uploaded qualifications
     private List<QualificationFile> qualifications;
     private Map<String, Availability> availability;
+
+    private String profileImageUrl;
+    private List<String> lessonType;
+    private String description;
 }
 

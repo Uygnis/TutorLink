@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Navbar from "@/components/Navbar";
 import { GetTutorProfile } from "@/api/tutorAPI";
+import Calendar from "@/components/calendar/Calendar";
 
 const TutorDashboard = () => {
   const [tutorDetails, setTutorDetails] = useState<TutorDetails | null>(null);
@@ -58,9 +59,12 @@ const TutorDashboard = () => {
             {/* Upcoming Sessions */}
             <div className="bg-white rounded-md shadow-md p-5">
               <h2 className="font-bold text-lg mb-3">Upcoming Sessions</h2>
-              <div className="h-40 flex items-center justify-center text-gray-400">
-                No upcoming sessions yet.
+              <div>
+                <Calendar />
               </div>
+              {/* <div className="h-40 flex items-center justify-center text-gray-400">
+                No upcoming sessions yet.
+              </div> */}
             </div>
 
             {/* Past Sessions */}
