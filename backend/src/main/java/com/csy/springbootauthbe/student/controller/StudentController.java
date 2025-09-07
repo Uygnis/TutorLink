@@ -24,17 +24,9 @@ public class StudentController {
 
     @GetMapping("/by-user/{userId}")
     public ResponseEntity<StudentDTO> getStudentByUserId(@PathVariable String userId) {
-        log.info("Controller: Fetching student for userId={}", userId);
-
         Optional<StudentDTO> studentOpt = studentService.getStudentByUserId(userId);
-
-        if (studentOpt.isPresent()) {
-            log.info("Controller: Found student DTO: {}", studentOpt.get());
-            return ResponseEntity.ok(studentOpt.get());
-        } else {
-            log.warn("Controller: No student found for userId={}", userId);
-            return ResponseEntity.notFound().build();
-        }
+        return studentOpt.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/search")
