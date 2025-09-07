@@ -5,6 +5,9 @@ type TutorDetails = {
   availability: DayAvailability;
   subject: string;
   qualifications: QualificationFileType[];
+  description?: string;
+  lessonType?: string[];
+  profileImageUrl?: string;
 };
 
 type TutorCredentials = {

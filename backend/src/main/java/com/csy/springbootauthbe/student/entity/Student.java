@@ -16,6 +16,7 @@ public class Student {
     private String userId; // Reference to User document for login credentials
     private String studentNumber;
     private String gradeLevel;
+    private String profileImageUrl; // S3 URL of profile picture
 
 }
 

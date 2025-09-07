@@ -27,3 +27,21 @@ export const GetTutorProfile = async (
   const api = getApiInstance(token);
   return await api.get(url);
 };
+
+export const UploadTutorProfilePicture = async (
+  tutorId: string,
+  file: File,
+  token: string
+): Promise<AxiosResponse<any>> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const api = getApiInstance(token);
+
+  return await api.post(`${BASE_URL}/${tutorId}/profile-picture`, formData, {
+    headers: {
+      ...api.defaults.headers.common,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
