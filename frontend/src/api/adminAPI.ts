@@ -11,29 +11,78 @@ export const GetAdminByUserId = async (
   });
 };
 
-export const GetAllTutors = async (userId:string, authtoken: string): Promise<AxiosResponse<any>> => {
+export const GetAllTutors = async (userId: string, authtoken: string): Promise<AxiosResponse<any>> => {
   return await axios.get(`${BASE_URL}/tutors/${userId}`, {
     headers: { Authorization: `Bearer ${authtoken}` },
   });
 };
 
-export const GetAllStudents = async (userId:string, authtoken: string): Promise<AxiosResponse<any>> => {
+export const GetAllStudents = async (userId: string, authtoken: string): Promise<AxiosResponse<any>> => {
   return await axios.get(`${BASE_URL}/students/${userId}`, {
     headers: { Authorization: `Bearer ${authtoken}` },
   });
 };
 
-export const GetAllAdmins = async (userId:string, authtoken: string): Promise<AxiosResponse<any>> => {
+export const GetAllAdmins = async (userId: string, authtoken: string): Promise<AxiosResponse<any>> => {
   return await axios.get(`${BASE_URL}/admins/${userId}`, {
     headers: { Authorization: `Bearer ${authtoken}` },
   });
 };
 
-
-export const DeleteUser = async (id: number, authtoken: string): Promise<AxiosResponse<any>> => {
-  return await axios.delete(`${BASE_URL}/${id}`, {
+export const SuspendUser = async (
+  adminId: any,
+  id: any,
+  authtoken: string,
+  role: string
+): Promise<AxiosResponse<any>> => {
+  const config = {
     headers: { Authorization: `Bearer ${authtoken}` },
-  });
+  };
+
+  if (role === "STUDENT") {
+    return await axios.put(`${BASE_URL}/suspendStudent/${adminId}/${id}`, {}, config);
+  } else if (role === "TUTOR") {
+    return await axios.put(`${BASE_URL}/suspendTutor/${adminId}/${id}`, {}, config);
+  } else {
+    return await axios.put(`${BASE_URL}/suspendAdmin/${adminId}/${id}`, {}, config);
+  }
 };
 
+export const ActivateUser = async (
+  adminId: any,
+  id: any,
+  authtoken: string,
+  role: string
+): Promise<AxiosResponse<any>> => {
+  const config = {
+    headers: { Authorization: `Bearer ${authtoken}` },
+  };
+
+  if (role === "STUDENT") {
+    return await axios.put(`${BASE_URL}/activateStudent/${adminId}/${id}`, {}, config);
+  } else if (role === "TUTOR") {
+    return await axios.put(`${BASE_URL}/activateTutor/${adminId}/${id}`, {}, config);
+  } else {
+    return await axios.put(`${BASE_URL}/activateAdmin/${adminId}/${id}`, {}, config);
+  }
+};
+
+export const DeleteUser = async (
+  adminId: any,
+  id: any,
+  authtoken: string,
+  role: string
+): Promise<AxiosResponse<any>> => {
+  const config = {
+    headers: { Authorization: `Bearer ${authtoken}` },
+  };
+
+  if (role === "STUDENT") {
+    return await axios.delete(`${BASE_URL}/student/${adminId}/${id}`, config);
+  } else if (role === "TUTOR") {
+    return await axios.delete(`${BASE_URL}/tutor/${adminId}/${id}`, config);
+  } else {
+    return await axios.delete(`${BASE_URL}/admin/${adminId}/${id}`, config);
+  }
+};
 

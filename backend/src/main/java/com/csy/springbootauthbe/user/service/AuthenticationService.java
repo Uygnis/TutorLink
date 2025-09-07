@@ -130,6 +130,16 @@ public class AuthenticationService {
                     return new IllegalArgumentException("User not found");
                 });
 
+        if (user.getStatus() == AccountStatus.SUSPENDED) {
+            logger.warn("Login blocked: User is suspended. userId={}", user.getId());
+            throw new RuntimeException("Your account has been suspended. Please contact support.");
+        }
+
+        if (user.getStatus() == AccountStatus.DELETED) {
+            logger.warn("Login blocked: User is deleted. userId={}", user.getId());
+            throw new RuntimeException("Your account has been deleted. Please contact support.");
+        }
+
         var jwtToken = jwtService.generateToken(user);
         logger.info("JWT generated for login: userId={}", user.getId());
 

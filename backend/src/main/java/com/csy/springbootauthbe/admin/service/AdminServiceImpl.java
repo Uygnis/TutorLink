@@ -62,19 +62,30 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public void suspendStudent(String adminUserId, String studentId) {
+    public String suspendStudent(String adminUserId, String studentId) {
         checkAdminWithPermission(adminUserId, Permissions.SUSPEND_STUDENT);
         User student = getUserOrThrow(studentId, Role.STUDENT);
         student.setStatus(AccountStatus.SUSPENDED);
         userRepository.save(student);
+        return studentId;
     }
 
     @Override
-    public void deleteStudent(String adminUserId, String studentId) {
+    public String activateStudent(String adminUserId, String studentId) {
+        checkAdminWithPermission(adminUserId, Permissions.SUSPEND_STUDENT);
+        User student = getUserOrThrow(studentId, Role.STUDENT);
+        student.setStatus(AccountStatus.ACTIVE);
+        userRepository.save(student);
+        return studentId;
+    }
+
+    @Override
+    public String deleteStudent(String adminUserId, String studentId) {
         checkAdminWithPermission(adminUserId, Permissions.DELETE_STUDENT);
         User student = getUserOrThrow(studentId, Role.STUDENT);
         student.setStatus(AccountStatus.DELETED);
         userRepository.save(student);
+        return studentId;
     }
 
     // -------------------------------
@@ -125,19 +136,30 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public void suspendTutor(String adminUserId, String tutorId) {
+    public String suspendTutor(String adminUserId, String tutorId) {
         checkAdminWithPermission(adminUserId, Permissions.SUSPEND_TUTOR);
         User tutor = getUserOrThrow(tutorId, Role.TUTOR);
         tutor.setStatus(AccountStatus.SUSPENDED);
         userRepository.save(tutor);
+        return tutorId;
     }
 
     @Override
-    public void deleteTutor(String adminUserId, String tutorId) {
+    public String activateTutor(String adminUserId, String tutorId) {
+        checkAdminWithPermission(adminUserId, Permissions.SUSPEND_TUTOR);
+        User tutor = getUserOrThrow(tutorId, Role.TUTOR);
+        tutor.setStatus(AccountStatus.ACTIVE);
+        userRepository.save(tutor);
+        return tutorId;
+    }
+
+    @Override
+    public String deleteTutor(String adminUserId, String tutorId) {
         checkAdminWithPermission(adminUserId, Permissions.DELETE_TUTOR);
         User tutor = getUserOrThrow(tutorId, Role.TUTOR);
         tutor.setStatus(AccountStatus.DELETED);
         userRepository.save(tutor);
+        return tutorId;
     }
 
     // -------------------------------
@@ -199,19 +221,30 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public void suspendAdmin(String adminUserId, String targetAdminId) {
+    public String suspendAdmin(String adminUserId, String targetAdminId) {
         checkAdminWithPermission(adminUserId, Permissions.SUSPEND_ADMIN);
         User target = getUserOrThrow(targetAdminId, Role.ADMIN);
         target.setStatus(AccountStatus.SUSPENDED);
         userRepository.save(target);
+        return targetAdminId;
     }
 
     @Override
-    public void deleteAdmin(String adminUserId, String targetAdminId) {
+    public String activateAdmin(String adminUserId, String targetAdminId) {
+        checkAdminWithPermission(adminUserId, Permissions.SUSPEND_ADMIN);
+        User target = getUserOrThrow(targetAdminId, Role.ADMIN);
+        target.setStatus(AccountStatus.ACTIVE);
+        userRepository.save(target);
+        return targetAdminId;
+    }
+
+    @Override
+    public String deleteAdmin(String adminUserId, String targetAdminId) {
         checkAdminWithPermission(adminUserId, Permissions.DELETE_ADMIN);
         User target = getUserOrThrow(targetAdminId, Role.ADMIN);
         target.setStatus(AccountStatus.DELETED);
         userRepository.save(target);
+        return targetAdminId;
     }
 
     // -------------------------------
