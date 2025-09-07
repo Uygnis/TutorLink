@@ -1,4 +1,4 @@
-package com.csy.springbootauthbe.config;
+package com.csy.springbootauthbe.common.wrapper;
 
 import com.csy.springbootauthbe.user.entity.AccountStatus;
 import com.csy.springbootauthbe.user.entity.User;

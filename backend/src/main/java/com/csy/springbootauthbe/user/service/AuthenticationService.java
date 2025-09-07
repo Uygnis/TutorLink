@@ -132,12 +132,12 @@ public class AuthenticationService {
 
         if (user.getStatus() == AccountStatus.SUSPENDED) {
             logger.warn("Login blocked: User is suspended. userId={}", user.getId());
-            throw new RuntimeException("Your account has been suspended. Please contact support.");
+            throw new RuntimeException("Your account has been suspended. Please contact administrator for support.");
         }
 
         if (user.getStatus() == AccountStatus.DELETED) {
             logger.warn("Login blocked: User is deleted. userId={}", user.getId());
-            throw new RuntimeException("Your account has been deleted. Please contact support.");
+            throw new RuntimeException("Your account has been deleted. Please contact administrator for support.");
         }
 
         var jwtToken = jwtService.generateToken(user);
