@@ -20,4 +20,7 @@ public class TutorDTO {
     private List<MultipartFile> files;
     private Map<String, Availability> availability;
     private String subject;
+    private String profileImageUrl;
+    private List<String> lessonType;
+    private String description;
 }
