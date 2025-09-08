@@ -13,9 +13,11 @@ public interface AdminService {
     // -------------------------------
     List<UserResponse> viewStudents(String adminUserId);
 
-    void suspendStudent(String adminUserId, String studentId);
+    String suspendStudent(String adminUserId, String studentId);
 
-    void deleteStudent(String adminUserId, String studentId);
+    String activateStudent(String adminUserId, String studentId);
+
+    String deleteStudent(String adminUserId, String studentId);
 
     // -------------------------------
     //  Tutor Management
@@ -26,9 +28,11 @@ public interface AdminService {
 
     void rejectTutor(String adminUserId, String tutorId);
 
-    void suspendTutor(String adminUserId, String tutorId);
+    String suspendTutor(String adminUserId, String tutorId);
 
-    void deleteTutor(String adminUserId, String tutorId);
+    String activateTutor(String adminUserId, String tutorId);
+
+    String deleteTutor(String adminUserId, String tutorId);
 
     // -------------------------------
     //  Admin Management
@@ -46,7 +50,9 @@ public interface AdminService {
 
     void editAdminRoles(String adminUserId, String targetAdminId, List<Permissions> newPermissions);
 
-    void suspendAdmin(String adminUserId, String targetAdminId);
+    String suspendAdmin(String adminUserId, String targetAdminId);
 
-    void deleteAdmin(String adminUserId, String targetAdminId);
+    String activateAdmin(String adminUserId, String targetAdminId);
+
+    String deleteAdmin(String adminUserId, String targetAdminId);
 }
