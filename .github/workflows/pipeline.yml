@@ -118,6 +118,7 @@ jobs:
 
             - name: Write application.yml
               run: |
+                mkdir -p src/main/resources
                 echo "${{ secrets.BACKEND_APP_YML }}" > src/main/resources/application.yml
             
             - name: Run Tests
