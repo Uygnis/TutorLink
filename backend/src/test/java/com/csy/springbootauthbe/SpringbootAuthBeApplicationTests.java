@@ -4,12 +4,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+@SpringBootTest(
+    classes = SpringbootAuthBeApplication.class,
+    webEnvironment = SpringBootTest.WebEnvironment.NONE
+)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SpringbootAuthBeApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void contextLoads() {
+    }
 }

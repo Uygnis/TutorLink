@@ -139,16 +139,16 @@
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
+
 					<!-- Generate report after tests -->
 					<execution>
 						<id>report</id>
-						<phase>test</phase>
+						<phase>verify</phase>
 						<goals>
 							<goal>report</goal>
 						</goals>
 						<configuration>
 							<outputDirectory>${project.reporting.outputDirectory}</outputDirectory>
-							<output>file</output>
 						</configuration>
 					</execution>
 				</executions>
