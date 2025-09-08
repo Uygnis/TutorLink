@@ -102,14 +102,6 @@ jobs:
         runs-on: ubuntu-latest
         needs: backend-build
         environment: development
-        services:
-            mongo:
-                image: mongo:6.0
-                ports:
-                  - 27017:27017
-                options: >-
-                  --bind_ip_all
-                  --quiet
         defaults:
             run:
                 working-directory: ./backend/
