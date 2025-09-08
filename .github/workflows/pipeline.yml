@@ -115,9 +115,13 @@ jobs:
                 distribution: 'temurin'
                 java-version: 17
                 cache: 'maven'
+
+            - name: Write application.yml
+              run: |
+                echo "${{ secrets.BACKEND_APP_YML }}" > src/main/resources/application.yml
             
             - name: Run Tests
-              run: mvn test
+              run: mvn clean test
             
             - name: Generate Coverage
               run: mvn jacoco:report
