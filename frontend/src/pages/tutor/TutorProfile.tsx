@@ -7,6 +7,7 @@ import { useAppSelector } from "@/redux/store";
 import Navbar from "@/components/Navbar";
 import AvailabilityPicker from "../../components/AvailabilityPicker";
 import { TrashIcon } from "@heroicons/react/24/outline";
+import { Tutor } from "@/types/TutorType";
 
 const ViewTutorProfile = () => {
   const navigate = useNavigate();
@@ -21,13 +22,20 @@ const ViewTutorProfile = () => {
   const defaultProfile = {
     userId: "",
     subject: "",
+    firstName: "",
+    lastName: "",
     hourlyRate: 0,
     qualifications: [],
     availability: defaultAvailability,
     fileUploads: [],
+    description: "",
+    profileImageUrl: "",
+    lessonType: [],
+    status: "",
+    email: "",
   };
 
-  const [profile, setProfile] = useState<TutorDetails>(defaultProfile);
+  const [profile, setProfile] = useState<Tutor>(defaultProfile);
 
   useEffect(() => {
     // Fetch tutor profile on load
@@ -41,14 +49,20 @@ const ViewTutorProfile = () => {
         }
 
         const res = await GetTutorProfile(user.token, user.id);
-        const newProfile: TutorDetails = {
+        const newProfile: Tutor = {
           userId: res.data.userId || defaultProfile.userId,
+          firstName: res.data.firstName || defaultProfile.firstName,
+          lastName: res.data.lastName || defaultProfile.lastName,
           hourlyRate: res.data.hourlyRate || defaultProfile.hourlyRate,
           subject: res.data.subject || defaultProfile.subject,
-          qualifications:
-            res.data.qualifications || defaultProfile.qualifications, // files handled separately
+          qualifications: res.data.qualifications || defaultProfile.qualifications, // files handled separately
           availability: res.data.availability || defaultProfile.availability,
-          fileUploads: [],
+          fileUploads: res.data.fileUploads || defaultProfile.fileUploads, // files handled separately
+          description: res.data.description || defaultProfile.description,
+          lessonType: res.data.lessonType || defaultProfile.lessonType,
+          profileImageUrl: res.data.profileImageUrl || defaultProfile.profileImageUrl,
+          status: res.data.status || defaultProfile.status,
+          email: res.data.email || defaultProfile.email,
         };
         setProfile(newProfile);
         console.log("Fetched profile:", newProfile);
@@ -118,7 +132,7 @@ const ViewTutorProfile = () => {
     console.log("value ", value);
     setProfile((prev) => ({
       ...prev,
-      [name as keyof TutorDetails]:
+      [name as keyof Tutor]:
         name === "hourlyRate" ? Number(value) : value,
     }));
   };
