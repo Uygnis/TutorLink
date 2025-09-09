@@ -29,7 +29,8 @@ import org.springframework.test.context.TestPropertySource;
     "aws.s3.access-key=dummy",
     "aws.s3.secret-key=dummy",
     "aws.s3.region=us-east-1",
-    "aws.s3.bucket=test-bucket"
+    "aws.s3.bucket=test-bucket",
+    "jwt.secret.key=dummy"
 })
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SpringbootAuthBeApplicationTests {
