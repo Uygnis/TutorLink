@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest(
     classes = SpringbootAuthBeApplication.class,
@@ -22,6 +23,13 @@ import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 @EnableAutoConfiguration(exclude = {
     MongoAutoConfiguration.class,
     MongoDataAutoConfiguration.class
+})
+
+@TestPropertySource(properties = {
+    "aws.s3.access-key=dummy",
+    "aws.s3.secret-key=dummy",
+    "aws.s3.region=us-east-1",
+    "aws.s3.bucket=test-bucket"
 })
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SpringbootAuthBeApplicationTests {
