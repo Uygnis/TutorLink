@@ -132,6 +132,7 @@ jobs:
                 token: ${{ secrets.CODECOV_TOKEN }}
                 files: backend/target/site/jacoco/jacoco.xml
                 fail_ci_if_error: true
+                verbose: true
             
     # ----------------- SECURITY SCAN -----------------
     asp-scan-frontend:
