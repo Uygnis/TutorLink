@@ -108,7 +108,7 @@
 		<dependency>
 			<groupId>de.flapdoodle.embed</groupId>
 			<artifactId>de.flapdoodle.embed.mongo</artifactId>
-			<version>4.21.0</version>
+			<version>4.8.0</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -139,6 +139,7 @@
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
+
 					<!-- Generate report after tests -->
 					<execution>
 						<id>report</id>
@@ -148,7 +149,6 @@
 						</goals>
 						<configuration>
 							<outputDirectory>${project.reporting.outputDirectory}</outputDirectory>
-							<output>file</output>
 						</configuration>
 					</execution>
 				</executions>
