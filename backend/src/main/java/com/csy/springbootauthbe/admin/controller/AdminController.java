@@ -34,6 +34,9 @@ public class AdminController {
     @GetMapping("/tutors/{adminId}")
     public ResponseEntity<List<TutorDTO>> getAllTutors(@PathVariable String adminId) { return ResponseEntity.ok(adminService.viewTutors(adminId));}
 
+    @GetMapping("/getTutorDetails/{tutorId}")
+    public ResponseEntity<Optional<TutorDTO>> getTutorDetails(@PathVariable String tutorId) { return ResponseEntity.ok(adminService.viewTutorDetail(tutorId));}
+
     @GetMapping("/students/{adminId}")
     public ResponseEntity<List<UserResponse>> getAllStudents(@PathVariable String adminId) { return ResponseEntity.ok(adminService.viewStudents(adminId));}
 

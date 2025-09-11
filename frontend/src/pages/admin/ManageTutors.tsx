@@ -4,12 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { EyeIcon, PauseCircleIcon, PlayCircleIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { GetAllTutors, DeleteUser, ActivateUser, SuspendUser } from "@/api/adminAPI";
 import { toast } from "react-toastify";
-import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { useAppSelector } from "@/redux/store";
 import { Tutor } from "@/types/TutorType";
-import { setTutor } from "@/redux/tutorSlice";
 
 const ManageTutors = () => {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [tutors, setTutors] = useState<Tutor[]>([]);
@@ -34,8 +32,7 @@ const ManageTutors = () => {
   };
 
   const handleViewTutor = (tutor: Tutor) => {
-    dispatch(setTutor(tutor)); // store in global state
-    navigate("/admin/tutors/detail"); // no need to pass data
+    navigate(`/admin/tutors/${tutor.userId}`);
   };
 
   const handleSuspendModal = async (tutor: any) => {

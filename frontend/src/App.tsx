@@ -56,7 +56,7 @@ function App() {
           <Route element={<AdminRoute />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/tutors" element={<ManageTutors />} />
-            <Route path="/admin/tutors/detail" element={<AdminViewTutorDetails />} />
+            <Route path="/admin/tutors/:tutorId" element={<AdminViewTutorDetails />} />
             <Route path="/admin/students" element={<ManageStudents />} />
             <Route path="/admin/admins" element={<ManageAdmins />} />
           </Route>

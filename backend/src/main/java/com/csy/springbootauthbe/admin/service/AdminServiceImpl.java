@@ -121,6 +121,30 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    public Optional<TutorDTO> viewTutorDetail(String tutorId) {
+        return userRepository.findById(tutorId)
+            .flatMap(user ->
+                // Find the Tutor by userId
+                tutorRepository.findByUserId(user.getId())
+                    .map(tutor -> TutorDTO.builder()
+                        .userId(user.getId())
+                        .firstName(user.getFirstname())
+                        .lastName(user.getLastname())
+                        .email(user.getEmail())
+                        .status(String.valueOf(user.getStatus()))
+                        .subject(tutor.getSubject())
+                        .hourlyRate(tutor.getHourlyRate())
+                        .availability(tutor.getAvailability())
+                        .description(tutor.getDescription())
+                        .lessonType(tutor.getLessonType())
+                        .profileImageUrl(tutor.getProfileImageUrl())
+                        .qualifications(tutor.getQualifications())
+                        .build()
+                    )
+            );
+    }
+
+    @Override
     public void approveTutor(String adminUserId, String tutorId) {
         checkAdminWithPermission(adminUserId, Permissions.APPROVE_TUTOR);
         User tutor = getUserOrThrow(tutorId, Role.TUTOR);

@@ -25,6 +25,8 @@ public interface AdminService {
     // -------------------------------
     List<TutorDTO> viewTutors(String adminUserId);
 
+    Optional<TutorDTO> viewTutorDetail(String tutorId);
+
     void approveTutor(String adminUserId, String tutorId);
 
     void rejectTutor(String adminUserId, String tutorId);
