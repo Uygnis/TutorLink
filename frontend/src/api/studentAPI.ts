@@ -1,4 +1,4 @@
-import { TutorSearchRequest } from "@/types/TutorSearchRequest";
+import { TutorSearchRequest } from "@/types/TutorType";
 import axios, { AxiosResponse } from "axios";
 
 const BASE_URL = `${import.meta.env.VITE_APP_API}/students`;

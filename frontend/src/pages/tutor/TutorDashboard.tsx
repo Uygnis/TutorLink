@@ -7,9 +7,10 @@ import { GetTutorProfile } from "@/api/tutorAPI";
 import Calendar from "@/components/calendar/Calendar";
 import ProfilePicModal from "@/components/ProfilePicModal";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
+import { Tutor } from "@/types/TutorType";
 
 const TutorDashboard = () => {
-  const [tutorDetails, setTutorDetails] = useState<TutorDetails | null>(null);
+  const [tutorDetails, setTutorDetails] = useState<Tutor | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { user } = useAppSelector((state) => state.user);
