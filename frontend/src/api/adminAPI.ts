@@ -17,6 +17,13 @@ export const GetAllTutors = async (userId: string, authtoken: string): Promise<A
   });
 };
 
+export const GetTutorDetails = async (tutorId: string, authtoken: string): Promise<AxiosResponse<any>> => {
+  return await axios.get(`${BASE_URL}/getTutorDetails/${tutorId}`, {
+    headers: { Authorization: `Bearer ${authtoken}` },
+  });
+};
+
+
 export const GetAllStudents = async (userId: string, authtoken: string): Promise<AxiosResponse<any>> => {
   return await axios.get(`${BASE_URL}/students/${userId}`, {
     headers: { Authorization: `Bearer ${authtoken}` },

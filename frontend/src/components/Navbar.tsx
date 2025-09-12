@@ -60,7 +60,7 @@ const Navbar = () => {
 
         {navLinks.map((link) => {
           const isActive =
-            location.pathname === link.path || location.pathname.startsWith(link.path + "/");
+            location.pathname === link.path || location.pathname.startsWith(link.path);
 
           return (
             <a

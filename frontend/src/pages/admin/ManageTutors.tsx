@@ -1,17 +1,21 @@
 import Navbar from "@/components/Navbar";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { EyeIcon, PauseCircleIcon, PlayCircleIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { GetAllTutors, DeleteUser, ActivateUser, SuspendUser } from "@/api/adminAPI";
 import { toast } from "react-toastify";
 import { useAppSelector } from "@/redux/store";
-import { Tutor } from "@/types/TutorSearchRequest";
+import { Tutor } from "@/types/TutorType";
 
 const ManageTutors = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [, setIsModalOpen] = useState(false);
   const [tutors, setTutors] = useState<Tutor[]>([]);
-  const [, setSelectedTutor] = useState<Tutor | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const tutorsPerPage = 5;
 
+  // Sorting
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Tutor; direction: "asc" | "desc" } | null>(null);
   const { user } = useAppSelector((state) => state.user);
   const currentPermissions: string[] = user?.permissions || [];
 
@@ -19,9 +23,7 @@ const ManageTutors = () => {
     try {
       const token = user?.token;
       if (!token) return;
-
       const response = await GetAllTutors(user.id, token);
-      console.log("Admin API Response:", response.data);
       setTutors(response.data);
     } catch (error: any) {
       toast.error("Failed to fetch tutors");
@@ -29,20 +31,9 @@ const ManageTutors = () => {
     }
   };
 
-  const filteredTutors = tutors.filter((tutor: any) =>
-    tutor.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleOpenModal = (tutor: any | null = null) => {
-    setSelectedTutor(tutor);
-    setIsModalOpen(true);
+  const handleViewTutor = (tutor: Tutor) => {
+    navigate(`/admin/tutors/${tutor.userId}`);
   };
-
-  // const handleCloseModal = () => {
-  //   setIsModalOpen(false);
-  //   setSelectedTutor(null);
-  //   fetchTutors(); // Refresh list
-  // };
 
   const handleSuspendModal = async (tutor: any) => {
     const isSuspended = tutor.status === "SUSPENDED";
@@ -55,11 +46,11 @@ const ManageTutors = () => {
       if (!token) return;
 
       if (isSuspended) {
-        // Tutor is suspended → call activate API
+        // tutor is suspended → call activate API
         await ActivateUser(user?.id, tutor.id, token, "TUTOR");
         toast.success("Tutor activated successfully");
       } else {
-        // Tutor is active → call suspend API
+        // tutor is active → call suspend API
         await SuspendUser(user?.id, tutor.id, token, "TUTOR");
         toast.success("Tutor suspended successfully");
       }
@@ -71,7 +62,13 @@ const ManageTutors = () => {
     }
   };
 
-  const handleDelete = async (tutorId: number) => {
+  // const handleCloseModal = () => {
+  //   setIsModalOpen(false);
+  //   setSelectedTutor(null);
+  //   fetchTutors(); // Refresh list
+  // };
+
+  const handleDelete = async (tutorId: any) => {
     if (!confirm("Are you sure you want to delete this tutor?")) return;
 
     try {
@@ -87,137 +84,252 @@ const ManageTutors = () => {
     }
   };
 
+  // Filter tutors by search
+  const filteredTutors = tutors.filter((tutor: Tutor) => {
+    const term = searchTerm.toLowerCase();
+
+    return (
+      tutor.firstName.toLowerCase().includes(term) ||
+      tutor.lastName.toLowerCase().includes(term) ||
+      tutor.email.toLowerCase().includes(term) ||
+      tutor.status.toLowerCase().includes(term)
+    );
+  });
+
+  // Sort tutors
+  const sortedTutors = [...filteredTutors].sort((a: any, b: any) => {
+    if (!sortConfig) return 0;
+    const { key, direction } = sortConfig;
+    const order = direction === "asc" ? 1 : -1;
+    return a[key] > b[key] ? order : a[key] < b[key] ? -order : 0;
+  });
+
+  // Pagination
+  const indexOfLastTutor = currentPage * tutorsPerPage;
+  const indexOfFirstTutor = indexOfLastTutor - tutorsPerPage;
+  const currentTutors = sortedTutors.slice(indexOfFirstTutor, indexOfLastTutor);
+  const totalPages = Math.ceil(sortedTutors.length / tutorsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page > 0 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const handleSort = (key: keyof Tutor) => {
+    if (sortConfig?.key === key) {
+      setSortConfig({ key, direction: sortConfig.direction === "asc" ? "desc" : "asc" });
+    } else {
+      setSortConfig({ key, direction: "asc" });
+    }
+  };
+
   useEffect(() => {
     fetchTutors();
   }, []);
+
   return (
     <div>
       <Navbar />
 
       <div className="p-6">
-        <div>
-          {/* Search Bar */}
-          <input
-            type="search"
-            placeholder="Search tutors..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full max-w-sm px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-          />
+        {/* Search Bar */}
+        <input
+          type="search"
+          placeholder="Search tutors..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="w-full max-w-sm px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+        />
 
-          <div className="flex justify-between items-center my-4">
-            <h2 className="text-lg font-bold">List of Tutors</h2>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full table-auto border-collapse">
-              <thead>
-                <tr className="bg-gray-100 text-left text-sm font-medium text-gray-600">
-                  <th className="px-4 py-2">Name</th>
-                  <th className="px-4 py-2">Email</th>
-                  <th className="px-4 py-2">Status</th>
-                  <th className="px-4 py-2">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTutors.map((tutor: any) => (
-                  <tr key={tutor.id} className="border-b text-sm text-gray-700">
-                    <td className="px-4 py-2">{tutor.name}</td>
-                    <td className="px-4 py-2">{tutor.email}</td>
-                    <td
-                      className={`px-4 py-2 ${tutor.status === "ACTIVE"
-                          ? "text-green-600"
-                          : tutor.status === "SUSPENDED"
-                            ? "text-red-600"
-                          : "text-gray-600"
-                        }`}
-                    >
-                      {tutor.status}
-                    </td>
-                    <td className="px-4 py-2 space-x-2">
-                      <button
-                        onClick={() => handleOpenModal(tutor)}
-                        className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-blue-200 transition inline-flex items-center space-x-1">
-                        <EyeIcon className="h-4 w-4" />
-                        <span>View</span>
-                      </button>
-                      <div className="relative group inline-block">
-                        <button
-                          onClick={() => currentPermissions.includes("SUSPEND_TUTOR") && handleSuspendModal(tutor)}
-                          disabled={!currentPermissions.includes("SUSPEND_TUTOR") || tutor.status === "DELETED"}
-                          className={`px-3 py-1 rounded-md backdrop-blur-sm transition inline-flex items-center space-x-1
-                          ${!currentPermissions.includes("SUSPEND_TUTOR") || tutor.status === "DELETED"
-                              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                              : tutor.status === "SUSPENDED"
-                                ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                : "bg-orange-100 text-orange-700 hover:bg-orange-200"
-                            }`}
-                        >
-                          {tutor.status === "SUSPENDED" ? (
-                            <PlayCircleIcon className="h-4 w-4" />
-                          ) : (
-                            <PauseCircleIcon className="h-4 w-4" />
-                          )}
-                          <span>{tutor.status === "SUSPENDED" ? "Activate" : "Suspend"}</span>
-                        </button>
-
-                        {/* Tooltip if no permission */}
-                        {!currentPermissions.includes("SUSPEND_TUTOR") && (
-                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
-                    bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
-                    group-hover:opacity-100 transition">
-                            You do not have permission to suspend tutor
-                          </div>
-                        )}
-                        {tutor.status === "DELETED" && (
-                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
-                    bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
-                    group-hover:opacity-100 transition">
-                            You cannot suspend a deleted tutor
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="relative group inline-block">
-                        <button
-                          onClick={() => currentPermissions.includes("DELETE_TUTOR") && handleDelete(tutor.id)}
-                          disabled={!currentPermissions.includes("DELETE_TUTOR") || tutor.status !== "SUSPENDED"}
-                          className={`px-3 py-1 rounded-md backdrop-blur-sm transition inline-flex items-center space-x-1
-                          ${!currentPermissions.includes("DELETE_TUTOR")
-                              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                              : tutor.status !== "SUSPENDED"
-                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                : "bg-red-100 text-red-700 hover:bg-red-200"
-                            }`}
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                          <span>Delete</span>
-                        </button>
-
-                        {/* Tooltip */}
-                        {!currentPermissions.includes("DELETE_TUTOR") ? (
-                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
-                    bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
-                    group-hover:opacity-100 transition">
-                            You do not have permission to delete tutor
-                          </div>
-                        ) : tutor.status === "ACTIVE" ? (
-                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
-                    bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
-                    group-hover:opacity-100 transition">
-                            You cannot delete an active tutor
-                          </div>
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="flex justify-between items-center my-4">
+          <h2 className="text-lg font-bold">List of Tutors</h2>
         </div>
+
+        <div className="ml-4 mr-4 overflow-x-auto">
+          <table className="min-w-full table-fixed border-collapse">
+            <thead>
+              <tr className="bg-gray-100 text-left text-sm font-medium text-gray-600">
+                <th className="w-16 px-2 py-2 w-1/12">S/N</th>
+
+                {/* Name Column */}
+                <th
+                  onClick={() => handleSort("firstName" as keyof Tutor)}
+                  className="px-2 py-2 w-1/6 cursor-pointer"
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Name</span>
+                    <span className="w-3 text-xs">
+                      {sortConfig?.key === ("firstName" as keyof Tutor) &&
+                        (sortConfig.direction === "asc" ? "▲" : "▼")}
+                    </span>
+                  </div>
+                </th>
+
+                {/* Email Column */}
+                <th
+                  onClick={() => handleSort("email" as keyof Tutor)}
+                  className="px-2 py-2 w-1/4 cursor-pointer"
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Email</span>
+                    <span className="w-3 text-xs">
+                      {sortConfig?.key === ("email" as keyof Tutor) &&
+                        (sortConfig.direction === "asc" ? "▲" : "▼")}
+                    </span>
+                  </div>
+                </th>
+
+                {/* Status Column */}
+                <th
+                  onClick={() => handleSort("status" as keyof Tutor)}
+                  className="px-2 py-2 w-1/6 cursor-pointer"
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Status</span>
+                    <span className="w-3 text-xs">
+                      {sortConfig?.key === ("status" as keyof Tutor) &&
+                        (sortConfig.direction === "asc" ? "▲" : "▼")}
+                    </span>
+                  </div>
+                </th>
+
+                <th className="px-2 py-2 w-1/4">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentTutors.map((tutor, idx) => (
+                <tr key={tutor.userId} className="border-b text-sm text-gray-700">
+                  <td className="px-2 py-2">{indexOfFirstTutor + idx + 1}</td>
+                  <td className="px-2 py-2">{`${tutor.firstName} ${tutor.lastName}`}</td>
+                  <td className="px-2 py-2">{tutor.email}</td>
+                  <td
+                    className={`px-2 py-2 ${tutor.status === "ACTIVE"
+                      ? "text-green-600"
+                      : tutor.status === "SUSPENDED"
+                        ? "text-red-600"
+                        : "text-gray-600"
+                      }`}
+                  >
+                    {tutor.status}
+                  </td>
+                  <td className="px-2 py-2 space-x-2">
+                    <button
+                      onClick={() => handleViewTutor(tutor)}
+                      className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-blue-200 transition inline-flex items-center space-x-1">
+                      <EyeIcon className="h-4 w-4" />
+                      <span>View</span>
+                    </button>
+                    <div className="relative group inline-block">
+                      <button
+                        onClick={() => currentPermissions.includes("SUSPEND_TUTOR") && handleSuspendModal(tutor)}
+                        disabled={!currentPermissions.includes("SUSPEND_TUTOR") || tutor.status === "DELETED"}
+                        className={`px-3 py-1 rounded-md backdrop-blur-sm transition inline-flex items-center space-x-1
+                          ${!currentPermissions.includes("SUSPEND_TUTOR") || tutor.status === "DELETED"
+                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                            : tutor.status === "SUSPENDED"
+                              ? "bg-green-100 text-green-700 hover:bg-green-200"
+                              : "bg-orange-100 text-orange-700 hover:bg-orange-200"
+                          }`}
+                      >
+                        {tutor.status === "SUSPENDED" ? (
+                          <PlayCircleIcon className="h-4 w-4" />
+                        ) : (
+                          <PauseCircleIcon className="h-4 w-4" />
+                        )}
+                        <span>{tutor.status === "SUSPENDED" ? "Activate" : "Suspend"}</span>
+                      </button>
+
+                      {/* Tooltip if no permission */}
+                      {!currentPermissions.includes("SUSPEND_TUTOR") && (
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
+                    bg-gray-700 text-white text-xs px-2 py-2 rounded opacity-0 
+                    group-hover:opacity-100 transition">
+                          You do not have permission to suspend tutors
+                        </div>
+                      )}
+                      {tutor.status === "DELETED" && (
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
+                    bg-gray-700 text-white text-xs px-2 py-2 rounded opacity-0 
+                    group-hover:opacity-100 transition">
+                          You cannot suspend a deleted tutor
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="relative group inline-block">
+                      <button
+                        onClick={() => currentPermissions.includes("DELETE_TUTOR") && handleDelete(tutor.userId)}
+                        disabled={!currentPermissions.includes("DELETE_TUTOR") || tutor.status !== "SUSPENDED"}
+                        className={`px-3 py-1 rounded-md backdrop-blur-sm transition inline-flex items-center space-x-1
+                          ${!currentPermissions.includes("DELETE_TUTOR")
+                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                            : tutor.status !== "SUSPENDED"
+                              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                              : "bg-red-100 text-red-700 hover:bg-red-200"
+                          }`}
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                        <span>Delete</span>
+                      </button>
+
+                      {/* Tooltip */}
+                      {!currentPermissions.includes("DELETE_TUTOR") ? (
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
+                    bg-gray-700 text-white text-xs px-2 py-2 rounded opacity-0 
+                    group-hover:opacity-100 transition">
+                          You do not have permission to delete tutors
+                        </div>
+                      ) : tutor.status === "ACTIVE" ? (
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
+                    bg-gray-700 text-white text-xs px-2 py-2 rounded opacity-0 
+                    group-hover:opacity-100 transition">
+                          You cannot delete an active tutor
+                        </div>
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center mt-4 space-x-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border rounded-md disabled:opacity-50"
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i + 1}
+                onClick={() => handlePageChange(i + 1)}
+                className={`px-3 py-1 border rounded-md ${currentPage === i + 1 ? "bg-blue-500 text-white" : ""
+                  }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 border rounded-md disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
 export default ManageTutors;

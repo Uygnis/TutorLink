@@ -26,6 +26,7 @@ import Loading from "@/components/Loading";
 import AdminRoute from "@/components/routes/AdminRoute";
 import UserRoute from "@/components/routes/UserRoute";
 import StudentRoute from "@/components/routes/StudentRoute";
+import AdminViewTutorDetails from "./pages/admin/AdminViewTutorDetails";
 
 function App() {
   // Redux
@@ -55,6 +56,7 @@ function App() {
           <Route element={<AdminRoute />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/tutors" element={<ManageTutors />} />
+            <Route path="/admin/tutors/:tutorId" element={<AdminViewTutorDetails />} />
             <Route path="/admin/students" element={<ManageStudents />} />
             <Route path="/admin/admins" element={<ManageAdmins />} />
           </Route>

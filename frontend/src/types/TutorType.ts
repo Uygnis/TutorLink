@@ -15,14 +15,17 @@ export type DayAvailability = {
 };
 
 export interface Tutor {
-  id: string;
-  firstname: string;
-  lastname: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
   subject: string;
   hourlyRate: number;
+  fileUploads: File[]; // store uploaded files
   availability: DayAvailability;
-  description?: string;
-  lessonType?: string[];
-  profileImageUrl?: string;
-  qualifications?: QualificationFileType[];
+  description: string;
+  lessonType: string[];
+  profileImageUrl: string;
+  qualifications: QualificationFileType[];
+  email: string;
+  status: string;
 }

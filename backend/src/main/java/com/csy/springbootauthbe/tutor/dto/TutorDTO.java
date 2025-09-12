@@ -16,6 +16,10 @@ public class TutorDTO {
     private String id;
     private String userId;
     private Double hourlyRate;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String status;
     private List<QualificationFile> qualifications;
     private List<MultipartFile> files;
     private Map<String, Availability> availability;

@@ -2,6 +2,7 @@ package com.csy.springbootauthbe.admin.controller;
 
 import com.csy.springbootauthbe.admin.dto.AdminDTO;
 import com.csy.springbootauthbe.admin.service.AdminService;
+import com.csy.springbootauthbe.tutor.dto.TutorDTO;
 import com.csy.springbootauthbe.user.entity.Role;
 import com.csy.springbootauthbe.user.utils.UserResponse;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,10 @@ public class AdminController {
     }
 
     @GetMapping("/tutors/{adminId}")
-    public ResponseEntity<List<UserResponse>> getAllTutors(@PathVariable String adminId) { return ResponseEntity.ok(adminService.viewTutors(adminId));}
+    public ResponseEntity<List<TutorDTO>> getAllTutors(@PathVariable String adminId) { return ResponseEntity.ok(adminService.viewTutors(adminId));}
+
+    @GetMapping("/getTutorDetails/{tutorId}")
+    public ResponseEntity<Optional<TutorDTO>> getTutorDetails(@PathVariable String tutorId) { return ResponseEntity.ok(adminService.viewTutorDetail(tutorId));}
 
     @GetMapping("/students/{adminId}")
     public ResponseEntity<List<UserResponse>> getAllStudents(@PathVariable String adminId) { return ResponseEntity.ok(adminService.viewStudents(adminId));}

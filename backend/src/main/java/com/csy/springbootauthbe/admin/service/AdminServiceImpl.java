@@ -8,8 +8,8 @@ import com.csy.springbootauthbe.admin.repository.AdminRepository;
 import com.csy.springbootauthbe.admin.util.AdminResponse;
 import com.csy.springbootauthbe.student.repository.StudentRepository;
 import com.csy.springbootauthbe.student.utils.StudentResponse;
+import com.csy.springbootauthbe.tutor.dto.TutorDTO;
 import com.csy.springbootauthbe.tutor.repository.TutorRepository;
-import com.csy.springbootauthbe.tutor.utils.TutorResponse;
 import com.csy.springbootauthbe.user.entity.AccountStatus;
 import com.csy.springbootauthbe.user.entity.Role;
 import com.csy.springbootauthbe.user.entity.User;
@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -92,31 +93,55 @@ public class AdminServiceImpl implements AdminService {
     // Tutor Management
     // -------------------------------
     @Override
-    public List<UserResponse> viewTutors(String adminUserId) {
+    public List<TutorDTO> viewTutors(String adminUserId) {
         checkAdminWithPermission(adminUserId, Permissions.VIEW_TUTORS);
         List<User> tutors = userRepository.findAllByRole(Role.TUTOR);
+
         return tutors.stream()
-            .map(user -> {
-                UserResponse.UserResponseBuilder builder = UserResponse.builder()
-                    .id(user.getId())
-                    .name(user.getFirstname() + " " + user.getLastname())
+            .map(user -> tutorRepository.findByUserId(user.getId())
+                .map(tutor -> TutorDTO.builder()
+                    .userId(user.getId())
+                    .firstName(user.getFirstname())
+                    .lastName(user.getLastname())
                     .email(user.getEmail())
-                    .role(user.getRole())
-                    .status(user.getStatus());
-
-                tutorRepository.findByUserId(user.getId()).ifPresent(tutor ->
-                    builder.tutor(TutorResponse.builder()
-                            .availability(tutor.getAvailability())
-                            .hourlyRate(tutor.getHourlyRate())
-                            .subject(tutor.getSubject())
-                            .qualifications(tutor.getQualifications())
-                            .build()
-                    )
-                );
-                return builder.build();
-            })
+                    .status(String.valueOf(user.getStatus()))
+                    .subject(tutor.getSubject())
+                    .hourlyRate(tutor.getHourlyRate())
+                    .availability(tutor.getAvailability())
+                    .description(tutor.getDescription())
+                    .lessonType(tutor.getLessonType())
+                    .profileImageUrl(tutor.getProfileImageUrl())
+                    .qualifications(tutor.getQualifications())
+                    .build()
+                )
+                .orElse(null) // or skip if tutor not found
+            )
+            .filter(Objects::nonNull)
             .toList();
+    }
 
+    @Override
+    public Optional<TutorDTO> viewTutorDetail(String tutorId) {
+        return userRepository.findById(tutorId)
+            .flatMap(user ->
+                // Find the Tutor by userId
+                tutorRepository.findByUserId(user.getId())
+                    .map(tutor -> TutorDTO.builder()
+                        .userId(user.getId())
+                        .firstName(user.getFirstname())
+                        .lastName(user.getLastname())
+                        .email(user.getEmail())
+                        .status(String.valueOf(user.getStatus()))
+                        .subject(tutor.getSubject())
+                        .hourlyRate(tutor.getHourlyRate())
+                        .availability(tutor.getAvailability())
+                        .description(tutor.getDescription())
+                        .lessonType(tutor.getLessonType())
+                        .profileImageUrl(tutor.getProfileImageUrl())
+                        .qualifications(tutor.getQualifications())
+                        .build()
+                    )
+            );
     }
 
     @Override

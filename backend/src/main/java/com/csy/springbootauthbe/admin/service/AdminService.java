@@ -2,6 +2,7 @@ package com.csy.springbootauthbe.admin.service;
 
 import com.csy.springbootauthbe.admin.dto.AdminDTO;
 import com.csy.springbootauthbe.admin.entity.Permissions;
+import com.csy.springbootauthbe.tutor.dto.TutorDTO;
 import com.csy.springbootauthbe.user.utils.UserResponse;
 
 import java.util.List;
@@ -22,7 +23,9 @@ public interface AdminService {
     // -------------------------------
     //  Tutor Management
     // -------------------------------
-    List<UserResponse> viewTutors(String adminUserId);
+    List<TutorDTO> viewTutors(String adminUserId);
+
+    Optional<TutorDTO> viewTutorDetail(String tutorId);
 
     void approveTutor(String adminUserId, String tutorId);
 
