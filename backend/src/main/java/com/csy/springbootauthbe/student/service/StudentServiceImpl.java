@@ -136,11 +136,12 @@ public class StudentServiceImpl implements StudentService {
                 .addFieldWithValue("firstname", "$user.firstname")
                 .addFieldWithValue("lastname", "$user.lastname")
                 .addFieldWithValue("email", "$user.email")
+                .addFieldWithValue("userId", "$user.id")
                 .build());
 
         ops.add(Aggregation.match(Criteria.where("_id").is(new ObjectId(tutorId))));
 
-        ops.add(Aggregation.project("subject", "hourlyRate", "availability", "firstname", "lastname", "email", "profileImageUrl", "description", "lessonType", "qualifications"));
+        ops.add(Aggregation.project("subject", "hourlyRate", "availability", "userId", "firstname", "lastname", "email", "profileImageUrl", "description", "lessonType", "qualifications"));
 
         Aggregation aggregation = Aggregation.newAggregation(ops);
         List<Document> docs = mongoTemplate.aggregate(aggregation, "tutors", Document.class).getMappedResults();
@@ -202,6 +203,7 @@ public class StudentServiceImpl implements StudentService {
     private TutorProfileDTO mapToTutorDTO(Document doc) {
         TutorProfileDTO dto = new TutorProfileDTO();
         dto.setId(doc.getObjectId("_id").toHexString());
+        dto.setUserId(doc.getString("userId"));
         dto.setFirstname(doc.getString("firstname"));
         dto.setLastname(doc.getString("lastname"));
         dto.setSubject(doc.getString("subject"));

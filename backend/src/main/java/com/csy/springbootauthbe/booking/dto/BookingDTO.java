@@ -1,0 +1,18 @@
+package com.csy.springbootauthbe.booking.dto;
+
+import lombok.*;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class BookingDTO {
+    private String id;
+    private String tutorId;
+    private String studentId;
+    private String lessonType;
+    private String date;
+    private String start;
+    private String end;
+    private String status;
+}

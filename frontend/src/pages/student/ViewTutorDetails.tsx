@@ -3,8 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { GetTutorById } from "@/api/studentAPI";
 import { useAppSelector } from "@/redux/store";
-import AvailabilityCalendar from "@/components/AvailabilityCalendar";
+import AvailabilityCalendar, { TimeSlot } from "@/components/AvailabilityCalendar";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
+import { CreateBooking, GetBookingsForTutor } from "@/api/bookingAPI";
+import { BookingRequest } from "@/types/BookingType";
+import BookingModal from "@/components/BookingModal";
 
 const ViewTutorDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +16,13 @@ const ViewTutorDetails = () => {
 
   const [tutor, setTutor] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedSlot, setSelectedSlot] = useState<{ date: Date; slot: TimeSlot } | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState<{ date: string }[]>([]);
+  const [monthStart, setMonthStart] = useState<Date>(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
 
   useEffect(() => {
     const fetchTutor = async () => {
@@ -52,8 +62,67 @@ const ViewTutorDetails = () => {
     fetchTutor();
   }, [id, user]);
 
-  const handleSlotClick = (date: Date, slot: { start: string; end: string }) => {
-    alert(`Selected: ${date.toDateString()} | ${slot.start} - ${slot.end}`);
+  // Fetch bookings for the month
+  useEffect(() => {
+    const fetchBookingsForMonth = async (monthStart: Date) => {
+      if (!id || !user?.token) return;
+
+      const year = monthStart.getFullYear();
+      const month = monthStart.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+
+      const resBookings = await Promise.all(
+        Array.from({ length: lastDay.getDate() }, (_, i) => {
+          const date = new Date(year, month, i + 1);
+          return GetBookingsForTutor(id, date.toISOString().split("T")[0], user.token!);
+        })
+      );
+
+      const allBookings = resBookings.flatMap((r) => r.data);
+      setBookedSlots(allBookings.map((b: any) => ({ date: b.date })));
+    };
+
+    fetchBookingsForMonth(monthStart);
+  }, [monthStart, id, user]);
+
+  const handleSlotClick = (date: Date, slot: TimeSlot) => {
+    setSelectedSlot({ date, slot });
+    setShowModal(true);
+  };
+
+  const confirmBooking = async (lessonType: string) => {
+    if (!user?.token || !user?.id || !id || !selectedSlot) {
+      alert("You must be logged in to book a lesson.");
+      return;
+    }
+
+    const bookingReq: BookingRequest = {
+      tutorId: id,
+      studentId: user.id,
+      date: selectedSlot.date.toISOString().split("T")[0],
+      start: selectedSlot.slot.start,
+      end: selectedSlot.slot.end,
+      lessonType,
+    };
+
+    try {
+      await CreateBooking(bookingReq, user.token);
+
+      setBookedSlots((prev) => [...prev, { date: bookingReq.date }]);
+
+      alert(
+        `✅ Booking confirmed: ${lessonType} on ${selectedSlot.date.toDateString()} | ${
+          selectedSlot.slot.start
+        } - ${selectedSlot.slot.end}`
+      );
+    } catch (err) {
+      console.error("Booking failed:", err);
+      alert("❌ Failed to create booking. Please try again.");
+    } finally {
+      setShowModal(false);
+      setSelectedSlot(null);
+    }
   };
 
   if (loading) return <p className="text-center mt-8">Loading...</p>;
@@ -160,7 +229,23 @@ const ViewTutorDetails = () => {
         </div>
 
         {/* Availability Calendar */}
-        <AvailabilityCalendar availability={tutor.availability} onSlotClick={handleSlotClick} />
+
+        {/* Monthly Availability Calendar */}
+        <AvailabilityCalendar
+          availability={tutor.availability}
+          bookedSlots={bookedSlots}
+          initialMonth={monthStart}
+          onSlotClick={handleSlotClick}
+          onMonthChange={(newMonth) => setMonthStart(newMonth)}
+        />
+        {showModal && selectedSlot && (
+          <BookingModal
+            lessonTypes={tutor.lessonType || ["Beginner Lesson", "Advanced Lesson"]}
+            slot={selectedSlot}
+            onClose={() => setShowModal(false)}
+            onConfirm={confirmBooking}
+          />
+        )}
 
         {/* Reviews */}
         <div className="bg-white rounded-lg shadow-md p-6 mt-6">

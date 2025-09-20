@@ -9,6 +9,7 @@ import java.util.Map;
 @Data
 public class TutorProfileDTO {
     private String id;
+    private String userId;
     private String firstname;
     private String lastname;
     private String subject;

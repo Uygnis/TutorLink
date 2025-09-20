@@ -15,9 +15,10 @@ export type DayAvailability = {
 };
 
 export interface Tutor {
+  id: string;
   userId: string;
-  firstName: string;
-  lastName: string;
+  firstname: string;
+  lastname: string;
   subject: string;
   hourlyRate: number;
   fileUploads: File[]; // store uploaded files

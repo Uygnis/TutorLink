@@ -59,6 +59,7 @@ const FindTutor = () => {
     try {
       const res = await SearchTutors(reqBody, token);
       setTutorResults(res.data);
+      console.log("tutor data", res.data);
     } catch (err) {
       console.error("Failed to search tutors:", err);
       setError("Failed to fetch tutors. Please try again.");
@@ -213,7 +214,7 @@ const FindTutor = () => {
 
             {tutorResults.map((tutor) => (
               <div
-                key={tutor.userId?.toString()}
+                key={tutor.id?.toString()}
                 className="bg-white rounded-lg shadow-md p-5 flex flex-col h-full">
                 {/* top area: 30% image, 70% details */}
                 <div className="flex flex-col md:flex-row gap-4 items-start">
@@ -221,7 +222,7 @@ const FindTutor = () => {
                   <div className="flex-shrink-0 md:w-1/3 flex justify-center md:justify-start">
                     <img
                       src={tutor.profileImageUrl || defaultProfile}
-                      alt={`${tutor.firstName} ${tutor.lastName}`}
+                      alt={`${tutor.firstname} ${tutor.lastname}`}
                       className="w-24 h-24 rounded-full object-cover border shadow"
                     />
                   </div>
@@ -231,7 +232,7 @@ const FindTutor = () => {
                     <div className="flex justify-between items-start gap-4">
                       <div>
                         <h3 className="text-xl font-semibold">
-                          {tutor.firstName} {tutor.lastName}
+                          {tutor.firstname} {tutor.lastname}
                         </h3>
                         <p className="text-md text-gray-600 mt-1">Teaches: {tutor.subject}</p>
 
@@ -256,7 +257,7 @@ const FindTutor = () => {
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-xl font-bold text-primary">SGD {tutor.hourlyRate}/hr</span>
                   <button
-                    onClick={() => navigate(`/student/view-tutor/${tutor.userId?.toString()}`)}
+                    onClick={() => navigate(`/student/view-tutor/${tutor.id?.toString()}`)}
                     className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/80 transition">
                     View Profile
                   </button>
