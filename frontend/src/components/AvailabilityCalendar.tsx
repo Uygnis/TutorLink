@@ -31,7 +31,15 @@ const AvailabilityCalendar = ({
     onMonthChange?.(monthStart);
   }, [monthStart]);
 
-  // Get all dates for the month
+  // Helper: format date as YYYY-MM-DD
+  const formatDate = (date: Date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+      date.getDate()
+    ).padStart(2, "0")}`;
+
+  // Convert bookedSlots array to a Set for fast lookup
+  const bookedDatesSet = new Set(bookedSlots.map((b) => formatDate(new Date(b.date))));
+
   const getMonthDates = (start: Date) => {
     const dates: Date[] = [];
     const year = start.getFullYear();
@@ -50,11 +58,9 @@ const AvailabilityCalendar = ({
     setMonthStart((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
 
   const monthDates = getMonthDates(monthStart);
-
   const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  const isSlotBooked = (date: Date) =>
-    bookedSlots.some((b) => b.date === date.toISOString().split("T")[0]);
+  const isSlotBooked = (date: Date) => bookedDatesSet.has(formatDate(date));
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -91,27 +97,27 @@ const AvailabilityCalendar = ({
           const dayKey = date.toLocaleDateString(undefined, { weekday: "short" });
           const slot = availability?.[dayKey];
 
-          const booked = isSlotBooked(date); // check booked regardless of availability
-          const enabled = slot?.enabled ?? false; // true if available, false otherwise
+          const booked = isSlotBooked(date);
+          const enabled = slot?.enabled ?? false;
+
+          const dayClasses = booked
+            ? "bg-red-200 text-red-700 cursor-not-allowed"
+            : enabled
+            ? "bg-green-100 hover:bg-green-200 cursor-pointer"
+            : "bg-gray-100 text-gray-400 cursor-not-allowed";
 
           return (
             <div
               key={date.toISOString()}
-              className={`p-2 border rounded text-sm cursor-pointer ${
-                booked
-                  ? "bg-red-200 text-red-700 cursor-not-allowed"
-                  : enabled
-                  ? "bg-green-100 hover:bg-green-200"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
-              }`}
+              className={`p-2 border rounded text-sm ${dayClasses}`}
               onClick={() =>
                 enabled &&
                 !booked &&
                 onSlotClick?.(date, slot ?? { enabled: false, start: "", end: "" })
               }>
               <div className="font-semibold">{date.getDate()}</div>
-              {slot?.enabled && <div className="text-xs">{`${slot.start} - ${slot.end}`}</div>}
-              {!slot?.enabled && booked && <div className="text-xs">Booked</div>}
+              {booked && <div className="text-xs">Booked</div>}
+              {!booked && enabled && <div className="text-xs">{`${slot.start} - ${slot.end}`}</div>}
             </div>
           );
         })}

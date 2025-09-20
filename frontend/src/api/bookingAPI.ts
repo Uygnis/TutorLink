@@ -25,6 +25,18 @@ export const GetBookingsForTutor = async (
   });
 };
 
+export const GetBookingsForTutorRange = (
+  tutorId: string,
+  startDate: string,
+  endDate: string,
+  token: string
+) => {
+  return axios.get(`${BASE_URL}/tutor/range/${tutorId}`, {
+    params: { startDate, endDate },
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
 /** Get bookings for a student */
 export const GetBookingsForStudent = async (
   studentId: string,

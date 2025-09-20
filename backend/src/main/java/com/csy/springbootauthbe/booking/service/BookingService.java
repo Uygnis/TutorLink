@@ -11,4 +11,5 @@ public interface BookingService {
     List<BookingDTO> getBookingsForStudent(String studentId);
     BookingDTO cancelBooking(String bookingId);
     BookingDTO getBookingById(String bookingId);
+    List<BookingDTO> getBookingsForTutorBetweenDates(String tutorId, String startDate, String endDate);
 }

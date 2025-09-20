@@ -5,7 +5,7 @@ import { GetTutorById } from "@/api/studentAPI";
 import { useAppSelector } from "@/redux/store";
 import AvailabilityCalendar, { TimeSlot } from "@/components/AvailabilityCalendar";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
-import { CreateBooking, GetBookingsForTutor } from "@/api/bookingAPI";
+import { CreateBooking, GetBookingsForTutor, GetBookingsForTutorRange } from "@/api/bookingAPI";
 import { BookingRequest } from "@/types/BookingType";
 import BookingModal from "@/components/BookingModal";
 
@@ -64,26 +64,28 @@ const ViewTutorDetails = () => {
 
   // Fetch bookings for the month
   useEffect(() => {
-    const fetchBookingsForMonth = async (monthStart: Date) => {
+    const fetchBookingsForMonth = async () => {
       if (!id || !user?.token) return;
 
       const year = monthStart.getFullYear();
       const month = monthStart.getMonth();
-      const firstDay = new Date(year, month, 1);
-      const lastDay = new Date(year, month + 1, 0);
 
-      const resBookings = await Promise.all(
-        Array.from({ length: lastDay.getDate() }, (_, i) => {
-          const date = new Date(year, month, i + 1);
-          return GetBookingsForTutor(id, date.toISOString().split("T")[0], user.token!);
-        })
-      );
+      const firstDay = new Date(year, month, 1).toISOString().split("T")[0];
+      const lastDay = new Date(year, month + 1, 0).toISOString().split("T")[0];
 
-      const allBookings = resBookings.flatMap((r) => r.data);
-      setBookedSlots(allBookings.map((b: any) => ({ date: b.date })));
+      try {
+        const res = await GetBookingsForTutorRange(id, firstDay, lastDay, user.token!);
+        setBookedSlots(res.data.map((b: any) => ({ date: b.date })));
+        console.log(
+          "dates",
+          res.data.map((b: any) => ({ date: b.date }))
+        );
+      } catch (err) {
+        console.error("Failed to fetch bookings:", err);
+      }
     };
 
-    fetchBookingsForMonth(monthStart);
+    fetchBookingsForMonth();
   }, [monthStart, id, user]);
 
   const handleSlotClick = (date: Date, slot: TimeSlot) => {
@@ -97,10 +99,12 @@ const ViewTutorDetails = () => {
       return;
     }
 
+    const dateStr = selectedSlot.date.toLocaleDateString("en-CA"); // YYYY-MM-DD
+
     const bookingReq: BookingRequest = {
       tutorId: id,
       studentId: user.id,
-      date: selectedSlot.date.toISOString().split("T")[0],
+      date: dateStr,
       start: selectedSlot.slot.start,
       end: selectedSlot.slot.end,
       lessonType,
@@ -108,13 +112,9 @@ const ViewTutorDetails = () => {
 
     try {
       await CreateBooking(bookingReq, user.token);
-
-      setBookedSlots((prev) => [...prev, { date: bookingReq.date }]);
-
+      setBookedSlots((prev) => [...prev, { date: dateStr }]);
       alert(
-        `✅ Booking confirmed: ${lessonType} on ${selectedSlot.date.toDateString()} | ${
-          selectedSlot.slot.start
-        } - ${selectedSlot.slot.end}`
+        `✅ Booking confirmed: ${lessonType} on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
       );
     } catch (err) {
       console.error("Booking failed:", err);

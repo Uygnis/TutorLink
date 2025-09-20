@@ -31,6 +31,16 @@ public class BookingController {
         return ResponseEntity.ok(bookings);
     }
 
+    @GetMapping("/tutor/range/{tutorId}")
+    public ResponseEntity<List<BookingDTO>> getBookingsForTutorInRange(
+            @PathVariable String tutorId,
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
+
+        List<BookingDTO> bookings = bookingService.getBookingsForTutorBetweenDates(tutorId, startDate, endDate);
+        return ResponseEntity.ok(bookings);
+    }
+
     @GetMapping("/student/{studentId}")
     public ResponseEntity<List<BookingDTO>> getBookingsForStudent(@PathVariable String studentId) {
         List<BookingDTO> bookings = bookingService.getBookingsForStudent(studentId);

@@ -8,6 +8,7 @@ import com.csy.springbootauthbe.booking.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,6 +43,12 @@ public class BookingServiceImpl implements BookingService {
                 .stream().map(bookingMapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    public List<BookingDTO> getBookingsForTutorBetweenDates(String tutorId, String startDate, String endDate) {
+        List<Booking> bookings = bookingRepository.findByTutorIdAndDateBetween(tutorId, startDate, endDate);
+        return bookings.stream().map(bookingMapper::toDto).collect(Collectors.toList());
+    }
+
 
     @Override
     public List<BookingDTO> getBookingsForStudent(String studentId) {
