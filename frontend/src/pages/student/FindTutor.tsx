@@ -222,7 +222,7 @@ const FindTutor = () => {
                   <div className="flex-shrink-0 md:w-1/3 flex justify-center md:justify-start">
                     <img
                       src={tutor.profileImageUrl || defaultProfile}
-                      alt={`${tutor.firstname} ${tutor.lastname}`}
+                      alt={`${tutor.firstName} ${tutor.lastName}`}
                       className="w-24 h-24 rounded-full object-cover border shadow"
                     />
                   </div>
@@ -232,7 +232,7 @@ const FindTutor = () => {
                     <div className="flex justify-between items-start gap-4">
                       <div>
                         <h3 className="text-xl font-semibold">
-                          {tutor.firstname} {tutor.lastname}
+                          {tutor.firstName} {tutor.lastName}
                         </h3>
                         <p className="text-md text-gray-600 mt-1">Teaches: {tutor.subject}</p>
 

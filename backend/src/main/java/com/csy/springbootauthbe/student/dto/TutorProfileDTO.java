@@ -10,8 +10,8 @@ import java.util.Map;
 public class TutorProfileDTO {
     private String id;
     private String userId;
-    private String firstname;
-    private String lastname;
+    private String firstName;
+    private String lastName;
     private String subject;
     private Double hourlyRate;
     private Map<String, Object> availability; // you can refine this later

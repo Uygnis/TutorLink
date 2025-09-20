@@ -144,12 +144,12 @@ const ViewTutorDetails = () => {
           <div className="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row gap-6 md:col-span-3 max-h-[320px]">
             <img
               src={tutor.profileImageUrl || defaultProfile}
-              alt={tutor.firstname}
+              alt={tutor.firstName}
               className="w-32 h-32 rounded-full object-cover border shadow"
             />
             <div className="flex-1">
               <h1 className="text-3xl font-bold">
-                {tutor.firstname} {tutor.lastname}
+                {tutor.firstName} {tutor.lastName}
               </h1>
               {/* Truncate description with ellipsis */}
               <p className="text-gray-600 mt-3 line-clamp-6">{tutor.description}</p>
