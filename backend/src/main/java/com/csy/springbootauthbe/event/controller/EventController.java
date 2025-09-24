@@ -4,11 +4,8 @@ import com.csy.springbootauthbe.event.dto.EventDTO;
 import com.csy.springbootauthbe.event.service.EventService;
 import com.csy.springbootauthbe.event.utils.EventRequest;
 import com.csy.springbootauthbe.event.utils.EventResponse;
-import com.csy.springbootauthbe.user.controller.AuthenticationController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,31 +20,31 @@ public class EventController {
 
     private final EventService eventService;
 
-    @GetMapping("/")
-    public ResponseEntity<List<EventDTO>> getEvents() {
-        List<EventDTO> events = eventService.getEvents();
+    @GetMapping("/tutor/{tutorId}")
+    public ResponseEntity<List<EventDTO>> getEvents(@PathVariable(required = false) String tutorId) {
+        List<EventDTO> events = eventService.getEvents(tutorId);
         return ResponseEntity.ok(events);
     }
 
-    @GetMapping("/{eventId}")
+    @GetMapping("/event/{eventId}")
     public ResponseEntity<EventDTO> getEvent(@PathVariable String eventId) {
         Optional<EventDTO> eventOpt = eventService.getEventByEventId(eventId);
         return eventOpt.map(ResponseEntity::ok).orElseGet(()->ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/")
+    @PostMapping("/event/")
     public ResponseEntity<EventResponse> createEvent(@RequestBody EventRequest request) {
         EventResponse response = eventService.createEvent(request);
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{eventId}")
+    @PutMapping("/event/{eventId}")
     public ResponseEntity<EventResponse> updateEvent(@PathVariable String eventId, @RequestBody EventRequest request) {
         EventResponse response = eventService.updateEvent(eventId, request);
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{eventId}")
+    @DeleteMapping("/event/{eventId}")
     public ResponseEntity<String> deleteEvent(@PathVariable String eventId) {
         eventService.deleteEvent(eventId);
         return ResponseEntity.ok("Event info deleted successfully.");

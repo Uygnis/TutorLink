@@ -15,6 +15,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,12 +39,17 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventDTO> getEvents() {
+    public List<EventDTO> getEvents(String tutorId) {
+        if(tutorId != null){
+            return eventRepository.findEventsByTutorId(tutorId).stream().map(eventMapper::toDTO).toList();
+        }
         return eventRepository.findAll().stream().map(eventMapper::toDTO).toList();
     }
 
     @Override
     public EventResponse createEvent(EventRequest request) {
+        List<EventDTO> events = eventRepository.findEventsByTutorId(request.getTutorId()).stream().map(eventMapper::toDTO).toList();
+        validateEvent(request, events);
         Long eventNumber = sequenceGenerator.getNextEventId();
         EventDTO eventDTO = new EventDTO();
         eventDTO.setEventId(eventNumber);
@@ -53,6 +59,22 @@ public class EventServiceImpl implements EventService {
         eventDTO.setTutorId(request.getTutorId());
         Event saved = eventRepository.save(eventMapper.toEntity(eventDTO));
         return createEventResponse(saved);
+    }
+
+    private static void validateEvent(EventRequest request, List<EventDTO> events) {
+        LocalDateTime start = LocalDateTime.parse(request.getStart());
+        LocalDateTime end = LocalDateTime.parse(request.getEnd());
+        if (end.isBefore(start)) {
+            throw new IllegalArgumentException("End date cannot be before Start date");
+        }
+        for(EventDTO event : events){
+            LocalDateTime oldStart = LocalDateTime.parse(event.getStart());
+            LocalDateTime oldEnd = LocalDateTime.parse(event.getEnd());
+            if (start.isBefore(oldEnd) && end.isAfter(oldStart)){
+                throw new IllegalArgumentException("Event overlaps an existing event");
+            }
+        }
+
     }
 
     @Override
