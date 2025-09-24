@@ -20,25 +20,31 @@ public class EventController {
 
     private final EventService eventService;
 
-    @GetMapping("/tutor/{tutorId}")
-    public ResponseEntity<List<EventDTO>> getEvents(@PathVariable(required = false) String tutorId) {
-        List<EventDTO> events = eventService.getEvents(tutorId);
+    @GetMapping("/")
+    public ResponseEntity<List<EventDTO>> getEvents() {
+        List<EventDTO> events = eventService.getEvents();
         return ResponseEntity.ok(events);
     }
 
-    @GetMapping("/event/{eventId}")
+    @GetMapping("/tutor/{tutorId}")
+    public ResponseEntity<List<EventDTO>> getEventsByTutor(@PathVariable String tutorId) {
+        List<EventDTO> events = eventService.getEventsByTutor(tutorId);
+        return ResponseEntity.ok(events);
+    }
+
+    @GetMapping("/{eventId}")
     public ResponseEntity<EventDTO> getEvent(@PathVariable String eventId) {
         Optional<EventDTO> eventOpt = eventService.getEventByEventId(eventId);
         return eventOpt.map(ResponseEntity::ok).orElseGet(()->ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/event/")
+    @PostMapping("/")
     public ResponseEntity<EventResponse> createEvent(@RequestBody EventRequest request) {
         EventResponse response = eventService.createEvent(request);
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/event/{eventId}")
+    @PutMapping("/{eventId}")
     public ResponseEntity<EventResponse> updateEvent(@PathVariable String eventId, @RequestBody EventRequest request) {
         EventResponse response = eventService.updateEvent(eventId, request);
         return ResponseEntity.ok(response);

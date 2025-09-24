@@ -17,7 +17,9 @@ public interface EventService {
 
     Optional<EventDTO> getEventByEventId(String eventId);
 
-    List<EventDTO> getEvents(String tutorId);
+    List<EventDTO> getEvents();
+
+    List<EventDTO> getEventsByTutor(String tutorId);
 
     EventResponse createEvent(EventRequest request);
 

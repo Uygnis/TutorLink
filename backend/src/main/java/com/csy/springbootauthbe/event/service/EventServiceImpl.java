@@ -39,11 +39,14 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventDTO> getEvents(String tutorId) {
-        if(tutorId != null){
-            return eventRepository.findEventsByTutorId(tutorId).stream().map(eventMapper::toDTO).toList();
-        }
+    public List<EventDTO> getEvents() {
+
         return eventRepository.findAll().stream().map(eventMapper::toDTO).toList();
+    }
+
+    @Override
+    public List<EventDTO> getEventsByTutor(String tutorId) {
+            return eventRepository.findEventsByTutorId(tutorId).stream().map(eventMapper::toDTO).toList();
     }
 
     @Override
