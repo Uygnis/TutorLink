@@ -31,6 +31,10 @@ public class SequenceGeneratorService {
         return String.format("S%02d", seq);
     }
 
+    public Long getNextEventId() {
+        return getNextSequence("eventId");
+    }
+
     public long peekSequence(String seqName) {
         Counter counter = mongoOperations.findOne(
                 Query.query(Criteria.where("_id").is(seqName)),
