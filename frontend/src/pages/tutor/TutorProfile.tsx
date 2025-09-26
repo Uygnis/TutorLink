@@ -20,6 +20,7 @@ const ViewTutorProfile = () => {
   }, {} as DayAvailability);
 
   const defaultProfile = {
+    id: "",
     userId: "",
     subject: "",
     firstName: "",
@@ -50,6 +51,7 @@ const ViewTutorProfile = () => {
 
         const res = await GetTutorProfile(user.token, user.id);
         const newProfile: Tutor = {
+          id: res.data.id || defaultProfile.id,
           userId: res.data.userId || defaultProfile.userId,
           firstName: res.data.firstName || defaultProfile.firstName,
           lastName: res.data.lastName || defaultProfile.lastName,
@@ -82,9 +84,8 @@ const ViewTutorProfile = () => {
       // filter new files, skip duplicates by name + size
       const newOnes = acceptedFiles.filter(
         (file) =>
-          !existingFiles.some(
-            (f) => f.name === file.name && f.size === file.size
-          ) && !existingMetas.some((f) => f.name === file.name) // metadata only has name
+          !existingFiles.some((f) => f.name === file.name && f.size === file.size) &&
+          !existingMetas.some((f) => f.name === file.name) // metadata only has name
       );
 
       return {
@@ -123,27 +124,21 @@ const ViewTutorProfile = () => {
     }));
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
     console.log("Name ", name);
     console.log("value ", value);
     setProfile((prev) => ({
       ...prev,
-      [name as keyof Tutor]:
-        name === "hourlyRate" ? Number(value) : value,
+      [name as keyof Tutor]: name === "hourlyRate" ? Number(value) : value,
     }));
   };
 
   const handleBlur = () => {
     setProfile((prev) => ({
       ...prev,
-      hourlyRate:
-        prev.hourlyRate < 0
-          ? prev.hourlyRate * -1
-          : Number(prev.hourlyRate.toFixed(2)),
+      hourlyRate: prev.hourlyRate < 0 ? prev.hourlyRate * -1 : Number(prev.hourlyRate.toFixed(2)),
     }));
   };
 
@@ -206,9 +201,7 @@ const ViewTutorProfile = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium">
-                Hourly Rate ($)
-              </label>
+              <label className="block text-sm font-medium">Hourly Rate ($)</label>
               <input
                 type="number"
                 name="hourlyRate"
@@ -242,18 +235,13 @@ const ViewTutorProfile = () => {
               <div
                 {...getRootProps()}
                 className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition ${
-                  isDragActive
-                    ? "border-primary bg-primary/10"
-                    : "border-gray-300"
-                }`}
-              >
+                  isDragActive ? "border-primary bg-primary/10" : "border-gray-300"
+                }`}>
                 <input {...getInputProps()} />
                 {isDragActive ? (
                   <p className="text-primary font-medium">Drop files here...</p>
                 ) : (
-                  <p className="text-gray-500">
-                    Drag & drop files here, or click to select
-                  </p>
+                  <p className="text-gray-500">Drag & drop files here, or click to select</p>
                 )}
               </div>
 
@@ -267,8 +255,7 @@ const ViewTutorProfile = () => {
                         <button
                           type="button"
                           className="p-2 rounded-lg hover:bg-red-100 text-red-500"
-                          onClick={() => handleDelete(file)}
-                        >
+                          onClick={() => handleDelete(file)}>
                           <TrashIcon className="h-5 w-5" />
                         </button>
                       </span>
@@ -284,8 +271,7 @@ const ViewTutorProfile = () => {
                           <button
                             type="button"
                             className="p-2 rounded-lg hover:bg-red-100 text-red-500"
-                            onClick={() => handleQualificationDelete(file)}
-                          >
+                            onClick={() => handleQualificationDelete(file)}>
                             <TrashIcon className="h-5 w-5" />
                           </button>
                         </span>
@@ -300,14 +286,12 @@ const ViewTutorProfile = () => {
 
             <button
               onClick={handleSave}
-              className="w-full rounded-lg bg-primary text-white py-2 transition duration-300 hover:bg-primary/90"
-            >
+              className="w-full rounded-lg bg-primary text-white py-2 transition duration-300 hover:bg-primary/90">
               Save Changes
             </button>
             <button
               onClick={handleCancel}
-              className="w-full rounded-lg border border-primary text-primary px-4 py-2 transition duration-300 hover:bg-primary hover:text-white"
-            >
+              className="w-full rounded-lg border border-primary text-primary px-4 py-2 transition duration-300 hover:bg-primary hover:text-white">
               Cancel
             </button>
           </div>

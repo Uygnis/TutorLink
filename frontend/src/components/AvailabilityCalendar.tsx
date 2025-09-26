@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export interface TimeSlot {
   enabled: boolean;
@@ -7,97 +7,117 @@ export interface TimeSlot {
 }
 
 interface AvailabilityCalendarProps {
-  availability: Record<string, TimeSlot>;
-  initialWeekStart?: Date;
+  availability: Record<string, TimeSlot>; // e.g., { Mon: {enabled: true, start: "10:00", end:"11:00"} }
+  bookedSlots?: { date: string }[]; // [{ date: "2025-09-22" }]
+  initialMonth?: Date;
   onSlotClick?: (date: Date, slot: TimeSlot) => void;
+  onMonthChange?: (monthStart: Date) => void;
 }
 
 const AvailabilityCalendar = ({
   availability,
-  initialWeekStart,
+  bookedSlots = [],
+  initialMonth,
   onSlotClick,
+  onMonthChange,
 }: AvailabilityCalendarProps) => {
-  const [weekStart, setWeekStart] = useState<Date>(() => {
-    if (initialWeekStart) return initialWeekStart;
+  const [monthStart, setMonthStart] = useState<Date>(() => {
+    if (initialMonth) return new Date(initialMonth.getFullYear(), initialMonth.getMonth(), 1);
     const today = new Date();
-    const dayOfWeek = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7)); // Monday as start of week
-    return monday;
+    return new Date(today.getFullYear(), today.getMonth(), 1);
   });
 
-  const getWeekDates = (start: Date) => {
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      return d;
-    });
+  useEffect(() => {
+    onMonthChange?.(monthStart);
+  }, [monthStart]);
+
+  // Helper: format date as YYYY-MM-DD
+  const formatDate = (date: Date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+      date.getDate()
+    ).padStart(2, "0")}`;
+
+  // Convert bookedSlots array to a Set for fast lookup
+  const bookedDatesSet = new Set(bookedSlots.map((b) => formatDate(new Date(b.date))));
+
+  const getMonthDates = (start: Date) => {
+    const dates: Date[] = [];
+    const year = start.getFullYear();
+    const month = start.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    for (let d = firstDay.getDate(); d <= lastDay.getDate(); d++) {
+      dates.push(new Date(year, month, d));
+    }
+    return dates;
   };
 
-  const formatMonthDateRange = (dates: Date[]) => {
-    const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
-    return `${dates[0].toLocaleDateString(undefined, options)} - ${dates[6].toLocaleDateString(
-      undefined,
-      options
-    )}`;
-  };
+  const goPrevMonth = () =>
+    setMonthStart((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  const goNextMonth = () =>
+    setMonthStart((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
 
-  const goPrevWeek = () => {
-    setWeekStart((prev) => {
-      const newDate = new Date(prev); // clone
-      newDate.setDate(prev.getDate() - 7);
-      return newDate;
-    });
-  };
+  const monthDates = getMonthDates(monthStart);
+  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  const goNextWeek = () => {
-    setWeekStart((prev) => {
-      const newDate = new Date(prev); // clone
-      newDate.setDate(prev.getDate() + 7);
-      return newDate;
-    });
-  };
-
-  const weekDates = getWeekDates(weekStart);
+  const isSlotBooked = (date: Date) => bookedDatesSet.has(formatDate(date));
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-2">
-        <button onClick={goPrevWeek} className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">
+        <button onClick={goPrevMonth} className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">
           &lt;
         </button>
-        <span className="font-bold">{formatMonthDateRange(weekDates)}</span>
-        <button onClick={goNextWeek} className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">
+        <span className="font-bold text-lg">
+          {monthStart.toLocaleString(undefined, { month: "long", year: "numeric" })}
+        </span>
+        <button onClick={goNextMonth} className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">
           &gt;
         </button>
       </div>
 
-      {/* Day Headers */}
-      <div className="grid grid-cols-7 gap-2 text-center font-bold border-b pb-1">
-        {weekDates.map((date) => (
-          <div key={date.toDateString()}>
-            {date.toLocaleDateString(undefined, { weekday: "short" })} <br /> {date.getDate()}
-          </div>
+      {/* Weekday Headers */}
+      <div className="grid grid-cols-7 text-center font-bold border-b pb-1">
+        {weekdays.map((day) => (
+          <div key={day}>{day}</div>
         ))}
       </div>
 
-      {/* Time Slots */}
-      <div className="grid grid-cols-7 gap-2 text-center mt-2">
-        {weekDates.map((date) => {
+      {/* Days */}
+      <div className="grid grid-cols-7 gap-2 mt-2 text-center">
+        {/* Empty cells for first week */}
+        {Array(monthDates[0].getDay())
+          .fill(null)
+          .map((_, idx) => (
+            <div key={`empty-${idx}`} className="p-2"></div>
+          ))}
+
+        {monthDates.map((date) => {
           const dayKey = date.toLocaleDateString(undefined, { weekday: "short" });
           const slot = availability?.[dayKey];
 
+          const booked = isSlotBooked(date);
+          const enabled = slot?.enabled ?? false;
+
+          const dayClasses = booked
+            ? "bg-red-200 text-red-700 cursor-not-allowed"
+            : enabled
+            ? "bg-green-100 hover:bg-green-200 cursor-pointer"
+            : "bg-gray-100 text-gray-400 cursor-not-allowed";
+
           return (
             <div
-              key={date.toDateString()}
-              className={`p-2 border rounded text-sm cursor-pointer ${
-                slot?.enabled
-                  ? "bg-green-100 hover:bg-green-200"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
-              }`}
-              onClick={() => slot?.enabled && onSlotClick?.(date, slot)}>
-              {slot?.enabled ? `${slot.start} - ${slot.end}` : "-"}
+              key={date.toISOString()}
+              className={`p-2 border rounded text-sm ${dayClasses}`}
+              onClick={() =>
+                enabled &&
+                !booked &&
+                onSlotClick?.(date, slot ?? { enabled: false, start: "", end: "" })
+              }>
+              <div className="font-semibold">{date.getDate()}</div>
+              {booked && <div className="text-xs">Booked</div>}
+              {!booked && enabled && <div className="text-xs">{`${slot.start} - ${slot.end}`}</div>}
             </div>
           );
         })}
