@@ -3,9 +3,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { GetTutorById } from "@/api/studentAPI";
 import { useAppSelector } from "@/redux/store";
-import AvailabilityCalendar, { TimeSlot } from "@/components/AvailabilityCalendar";
+import AvailabilityCalendar, {
+  TimeSlot,
+} from "@/components/AvailabilityCalendar";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
-import { CreateBooking, GetBookingsForTutor, GetBookingsForTutorRange } from "@/api/bookingAPI";
+import {
+  CreateBooking,
+  GetBookingsForTutor,
+  GetBookingsForTutorRange,
+} from "@/api/bookingAPI";
 import { BookingRequest } from "@/types/BookingType";
 import BookingModal from "@/components/BookingModal";
 
@@ -16,9 +22,14 @@ const ViewTutorDetails = () => {
 
   const [tutor, setTutor] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedSlot, setSelectedSlot] = useState<{ date: Date; slot: TimeSlot } | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<{
+    date: Date;
+    slot: TimeSlot;
+  } | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [bookedSlots, setBookedSlots] = useState<{ date: string }[]>([]);
+  const [bookedSlots, setBookedSlots] = useState<
+    { date: string; status: string }[]
+  >([]);
   const [monthStart, setMonthStart] = useState<Date>(() => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
@@ -74,11 +85,18 @@ const ViewTutorDetails = () => {
       const lastDay = new Date(year, month + 1, 0).toISOString().split("T")[0];
 
       try {
-        const res = await GetBookingsForTutorRange(id, firstDay, lastDay, user.token!);
-        setBookedSlots(res.data.map((b: any) => ({ date: b.date })));
+        const res = await GetBookingsForTutorRange(
+          id,
+          firstDay,
+          lastDay,
+          user.token!
+        );
+        setBookedSlots(
+          res.data.map((b: any) => ({ date: b.date, status: b.status }))
+        );
         console.log(
           "dates",
-          res.data.map((b: any) => ({ date: b.date }))
+          res.data.map((b: any) => ({ date: b.date, status: b.status }))
         );
       } catch (err) {
         console.error("Failed to fetch bookings:", err);
@@ -112,7 +130,7 @@ const ViewTutorDetails = () => {
 
     try {
       await CreateBooking(bookingReq, user.token);
-      setBookedSlots((prev) => [...prev, { date: dateStr }]);
+      setBookedSlots((prev) => [...prev, { date: dateStr, status: "pending" }]);
       alert(
         `✅ Booking confirmed: ${lessonType} on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
       );
@@ -134,7 +152,8 @@ const ViewTutorDetails = () => {
       <div className="min-h-screen bg-[#f9f9f9] p-6">
         <button
           onClick={() => navigate(-1)}
-          className="mb-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
+          className="mb-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+        >
           ← Back
         </button>
 
@@ -152,7 +171,9 @@ const ViewTutorDetails = () => {
                 {tutor.firstName} {tutor.lastName}
               </h1>
               {/* Truncate description with ellipsis */}
-              <p className="text-gray-600 mt-3 line-clamp-6">{tutor.description}</p>
+              <p className="text-gray-600 mt-3 line-clamp-6">
+                {tutor.description}
+              </p>
 
               {/* Subjects with Badge Style */}
               <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -160,13 +181,16 @@ const ViewTutorDetails = () => {
                 {tutor.subject?.split(",").map((sub: string, idx: number) => (
                   <span
                     key={idx}
-                    className="bg-blue-100 text-blue-800 text-sm font-semibold px-2 py-1 rounded-full">
+                    className="bg-blue-100 text-blue-800 text-sm font-semibold px-2 py-1 rounded-full"
+                  >
                     {sub.trim()}
                   </span>
                 ))}
               </div>
 
-              <p className="mt-3 mb-4 text-primary font-bold text-xl">SGD {tutor.hourlyRate}/hr</p>
+              <p className="mt-3 mb-4 text-primary font-bold text-xl">
+                SGD {tutor.hourlyRate}/hr
+              </p>
             </div>
           </div>
 
@@ -176,13 +200,17 @@ const ViewTutorDetails = () => {
             {tutor.qualifications && tutor.qualifications.length > 0 ? (
               <ul className="space-y-3">
                 {tutor.qualifications.map((q: any, idx: number) => (
-                  <li key={idx} className="border rounded-lg p-3 flex justify-between items-center">
+                  <li
+                    key={idx}
+                    className="border rounded-lg p-3 flex justify-between items-center"
+                  >
                     <div>
                       <p className="font-semibold">{q.name}</p>
                       <p className="text-gray-500 text-sm">{q.type}</p>
                       {q.uploadedAt && (
                         <p className="text-xs text-gray-400">
-                          Uploaded: {new Date(q.uploadedAt).toLocaleDateString()}
+                          Uploaded:{" "}
+                          {new Date(q.uploadedAt).toLocaleDateString()}
                         </p>
                       )}
                     </div>
@@ -190,7 +218,8 @@ const ViewTutorDetails = () => {
                       href={q.path}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline text-sm">
+                      className="text-blue-600 hover:underline text-sm"
+                    >
                       View
                     </a>
                   </li>
@@ -232,6 +261,7 @@ const ViewTutorDetails = () => {
 
         {/* Monthly Availability Calendar */}
         <AvailabilityCalendar
+          role="student"
           availability={tutor.availability}
           bookedSlots={bookedSlots}
           initialMonth={monthStart}
@@ -240,7 +270,9 @@ const ViewTutorDetails = () => {
         />
         {showModal && selectedSlot && (
           <BookingModal
-            lessonTypes={tutor.lessonType || ["Beginner Lesson", "Advanced Lesson"]}
+            lessonTypes={
+              tutor.lessonType || ["Beginner Lesson", "Advanced Lesson"]
+            }
             slot={selectedSlot}
             onClose={() => setShowModal(false)}
             onConfirm={confirmBooking}

@@ -32,7 +32,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         Booking booking = bookingMapper.toEntity(dto);
-        booking.setStatus("confirmed");
+        booking.setStatus("pending");
         Booking saved = bookingRepository.save(booking);
         return bookingMapper.toDto(saved);
     }
