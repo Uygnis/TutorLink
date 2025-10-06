@@ -4,15 +4,20 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Navbar from "@/components/Navbar";
 import { GetTutorProfile } from "@/api/tutorAPI";
-import Calendar from "@/components/calendar/Calendar";
 import ProfilePicModal from "@/components/ProfilePicModal";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
 import { Tutor } from "@/types/TutorType";
 import AvailabilityCalendar, {
   TimeSlot,
 } from "@/components/AvailabilityCalendar";
-import { GetBookingsForTutorRange } from "@/api/bookingAPI";
+import {
+  AcceptBooking,
+  CancelBooking,
+  GetBookingsForTutorRange,
+} from "@/api/bookingAPI";
 import { BookingRequest } from "@/types/BookingType";
+import BookingModalAccept from "@/components/BookingModalAccept";
+import BookingModalView from "@/components/BookingModalView";
 
 const TutorDashboard = () => {
   const [tutorDetails, setTutorDetails] = useState<Tutor | null>(null);
@@ -25,7 +30,15 @@ const TutorDashboard = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<
-    { date: string; status: string }[]
+    {
+      date: string;
+      status: string;
+      id: string;
+      tutorId: string;
+      studentId: string;
+      lessonType: string;
+      start: string;
+    }[]
   >([]);
   const [monthStart, setMonthStart] = useState<Date>(() => {
     const today = new Date();
@@ -73,7 +86,15 @@ const TutorDashboard = () => {
         user.token!
       );
       setBookedSlots(
-        res.data.map((b: any) => ({ date: b.date, status: b.status }))
+        res.data.map((b: any) => ({
+          date: b.date,
+          status: b.status,
+          lessonType: b.lessonType,
+          id: b.id,
+          studentId: b.studentId,
+          tutorId: b.tutorId,
+          start: b.start,
+        }))
       );
       console.log("dates", res.data);
     } catch (err) {
@@ -86,7 +107,94 @@ const TutorDashboard = () => {
   };
   const handleSlotClick = (date: Date, slot: TimeSlot) => {
     setSelectedSlot({ date, slot });
+    console.log({ date, slot });
     setShowModal(true);
+  };
+
+  const modal = (data: { date: Date; slot: TimeSlot }) => {
+    const booking = bookedSlots.filter(
+      (item) =>
+        item.date === data.date.toLocaleDateString("en-CA") &&
+        item.status !== "cancelled"
+    )[0];
+    return booking.status === "pending" ? (
+      <BookingModalAccept
+        booking={{
+          studentName: booking.studentId,
+          date: data.date,
+          slot: data.slot,
+          lessonType: booking.lessonType,
+        }}
+        onClose={() => setShowModal(false)}
+        onAccept={() => confirmBooking(booking.id)}
+        onReject={() => cancelBooking(booking.id)}
+      />
+    ) : (
+      <BookingModalView
+        booking={{
+          studentName: booking.studentId,
+          tutorName: booking.tutorId,
+          date: data.date,
+          slot: data.slot,
+          lessonType: booking.lessonType,
+        }}
+        onClose={() => setShowModal(false)}
+      />
+    );
+  };
+
+  const cancelBooking = async (bookingId: string) => {
+    if (!user?.token || !user?.id || !selectedSlot) {
+      alert("You must be logged in to book a lesson.");
+      return;
+    }
+
+    const dateStr = selectedSlot.date.toLocaleDateString("en-CA"); // YYYY-MM-DD
+
+    try {
+      await CancelBooking(bookingId, user.token);
+      setBookedSlots((prev) =>
+        prev.map((b) =>
+          b.id === bookingId ? { ...b, status: "cancelled" } : b
+        )
+      );
+      alert(
+        `✅ Booking rejected on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
+      );
+    } catch (err) {
+      console.error("Booking failed:", err);
+      alert("❌ Failed to reject booking. Please try again.");
+    } finally {
+      setShowModal(false);
+      setSelectedSlot(null);
+    }
+  };
+
+  const confirmBooking = async (bookingId: string) => {
+    if (!user?.token || !user?.id || !selectedSlot) {
+      alert("You must be logged in to book a lesson.");
+      return;
+    }
+
+    const dateStr = selectedSlot.date.toLocaleDateString("en-CA"); // YYYY-MM-DD
+
+    try {
+      await AcceptBooking(bookingId, user.token);
+      setBookedSlots((prev) =>
+        prev.map((b) =>
+          b.id === bookingId ? { ...b, status: "confirmed" } : b
+        )
+      );
+      alert(
+        `✅ Booking accepted on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
+      );
+    } catch (err) {
+      console.error("Booking failed:", err);
+      alert("❌ Failed to create booking. Please try again.");
+    } finally {
+      setShowModal(false);
+      setSelectedSlot(null);
+    }
   };
 
   useEffect(() => {
@@ -135,16 +243,7 @@ const TutorDashboard = () => {
                       onMonthChange={(newMonth) => setMonthStart(newMonth)}
                     />
 
-                    {/* {showModal && selectedSlot && (
-      <BookingModal
-        lessonTypes={
-          tutorDetails.lessonType || ["Beginner Lesson", "Advanced Lesson"]
-        }
-        slot={selectedSlot}
-        onClose={() => setShowModal(false)}
-        onConfirm={confirmBooking}
-      />
-    )} */}
+                    {showModal && selectedSlot && modal(selectedSlot)}
                   </>
                 ) : (
                   <></>

@@ -10,6 +10,7 @@ public interface BookingService {
     List<BookingDTO> getBookingsForTutor(String tutorId, String date);
     List<BookingDTO> getBookingsForStudent(String studentId);
     BookingDTO cancelBooking(String bookingId);
+    BookingDTO acceptBooking(String bookingId);
     BookingDTO getBookingById(String bookingId);
     List<BookingDTO> getBookingsForTutorBetweenDates(String tutorId, String startDate, String endDate);
 }

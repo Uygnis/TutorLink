@@ -152,7 +152,7 @@ const AvailabilityCalendar = ({
 
           const enabled = slot?.enabled ?? false;
           const bookingStatus = getSlotStatus(date, enabled);
-          console.log(bookingStatus);
+          // console.log(bookingStatus);
 
           const dayClasses =
             role === "student"
@@ -162,14 +162,28 @@ const AvailabilityCalendar = ({
             <div
               key={date.toISOString()}
               className={`p-2 border rounded text-sm ${dayClasses}`}
-              onClick={() =>
-                enabled &&
-                bookingStatus !== "booked" &&
-                onSlotClick?.(
-                  date,
-                  slot ?? { enabled: false, start: "", end: "" }
-                )
-              }
+              onClick={() => {
+                if (role === "student") {
+                  return (
+                    enabled &&
+                    bookingStatus !== "booked" &&
+                    onSlotClick?.(
+                      date,
+                      slot ?? { enabled: false, start: "", end: "" }
+                    )
+                  );
+                } else {
+                  return (
+                    enabled &&
+                    bookingStatus !== "available" &&
+                    bookingStatus !== "disabled" &&
+                    onSlotClick?.(
+                      date,
+                      slot ?? { enabled: false, start: "", end: "" }
+                    )
+                  );
+                }
+              }}
             >
               <div className="font-semibold">{date.getDate()}</div>
               {bookingStatus === "booked" && (

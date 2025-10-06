@@ -66,6 +66,15 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public BookingDTO acceptBooking(String bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+        booking.setStatus("confirmed");
+        return bookingMapper.toDto(bookingRepository.save(booking));
+    }
+
+
+    @Override
     public BookingDTO getBookingById(String bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));

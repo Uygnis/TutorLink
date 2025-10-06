@@ -92,11 +92,17 @@ const ViewTutorDetails = () => {
           user.token!
         );
         setBookedSlots(
-          res.data.map((b: any) => ({ date: b.date, status: b.status }))
+          res.data.map((b: any) => ({
+            date: b.date,
+            status: b.status,
+          }))
         );
         console.log(
           "dates",
-          res.data.map((b: any) => ({ date: b.date, status: b.status }))
+          res.data.map((b: any) => ({
+            date: b.date,
+            status: b.status,
+          }))
         );
       } catch (err) {
         console.error("Failed to fetch bookings:", err);
@@ -263,7 +269,9 @@ const ViewTutorDetails = () => {
         <AvailabilityCalendar
           role="student"
           availability={tutor.availability}
-          bookedSlots={bookedSlots}
+          bookedSlots={bookedSlots.map((slot) =>
+            slot.status === "pending" ? { ...slot, status: "confirmed" } : slot
+          )}
           initialMonth={monthStart}
           onSlotClick={handleSlotClick}
           onMonthChange={(newMonth) => setMonthStart(newMonth)}

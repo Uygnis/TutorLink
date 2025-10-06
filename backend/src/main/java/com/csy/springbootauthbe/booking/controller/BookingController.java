@@ -53,6 +53,12 @@ public class BookingController {
         return ResponseEntity.ok(cancelled);
     }
 
+    @PutMapping("/{bookingId}/accept")
+    public ResponseEntity<BookingDTO> acceptBooking(@PathVariable String bookingId) {
+        BookingDTO cancelled = bookingService.acceptBooking(bookingId);
+        return ResponseEntity.ok(cancelled);
+    }
+
     @GetMapping("/{bookingId}")
     public ResponseEntity<BookingDTO> getBookingById(@PathVariable String bookingId) {
         BookingDTO booking = bookingService.getBookingById(bookingId);
