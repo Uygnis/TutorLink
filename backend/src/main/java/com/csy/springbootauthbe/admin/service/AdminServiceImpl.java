@@ -192,11 +192,22 @@ public class AdminServiceImpl implements AdminService {
     // -------------------------------
     @Override
     public Optional<AdminDTO> getAdminByUserId(String userId) {
-        return adminRepository.findByUserId(userId)
-            .map(adminMapper::toDTO);
+        return userRepository.findById(userId)
+            .flatMap(user -> adminRepository.findByUserId(user.getId())
+                .map(admin -> AdminDTO.builder()
+                    .userId(user.getId())
+                    .firstName(user.getFirstname())
+                    .lastName(user.getLastname())
+                    .email(user.getEmail())
+                    .role(user.getRole().toString())
+                    .status(user.getStatus().toString())
+                    .permissions(admin.getPermissions())
+                    .build()
+                )
+            );
     }
 
-        @Override
+    @Override
     public List<UserResponse> viewAdmins(String adminUserId) {
         checkAdminWithPermission(adminUserId, Permissions.VIEW_ADMIN);
         List<User> admins = userRepository.findAllByRole(Role.ADMIN);

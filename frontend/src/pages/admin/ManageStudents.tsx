@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { EyeIcon, PauseCircleIcon, PlayCircleIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { GetAllStudents, DeleteUser, SuspendUser, ActivateUser } from "@/api/adminAPI";
 import { toast } from "react-toastify";
-import { useAppSelector } from "@/redux/store";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { setLoading } from "@/redux/loaderSlice";
 
 const ManageStudents = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -13,9 +14,12 @@ const ManageStudents = () => {
 
   const { user } = useAppSelector((state) => state.user);
   const currentPermissions: string[] = user?.permissions || [];
+  const { loading } = useAppSelector((state) => state.loaders);
+  const dispatch = useAppDispatch();
 
   const fetchStudents = async () => {
     try {
+      dispatch(setLoading(true));
       const token = user?.token;
       if (!token) return;
 
@@ -25,6 +29,8 @@ const ManageStudents = () => {
     } catch (error: any) {
       toast.error("Failed to fetch students");
       console.error(error);
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
