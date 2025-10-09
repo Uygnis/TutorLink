@@ -35,17 +35,11 @@ const AdminViewTutorDetail = () => {
           description:
             data.description ||
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
-          rating: data.rating ?? 4.5,
-          studentsCount: data.studentsCount ?? 20,
-          lessonsCount: data.lessonsCount ?? 50,
-          lessonType: data.lessonType ?? ["Beginner Lesson", "Advanced Lesson"],
-          reviews: data.reviews ?? [
-            {
-              studentName: "Alice Tan",
-              rating: 5,
-              comment: "Great tutor!",
-            },
-          ],
+          rating: data.rating ?? "N/A",
+          studentsCount: data.studentsCount ?? 0,
+          lessonsCount: data.lessonsCount ?? 0,
+          lessonType: data.lessonType ?? ["N/A"],
+          reviews: data.reviews ?? []
         };
 
         console.log("data", tutorWithDefaults);
@@ -101,7 +95,7 @@ const AdminViewTutorDetail = () => {
           {/* Tutor Profile + Qualifications */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
             {/* Tutor Profile (60%) */}
-            <div className="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row gap-6 md:col-span-3 max-h-[320px]">
+            <div className="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row gap-6 md:col-span-3 max-h-[380px]">
               <img
                 src={tutor?.profileImageUrl || defaultProfile}
                 alt={tutor?.firstName}
@@ -115,23 +109,37 @@ const AdminViewTutorDetail = () => {
                 <p className="text-gray-600 mt-3 line-clamp-6">{tutor?.description}</p>
 
                 {/* Subjects with Badge Style */}
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-gray-700">Subject:</span>
-                  {tutor?.subject?.split(",").map((sub: string, idx: number) => (
-                    <span
-                      key={idx}
-                      className="bg-blue-100 text-blue-800 text-sm font-semibold px-2 py-1 rounded-full">
-                      {sub.trim()}
-                    </span>
-                  ))}
+                <div className="mt-3 flex flex-wrap items-start gap-2 overflow-hidden">
+                  <span className="font-semibold text-gray-700 whitespace-nowrap">Subject:</span>
+                  <div className="flex flex-wrap gap-2 break-words max-w-full">
+                    {tutor?.subject?.split(",").map((sub: string, idx: number) => (
+                      <span
+                        key={idx}
+                        className="bg-blue-100 text-blue-800 text-sm font-semibold px-2 py-1 rounded-full break-words whitespace-normal max-w-[100%]">
+                        {sub.trim()}
+                      </span>
+                    ))}
+                  </div>
                 </div>
 
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-gray-700">Status:</span>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${tutor?.status === "ACTIVE"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                      }`}>
+                    {tutor?.status}</span>
+                </div>
                 <p className="mt-3 mb-4 text-primary font-bold text-xl">SGD {tutor?.hourlyRate}/hr</p>
+
+
+
               </div>
             </div>
 
             {/* Qualifications (40%) */}
-            <div className="bg-white rounded-lg shadow-md p-6 md:col-span-2 max-h-[320px] overflow-y-auto">
+            <div className="bg-white rounded-lg shadow-md p-6 md:col-span-2 max-h-[380px] overflow-y-auto">
               <h2 className="text-xl font-semibold mb-3">Qualifications</h2>
               {tutor?.qualifications && tutor?.qualifications.length > 0 ? (
                 <ul className="space-y-3">
