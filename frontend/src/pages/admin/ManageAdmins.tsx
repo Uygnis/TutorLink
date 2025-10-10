@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { TrashIcon, EyeIcon, PauseCircleIcon, PlayCircleIcon } from "@heroicons/react/24/solid";
 import { GetAllAdmins, DeleteUser, ActivateUser, SuspendUser } from "@/api/adminAPI";
 import { toast } from "react-toastify";
-import { useAppSelector } from "@/redux/store";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { setLoading } from "@/redux/loaderSlice";
+import { useNavigate } from "react-router-dom";
 
 const ManageAdmins = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -13,9 +15,13 @@ const ManageAdmins = () => {
 
   const { user } = useAppSelector((state) => state.user);
   const currentPermissions: string[] = user?.permissions || [];
+  const { loading } = useAppSelector((state) => state.loaders);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const fetchAdmins = async () => {
     try {
+      dispatch(setLoading(true));
       const token = user?.token;
       if (!token) return;
 
@@ -24,6 +30,8 @@ const ManageAdmins = () => {
     } catch (error: any) {
       toast.error("Failed to fetch admins");
       console.error(error);
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
@@ -31,9 +39,8 @@ const ManageAdmins = () => {
     admin.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleOpenModal = (admin: any | null = null) => {
-    setSelectedAdmin(admin);
-    setIsModalOpen(true);
+  const handleViewAdmin = (admin: any | null = null) => {
+    navigate(`/admin/admins/${admin.id}`);
   };
 
   // const handleCloseModal = () => {
@@ -134,12 +141,12 @@ const ManageAdmins = () => {
                       {admin.status}
                     </td>
                     <td className="px-4 py-2 space-x-2">
-                      <button
-                        onClick={() => handleOpenModal(admin)}
-                        className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-blue-200 transition inline-flex items-center space-x-1">
-                        <EyeIcon className="h-4 w-4" />
-                        <span>View</span>
-                      </button>
+                    <button
+                      onClick={() => handleViewAdmin(admin)}
+                      className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-blue-200 transition inline-flex items-center space-x-1">
+                      <EyeIcon className="h-4 w-4" />
+                      <span>View</span>
+                    </button>
                       <div className="relative group inline-block">
                         <button
                           onClick={() => currentPermissions.includes("SUSPEND_ADMIN") && handleSuspendModal(admin)}

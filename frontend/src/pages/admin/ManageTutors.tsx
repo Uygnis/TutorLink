@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { EyeIcon, PauseCircleIcon, PlayCircleIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { GetAllTutors, DeleteUser, ActivateUser, SuspendUser } from "@/api/adminAPI";
 import { toast } from "react-toastify";
-import { useAppSelector } from "@/redux/store";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { Tutor } from "@/types/TutorType";
+import { setLoading } from "@/redux/loaderSlice";
 
 const ManageTutors = () => {
   const navigate = useNavigate();
@@ -13,6 +14,8 @@ const ManageTutors = () => {
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const tutorsPerPage = 5;
+  const { loading } = useAppSelector((state) => state.loaders);
+  const dispatch = useAppDispatch();
 
   // Sorting
   const [sortConfig, setSortConfig] = useState<{ key: keyof Tutor; direction: "asc" | "desc" } | null>(null);
@@ -21,6 +24,7 @@ const ManageTutors = () => {
 
   const fetchTutors = async () => {
     try {
+      dispatch(setLoading(true));
       const token = user?.token;
       if (!token) return;
       const response = await GetAllTutors(user.id, token);
@@ -28,6 +32,9 @@ const ManageTutors = () => {
     } catch (error: any) {
       toast.error("Failed to fetch tutors");
       console.error(error);
+    }
+    finally {
+      dispatch(setLoading(false));
     }
   };
 

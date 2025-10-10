@@ -2,6 +2,7 @@ package com.csy.springbootauthbe.admin.controller;
 
 import com.csy.springbootauthbe.admin.dto.AdminDTO;
 import com.csy.springbootauthbe.admin.service.AdminService;
+import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
 import com.csy.springbootauthbe.user.entity.Role;
 import com.csy.springbootauthbe.user.utils.UserResponse;
@@ -42,6 +43,10 @@ public class AdminController {
 
     @GetMapping("/admins/{adminId}")
     public ResponseEntity<List<UserResponse>> getAllAdmins(@PathVariable String adminId) { return ResponseEntity.ok(adminService.viewAdmins(adminId));}
+
+    @GetMapping("/getStudentDetails/{studentId}")
+    public ResponseEntity<Optional<StudentDTO>> getStudentDetails(@PathVariable String studentId) { return ResponseEntity.ok(adminService.viewStudentDetail(studentId));}
+
 
     @PutMapping("/suspendAdmin/{adminId}/{userId}")
     public ResponseEntity<UserResponse> suspendAdmin(@PathVariable String adminId, @PathVariable String userId) {

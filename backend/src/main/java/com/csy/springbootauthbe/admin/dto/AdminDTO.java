@@ -15,5 +15,10 @@ import lombok.NoArgsConstructor;
 public class AdminDTO {
     private String id;
     private String userId;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String role;
+    private String status;
     private List<Permissions> permissions;
 }
