@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-
+// DO NOT USE
 @RestController
 @RequestMapping("/api/v1/events")
 @RequiredArgsConstructor

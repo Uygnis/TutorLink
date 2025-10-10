@@ -32,7 +32,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         Booking booking = bookingMapper.toEntity(dto);
-        booking.setStatus("confirmed");
+        booking.setStatus("pending");
         Booking saved = bookingRepository.save(booking);
         return bookingMapper.toDto(saved);
     }
@@ -64,6 +64,15 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus("cancelled");
         return bookingMapper.toDto(bookingRepository.save(booking));
     }
+
+    @Override
+    public BookingDTO acceptBooking(String bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+        booking.setStatus("confirmed");
+        return bookingMapper.toDto(bookingRepository.save(booking));
+    }
+
 
     @Override
     public BookingDTO getBookingById(String bookingId) {

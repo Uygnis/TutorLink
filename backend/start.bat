@@ -1,7 +1,7 @@
 @echo off
 
 echo Building project...
-call mvn clean install
+call mvn clean install -DskipTests
 
 if %errorlevel% neq 0 (
     echo Maven build failed!

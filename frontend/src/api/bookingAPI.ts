@@ -13,6 +13,20 @@ export const CreateBooking = async (
   });
 };
 
+/** Accept a booking */
+export const AcceptBooking = async (
+  bookingId: string,
+  authtoken: string
+): Promise<AxiosResponse<BookingResponse>> => {
+  return await axios.put(
+    `${BASE_URL}/${bookingId}/accept`,
+    {},
+    {
+      headers: { Authorization: `Bearer ${authtoken}` },
+    }
+  );
+};
+
 /** Get bookings for a tutor on a specific date  */
 export const GetBookingsForTutor = async (
   tutorId: string,
