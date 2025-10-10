@@ -46,9 +46,8 @@ const AdminViewAdminDetails = () => {
             ← Back
           </button>
 
-          {/* Admin Profile + Qualifications */}
+          {/* Admin Profile */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
-            {/* Admin Profile (60%) */}
             <div className="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row gap-6 md:col-span-3 max-h-[320px]">
               <img
                 src={admin?.profileImageUrl || defaultProfile}
@@ -59,7 +58,6 @@ const AdminViewAdminDetails = () => {
                 <h1 className="text-3xl font-bold">
                   {admin?.firstName} {admin?.lastName}
                 </h1>
-                {/* Subjects with Badge Style */}
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-gray-700">Status:</span>
                   <span

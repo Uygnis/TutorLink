@@ -6,6 +6,7 @@ import com.csy.springbootauthbe.admin.entity.Permissions;
 import com.csy.springbootauthbe.admin.mapper.AdminMapper;
 import com.csy.springbootauthbe.admin.repository.AdminRepository;
 import com.csy.springbootauthbe.admin.util.AdminResponse;
+import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.repository.StudentRepository;
 import com.csy.springbootauthbe.student.utils.StudentResponse;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
@@ -60,6 +61,26 @@ public class AdminServiceImpl implements AdminService {
             })
             .toList();
 
+    }
+
+    @Override
+    public Optional<StudentDTO> viewStudentDetail(String studentId) {
+        return userRepository.findById(studentId)
+                .flatMap(user ->
+                        // Find the Tutor by userId
+                        studentRepository.findByUserId(user.getId())
+                                .map(student -> StudentDTO.builder()
+                                        .userId(user.getId())
+                                        .firstName(user.getFirstname())
+                                        .lastName(user.getLastname())
+                                        .email(user.getEmail())
+                                        .status(String.valueOf(user.getStatus()))
+                                        .studentNumber(student.getStudentNumber())
+                                        .gradeLevel(student.getGradeLevel())
+                                        .profileImageUrl(student.getProfileImageUrl())
+                                        .build()
+                                )
+                );
     }
 
     @Override

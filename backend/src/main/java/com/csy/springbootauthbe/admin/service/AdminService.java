@@ -2,6 +2,7 @@ package com.csy.springbootauthbe.admin.service;
 
 import com.csy.springbootauthbe.admin.dto.AdminDTO;
 import com.csy.springbootauthbe.admin.entity.Permissions;
+import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
 import com.csy.springbootauthbe.user.utils.UserResponse;
 
@@ -13,6 +14,8 @@ public interface AdminService {
     //  Student Management
     // -------------------------------
     List<UserResponse> viewStudents(String adminUserId);
+
+    Optional<StudentDTO> viewStudentDetail(String studentId);
 
     String suspendStudent(String adminUserId, String studentId);
 

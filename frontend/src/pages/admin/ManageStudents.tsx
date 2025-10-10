@@ -5,6 +5,7 @@ import { GetAllStudents, DeleteUser, SuspendUser, ActivateUser } from "@/api/adm
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { setLoading } from "@/redux/loaderSlice";
+import { useNavigate } from "react-router-dom";
 
 const ManageStudents = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -16,6 +17,7 @@ const ManageStudents = () => {
   const currentPermissions: string[] = user?.permissions || [];
   const { loading } = useAppSelector((state) => state.loaders);
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const fetchStudents = async () => {
     try {
@@ -38,9 +40,8 @@ const ManageStudents = () => {
     student.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleOpenModal = (student: any | null = null) => {
-    setSelectedStudent(student);
-    setIsModalOpen(true);
+   const handleViewStudent = (student: any | null = null) => {
+    navigate(`/admin/students/${student.id}`);
   };
 
   const handleSuspendModal = async (student: any) => {
@@ -147,7 +148,7 @@ const ManageStudents = () => {
                     </td>
                     <td className="px-4 py-2 space-x-2">
                       <button
-                        onClick={() => handleOpenModal(student)}
+                        onClick={() => handleViewStudent(student)}
                         className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-blue-200 transition inline-flex items-center space-x-1">
                         <EyeIcon className="h-4 w-4" />
                         <span>View</span>
