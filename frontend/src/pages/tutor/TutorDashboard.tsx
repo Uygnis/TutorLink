@@ -69,11 +69,14 @@ const TutorDashboard = () => {
     const year = monthStart.getFullYear();
     const month = monthStart.getMonth();
 
-    const firstDay = new Date(year, month, 1).toISOString().split("T")[0];
-    const lastDay = new Date(year, month + 1, 0).toISOString().split("T")[0];
+    // first and last day as YYYY-MM-DD strings
+    const firstDay = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+    const lastDay = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+      new Date(year, month + 1, 0).getDate()
+    ).padStart(2, "0")}`;
 
     try {
-      const res = await GetBookingsForTutorRange(id, firstDay, lastDay, user.token!);
+      const res = await GetBookingsForTutorRange(user.id, firstDay, lastDay, user.token!);
       setBookedSlots(
         res.data.map((b: any) => ({
           date: b.date,

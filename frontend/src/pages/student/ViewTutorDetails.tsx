@@ -27,34 +27,30 @@ const ViewTutorDetails = () => {
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
 
+  // -------------------------
+  // Fetch Tutor Details
+  // -------------------------
   useEffect(() => {
     const fetchTutor = async () => {
       if (!id || !user?.token) return;
 
       try {
+        setLoading(true);
         const res = await GetTutorById(id, user.token);
         const data = res.data;
 
         const tutorWithDefaults = {
           ...data,
-          description:
-            data.description ||
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+          description: data.description || "No description provided",
           rating: data.rating ?? 4.5,
-          studentsCount: data.studentsCount ?? 20,
-          lessonsCount: data.lessonsCount ?? 50,
-          lessonType: data.lessonType ?? ["Beginner Lesson", "Advanced Lesson"],
-          reviews: data.reviews ?? [
-            {
-              studentName: "Alice Tan",
-              rating: 5,
-              comment: "Great tutor!",
-            },
-          ],
+          studentsCount: data.studentsCount ?? 0,
+          lessonsCount: data.lessonsCount ?? 0,
+          lessonType: data.lessonType ?? ["Beginner Lesson"],
+          reviews: data.reviews ?? [],
         };
 
-        console.log("data", tutorWithDefaults);
         setTutor(tutorWithDefaults);
+        console.log("tutor details", res.data);
       } catch (err) {
         console.error("Failed to fetch tutor:", err);
       } finally {
@@ -65,39 +61,36 @@ const ViewTutorDetails = () => {
     fetchTutor();
   }, [id, user]);
 
-  // Fetch bookings for the month
+  // -------------------------
+  // Fetch Bookings ONLY after tutor details are available
+  // -------------------------
   useEffect(() => {
-    const fetchBookingsForMonth = async () => {
-      if (!id || !user?.token) return;
+    if (!tutor || !user?.token) return;
 
+    const tutorId = tutor.userId;
+    const token = user.token;
+
+    const fetchBookingsForMonth = async () => {
       const year = monthStart.getFullYear();
       const month = monthStart.getMonth();
 
-      const firstDay = new Date(year, month, 1).toISOString().split("T")[0];
-      const lastDay = new Date(year, month + 1, 0).toISOString().split("T")[0];
+      // first and last day as YYYY-MM-DD strings
+      const firstDay = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+      const lastDay = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+        new Date(year, month + 1, 0).getDate()
+      ).padStart(2, "0")}`;
 
       try {
-        const res = await GetBookingsForTutorRange(id, firstDay, lastDay, user.token!);
-        setBookedSlots(
-          res.data.map((b: any) => ({
-            date: b.date,
-            status: b.status,
-          }))
-        );
-        console.log(
-          "dates",
-          res.data.map((b: any) => ({
-            date: b.date,
-            status: b.status,
-          }))
-        );
+        const res = await GetBookingsForTutorRange(tutorId, firstDay, lastDay, token);
+        setBookedSlots(res.data.map((b: any) => ({ date: b.date, status: b.status })));
+        console.log("dates", res.data);
       } catch (err) {
         console.error("Failed to fetch bookings:", err);
       }
     };
 
     fetchBookingsForMonth();
-  }, [monthStart, id, user]);
+  }, [tutor, monthStart, user]);
 
   const handleSlotClick = (date: Date, slot: TimeSlot) => {
     setSelectedSlot({ date, slot });

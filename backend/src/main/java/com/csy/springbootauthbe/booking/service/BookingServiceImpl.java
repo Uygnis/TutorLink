@@ -9,6 +9,8 @@ import com.csy.springbootauthbe.notification.service.NotificationService;
 import com.csy.springbootauthbe.user.entity.User;
 import com.csy.springbootauthbe.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -28,6 +30,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final BookingMapper bookingMapper;
     private final NotificationService notificationService;
+    private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
 
     @Override
     public BookingDTO createBooking(BookingRequest dto) {
@@ -66,8 +69,18 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public List<BookingDTO> getBookingsForTutorBetweenDates(String tutorId, String startDate, String endDate) {
-        List<Booking> bookings = bookingRepository.findByTutorIdAndDateBetween(tutorId, startDate, endDate);
-        return bookings.stream().map(bookingMapper::toDto).collect(Collectors.toList());
+        logger.info("Fetching bookings for tutorId={} between {} and {}", tutorId, startDate, endDate);
+
+        List<Booking> bookings = bookingRepository.findBookingsByTutorIdAndDateRange(tutorId, startDate, endDate);
+
+        logger.info("Found {} bookings", bookings.size());
+        for (Booking b : bookings) {
+            logger.info("Booking: id={}, date={}, status={}", b.getId(), b.getDate(), b.getStatus());
+        }
+
+        return bookings.stream()
+                .map(bookingMapper::toDto)
+                .collect(Collectors.toList());
     }
 
 
