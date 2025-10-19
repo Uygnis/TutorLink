@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
 public interface BookingMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "status", constant = "confirmed")
+    @Mapping(target = "lessonType", source = "lessonType")
     Booking toEntity(BookingRequest request);
 
     BookingDTO toDto(Booking booking);

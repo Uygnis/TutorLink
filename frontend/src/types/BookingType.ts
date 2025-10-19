@@ -11,6 +11,8 @@ export interface BookingResponse {
   id: string;
   tutorId: string;
   studentId: string;
+  tutorName: string;
+  studentName: string;
   date: string;
   start: string;
   end: string;

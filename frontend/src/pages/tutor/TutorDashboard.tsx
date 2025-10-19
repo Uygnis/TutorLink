@@ -7,14 +7,8 @@ import { GetTutorProfile } from "@/api/tutorAPI";
 import ProfilePicModal from "@/components/ProfilePicModal";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
 import { Tutor } from "@/types/TutorType";
-import AvailabilityCalendar, {
-  TimeSlot,
-} from "@/components/AvailabilityCalendar";
-import {
-  AcceptBooking,
-  CancelBooking,
-  GetBookingsForTutorRange,
-} from "@/api/bookingAPI";
+import AvailabilityCalendar, { TimeSlot } from "@/components/AvailabilityCalendar";
+import { AcceptBooking, CancelBooking, GetBookingsForTutorRange } from "@/api/bookingAPI";
 import { BookingRequest } from "@/types/BookingType";
 import BookingModalAccept from "@/components/BookingModalAccept";
 import BookingModalView from "@/components/BookingModalView";
@@ -79,12 +73,7 @@ const TutorDashboard = () => {
     const lastDay = new Date(year, month + 1, 0).toISOString().split("T")[0];
 
     try {
-      const res = await GetBookingsForTutorRange(
-        id,
-        firstDay,
-        lastDay,
-        user.token!
-      );
+      const res = await GetBookingsForTutorRange(id, firstDay, lastDay, user.token!);
       setBookedSlots(
         res.data.map((b: any) => ({
           date: b.date,
@@ -113,9 +102,7 @@ const TutorDashboard = () => {
 
   const modal = (data: { date: Date; slot: TimeSlot }) => {
     const booking = bookedSlots.filter(
-      (item) =>
-        item.date === data.date.toLocaleDateString("en-CA") &&
-        item.status !== "cancelled"
+      (item) => item.date === data.date.toLocaleDateString("en-CA") && item.status !== "cancelled"
     )[0];
     return booking.status === "pending" ? (
       <BookingModalAccept
@@ -152,11 +139,9 @@ const TutorDashboard = () => {
     const dateStr = selectedSlot.date.toLocaleDateString("en-CA"); // YYYY-MM-DD
 
     try {
-      await CancelBooking(bookingId, user.token);
+      await CancelBooking(bookingId, user.id, user.token);
       setBookedSlots((prev) =>
-        prev.map((b) =>
-          b.id === bookingId ? { ...b, status: "cancelled" } : b
-        )
+        prev.map((b) => (b.id === bookingId ? { ...b, status: "cancelled" } : b))
       );
       alert(
         `✅ Booking rejected on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
@@ -181,9 +166,7 @@ const TutorDashboard = () => {
     try {
       await AcceptBooking(bookingId, user.token);
       setBookedSlots((prev) =>
-        prev.map((b) =>
-          b.id === bookingId ? { ...b, status: "confirmed" } : b
-        )
+        prev.map((b) => (b.id === bookingId ? { ...b, status: "confirmed" } : b))
       );
       alert(
         `✅ Booking accepted on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
@@ -220,9 +203,7 @@ const TutorDashboard = () => {
     <div>
       <Navbar />
       <div className="min-h-screen bg-[#f2f2f2] p-6">
-        <h1 className="font-bold text-xl mb-5 ">
-          Welcome to your Dashboard !{" "}
-        </h1>
+        <h1 className="font-bold text-xl mb-5 ">Welcome to your Dashboard ! </h1>
         {/* Two-column layout */}
         <div className="flex gap-6">
           {/* Left side (Upcoming + Past Sessions) */}
@@ -291,14 +272,12 @@ const TutorDashboard = () => {
                     <div className="mt-4 flex justify-center">
                       <button
                         onClick={() => handleEdit()} // define handleEdit function
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-                      >
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
                         Edit
                       </button>
                       <button
                         onClick={() => setIsModalOpen(true)}
-                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
-                      >
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
                         Change Profile Pic
                       </button>
                     </div>

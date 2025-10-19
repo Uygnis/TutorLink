@@ -53,7 +53,7 @@ const FindTutor = () => {
       subject: subject || undefined,
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
-      availability: availability || undefined, // <-- the string
+      availability: availability || undefined,
     };
 
     try {

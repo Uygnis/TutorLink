@@ -9,7 +9,9 @@ import lombok.*;
 public class BookingDTO {
     private String id;
     private String tutorId;
+    private String tutorName;
     private String studentId;
+    private String studentName;
     private String lessonType;
     private String date;
     private String start;
