@@ -6,7 +6,7 @@ export interface TimeSlot {
   end: string;
 }
 
-type SlotStatus = "booked" | "pending" | "available" | "disabled";
+type SlotStatus = "booked" | "pending" | "available" | "disabled" | "expired";
 
 interface AvailabilityCalendarProps {
   role: "tutor" | "student";
@@ -52,9 +52,18 @@ const AvailabilityCalendar = ({
 
   const pendingDatesSet = new Set(
     bookedSlots
-      .filter((b) => b.status === "pending")
+      .filter((b) => {
+        const bookingDate = new Date(b.date);
+        return b.status === "pending" && bookingDate >= new Date();
+      })
       .map((b) => formatDate(new Date(b.date)))
   );
+
+  const isPastDate = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // normalize to midnight
+    return date <= today;
+  };
 
   const getMonthDates = (start: Date) => {
     const dates: Date[] = [];
@@ -83,10 +92,21 @@ const AvailabilityCalendar = ({
   // const isSlotBooked = (date: Date) => bookedDatesSet.has(formatDate(date));
   const getSlotStatus = (date: Date, enabled: boolean): SlotStatus => {
     if (!enabled) return "disabled";
+    const isPast = date < new Date();
 
     const formatted = formatDate(date);
     if (bookedDatesSet.has(formatted)) return "booked";
     if (pendingDatesSet.has(formatted)) return "pending";
+    if (
+      isPast &&
+      bookedSlots.some(
+        (b) =>
+          b.status === "pending" && formatDate(new Date(b.date)) === formatted
+      )
+    ) {
+      return "expired";
+    }
+
     return "available";
   };
 
@@ -95,6 +115,8 @@ const AvailabilityCalendar = ({
     pending: "bg-yellow-200 text-yellow-700 cursor-not-allowed",
     available: "bg-green-100 hover:bg-green-200 cursor-pointer",
     disabled: "bg-gray-100 cursor-not-allowed",
+    expired:
+      "bg-gray-200 text-gray-400 cursor-not-allowed opacity-50 hover:bg-transparent",
   };
 
   const tutorClasses = {
@@ -102,6 +124,8 @@ const AvailabilityCalendar = ({
     pending: "bg-yellow-200 text-yellow-700 cursor-pointer",
     available: "cursor-not-allowed",
     disabled: "bg-gray-100 cursor-not-allowed",
+    expired:
+      "bg-gray-200 text-gray-400 cursor-not-allowed opacity-50 hover:bg-transparent",
   };
 
   return (
@@ -158,11 +182,19 @@ const AvailabilityCalendar = ({
             role === "student"
               ? studentClasses[bookingStatus]
               : tutorClasses[bookingStatus];
+
+          const past = isPastDate(date);
+          const combinedClasses = `${dayClasses} ${
+            past
+              ? "opacity-50 text-gray-400 !cursor-not-allowed hover:!bg-transparent"
+              : ""
+          }`;
           return (
             <div
               key={date.toISOString()}
-              className={`p-2 border rounded text-sm ${dayClasses}`}
+              className={`p-2 border rounded text-sm ${combinedClasses}`}
               onClick={() => {
+                if (past) return;
                 if (role === "student") {
                   return (
                     enabled &&
@@ -194,6 +226,9 @@ const AvailabilityCalendar = ({
               )}
               {bookingStatus === "pending" && enabled && (
                 <div className="text-xs">Pending</div>
+              )}
+              {bookingStatus === "expired" && (
+                <div className="text-xs">Expired</div>
               )}
             </div>
           );
