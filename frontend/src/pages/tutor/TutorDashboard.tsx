@@ -7,9 +7,16 @@ import { GetTutorProfile } from "@/api/tutorAPI";
 import ProfilePicModal from "@/components/ProfilePicModal";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
 import { Tutor } from "@/types/TutorType";
-import AvailabilityCalendar, { TimeSlot } from "@/components/AvailabilityCalendar";
-import { AcceptBooking, CancelBooking, GetBookingsForTutorRange } from "@/api/bookingAPI";
-import { BookingRequest } from "@/types/BookingType";
+import AvailabilityCalendar, {
+  TimeSlot,
+} from "@/components/AvailabilityCalendar";
+import {
+  AcceptBooking,
+  CancelBooking,
+  GetBookingsForTutorRange,
+  GetPastBookingsForTutor,
+  GetRecentBookingsForTutor,
+} from "@/api/bookingAPI";
 import BookingModalAccept from "@/components/BookingModalAccept";
 import BookingModalView from "@/components/BookingModalView";
 
@@ -23,6 +30,31 @@ const TutorDashboard = () => {
   } | null>(null);
 
   const [showModal, setShowModal] = useState(false);
+  const [pastBookedSlotsCount, setPastBookedSlotsCount] = useState<number>(0);
+  const [pastBookedSlots, setPastBookedSlots] = useState<
+    {
+      date: string;
+      status: string;
+      id: string;
+      tutorId: string;
+      studentId: string;
+      lessonType: string;
+      start: string;
+    }[]
+  >([]);
+  const [recentBookedSlotsCount, setRecentBookedSlotsCount] =
+    useState<number>(0);
+  const [recentBookedSlots, setRecentBookedSlots] = useState<
+    {
+      date: string;
+      status: string;
+      id: string;
+      tutorId: string;
+      studentId: string;
+      lessonType: string;
+      start: string;
+    }[]
+  >([]);
   const [bookedSlots, setBookedSlots] = useState<
     {
       date: string;
@@ -63,6 +95,51 @@ const TutorDashboard = () => {
       return null;
     }
   };
+
+  const fetchRecentBookings = async (id: string) => {
+    if (!id || !user?.token) return;
+    try {
+      const res = await GetRecentBookingsForTutor(user.id, user.token!);
+      setRecentBookedSlots(
+        res.data.recentSessions.map((b: any) => ({
+          date: b.date,
+          status: b.status,
+          lessonType: b.lessonType,
+          id: b.id,
+          studentId: b.studentId,
+          tutorId: b.tutorId,
+          start: b.start,
+        }))
+      );
+      setRecentBookedSlotsCount(res.data.totalCount);
+      console.log("upcoming booking: ", res.data);
+    } catch (err) {
+      console.error("Failed to fetch past bookings:", err);
+    }
+  };
+
+  const fetchRecentPastBookings = async (id: string) => {
+    if (!id || !user?.token) return;
+    try {
+      const res = await GetPastBookingsForTutor(user.id, user.token!);
+      setPastBookedSlots(
+        res.data.recentSessions.map((b: any) => ({
+          date: b.date,
+          status: b.status,
+          lessonType: b.lessonType,
+          id: b.id,
+          studentId: b.studentId,
+          tutorId: b.tutorId,
+          start: b.start,
+        }))
+      );
+      setPastBookedSlotsCount(res.data.totalCount);
+      console.log("past booking: ", res.data);
+    } catch (err) {
+      console.error("Failed to fetch past bookings:", err);
+    }
+  };
+
   const fetchBookingsForMonth = async (id: string) => {
     if (!id || !user?.token) return;
 
@@ -76,7 +153,12 @@ const TutorDashboard = () => {
     ).padStart(2, "0")}`;
 
     try {
-      const res = await GetBookingsForTutorRange(user.id, firstDay, lastDay, user.token!);
+      const res = await GetBookingsForTutorRange(
+        user.id,
+        firstDay,
+        lastDay,
+        user.token!
+      );
       setBookedSlots(
         res.data.map((b: any) => ({
           date: b.date,
@@ -105,7 +187,9 @@ const TutorDashboard = () => {
 
   const modal = (data: { date: Date; slot: TimeSlot }) => {
     const booking = bookedSlots.filter(
-      (item) => item.date === data.date.toLocaleDateString("en-CA") && item.status !== "cancelled"
+      (item) =>
+        item.date === data.date.toLocaleDateString("en-CA") &&
+        item.status !== "cancelled"
     )[0];
     return booking.status === "pending" ? (
       <BookingModalAccept
@@ -144,7 +228,14 @@ const TutorDashboard = () => {
     try {
       await CancelBooking(bookingId, user.id, user.token);
       setBookedSlots((prev) =>
-        prev.map((b) => (b.id === bookingId ? { ...b, status: "cancelled" } : b))
+        prev.map((b) =>
+          b.id === bookingId ? { ...b, status: "cancelled" } : b
+        )
+      );
+      setRecentBookedSlots((prev) =>
+        prev.map((b) =>
+          b.id === bookingId ? { ...b, status: "cancelled" } : b
+        )
       );
       alert(
         `✅ Booking rejected on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
@@ -169,7 +260,14 @@ const TutorDashboard = () => {
     try {
       await AcceptBooking(bookingId, user.token);
       setBookedSlots((prev) =>
-        prev.map((b) => (b.id === bookingId ? { ...b, status: "confirmed" } : b))
+        prev.map((b) =>
+          b.id === bookingId ? { ...b, status: "confirmed" } : b
+        )
+      );
+      setRecentBookedSlots((prev) =>
+        prev.map((b) =>
+          b.id === bookingId ? { ...b, status: "confirmed" } : b
+        )
       );
       alert(
         `✅ Booking accepted on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
@@ -195,55 +293,167 @@ const TutorDashboard = () => {
     }
     fetchTutorDetails(user.id).then((data) => {
       if (data) {
-        return fetchBookingsForMonth(data.id);
+        fetchRecentPastBookings(data.id);
+        fetchBookingsForMonth(data.id);
+        fetchRecentBookings(data.id);
       } else {
         toast.error("Failed to load tutor data.");
       }
     });
-  }, [user, navigate]);
+  }, [user, monthStart, navigate]);
 
   return (
     <div>
       <Navbar />
       <div className="min-h-screen bg-[#f2f2f2] p-6">
-        <h1 className="font-bold text-xl mb-5 ">Welcome to your Dashboard ! </h1>
+        <h1 className="font-bold text-xl mb-5 ">
+          Welcome to your Dashboard !{" "}
+        </h1>
         {/* Two-column layout */}
         <div className="flex gap-6">
           {/* Left side (Upcoming + Past Sessions) */}
           <div className="flex flex-col w-[70%] space-y-6">
-            {/* Upcoming Sessions */}
+            {/* UPCOMING SESSIONS */}
             <div className="bg-white rounded-md shadow-md p-5">
               <h2 className="font-bold text-lg mb-3">Upcoming Sessions</h2>
-              <div>
-                {tutorDetails !== null ? (
-                  <>
-                    {/* Monthly Availability Calendar */}
-                    <AvailabilityCalendar
-                      role="tutor"
-                      availability={tutorDetails.availability}
-                      bookedSlots={bookedSlots}
-                      initialMonth={monthStart}
-                      onSlotClick={handleSlotClick}
-                      onMonthChange={(newMonth) => setMonthStart(newMonth)}
-                    />
 
-                    {showModal && selectedSlot && modal(selectedSlot)}
-                  </>
+              {/* List of upcoming sessions */}
+              <div className="mb-4">
+                {recentBookedSlots.filter((b) => b.status !== "cancelled")
+                  .length > 0 ? (
+                  <ul className="divide-y divide-gray-200">
+                    {recentBookedSlots
+                      .filter(
+                        (b) =>
+                          b.status === "confirmed" || b.status === "pending"
+                      )
+                      .sort(
+                        (a, b) =>
+                          new Date(a.date).getTime() -
+                          new Date(b.date).getTime()
+                      )
+                      .map((b) => (
+                        <li
+                          key={b.id}
+                          className="py-3 flex justify-between items-center"
+                        >
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {new Date(b.date).toLocaleDateString("en-GB", {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                              })}{" "}
+                              – {b.lessonType}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {b.start} | Status:{" "}
+                              <span
+                                className={`font-semibold ${
+                                  b.status === "confirmed"
+                                    ? "text-green-600"
+                                    : b.status === "pending"
+                                    ? "text-yellow-600"
+                                    : "text-gray-400"
+                                }`}
+                              >
+                                {b.status}
+                              </span>
+                            </p>
+                          </div>
+                          <button
+                            onClick={() =>
+                              handleSlotClick(new Date(b.date), {
+                                enabled: false,
+                                start: "",
+                                end: "",
+                              })
+                            }
+                            className="text-blue-600 hover:underline"
+                          >
+                            View
+                          </button>
+                        </li>
+                      ))}
+                  </ul>
                 ) : (
-                  <></>
+                  <p className="text-gray-400 text-center">
+                    No upcoming sessions yet.
+                  </p>
                 )}
               </div>
-              {/* <div className="h-40 flex items-center justify-center text-gray-400">
-                No upcoming sessions yet.
-              </div> */}
+
+              {/* Availability Calendar */}
+              {tutorDetails && (
+                <>
+                  <AvailabilityCalendar
+                    role="tutor"
+                    availability={tutorDetails.availability}
+                    bookedSlots={bookedSlots}
+                    initialMonth={monthStart}
+                    onSlotClick={handleSlotClick}
+                    onMonthChange={(newMonth) => setMonthStart(newMonth)}
+                  />
+                  {showModal && selectedSlot && modal(selectedSlot)}
+                </>
+              )}
             </div>
 
-            {/* Past Sessions */}
+            {/* PAST SESSIONS */}
             <div className="bg-white rounded-md shadow-md p-5">
-              <h2 className="font-bold text-lg mb-3">Past Sessions</h2>
-              <div className="h-40 flex items-center justify-center text-gray-400">
-                No past sessions yet.
-              </div>
+              <h2 className="font-bold text-lg mb-1 flex justify-between items-center">
+                Past Sessions
+                <span className="text-sm text-gray-500">
+                  Total Completed: {pastBookedSlotsCount}
+                </span>
+              </h2>
+
+              {pastBookedSlots.filter((b) => new Date(b.date) < new Date())
+                .length > 0 ? (
+                <ul className="space-y-3 mt-3">
+                  {pastBookedSlots
+                    .filter(
+                      (b) =>
+                        b.status === "confirmed" &&
+                        new Date(b.date) < new Date()
+                    )
+                    .sort(
+                      (a, b) =>
+                        new Date(b.date).getTime() - new Date(a.date).getTime()
+                    )
+                    .map((b) => (
+                      <li
+                        key={b.id}
+                        className="p-3 bg-gray-50 rounded-md shadow-sm flex justify-between items-center"
+                      >
+                        <div>
+                          <p className="font-medium text-gray-800">
+                            {new Date(b.date).toLocaleDateString(undefined, {
+                              weekday: "short",
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}{" "}
+                            | {b.start}
+                          </p>
+                          <p className="text-gray-600 text-sm">
+                            {b.lessonType}
+                          </p>
+                          <p className="text-gray-500 text-sm">
+                            Student: {b.studentId}
+                          </p>
+                        </div>
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                          {b.status.charAt(0).toUpperCase() + b.status.slice(1)}
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+              ) : (
+                <p className="text-gray-400 text-center mt-3">
+                  No past sessions yet.
+                </p>
+              )}
             </div>
           </div>
 
@@ -275,12 +485,14 @@ const TutorDashboard = () => {
                     <div className="mt-4 flex justify-center">
                       <button
                         onClick={() => handleEdit()} // define handleEdit function
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                      >
                         Edit
                       </button>
                       <button
                         onClick={() => setIsModalOpen(true)}
-                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                      >
                         Change Profile Pic
                       </button>
                     </div>

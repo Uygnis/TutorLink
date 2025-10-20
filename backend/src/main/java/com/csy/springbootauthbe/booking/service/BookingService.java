@@ -2,8 +2,10 @@ package com.csy.springbootauthbe.booking.service;
 
 import com.csy.springbootauthbe.booking.dto.BookingDTO;
 import com.csy.springbootauthbe.booking.dto.BookingRequest;
+import com.csy.springbootauthbe.booking.dto.RecentBookingResponse;
 
 import java.util.List;
+import java.util.Map;
 
 public interface BookingService {
     BookingDTO createBooking(BookingRequest dto);
@@ -13,4 +15,6 @@ public interface BookingService {
     BookingDTO acceptBooking(String bookingId);
     BookingDTO getBookingById(String bookingId);
     List<BookingDTO> getBookingsForTutorBetweenDates(String tutorId, String startDate, String endDate);
+    RecentBookingResponse getRecentPastBookings(String tutorId);
+    RecentBookingResponse getUpcomingBookings(String tutorId);
 }
