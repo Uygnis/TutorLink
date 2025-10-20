@@ -9,7 +9,7 @@ public interface BookingService {
     BookingDTO createBooking(BookingRequest dto);
     List<BookingDTO> getBookingsForTutor(String tutorId, String date);
     List<BookingDTO> getBookingsForStudent(String studentId);
-    BookingDTO cancelBooking(String bookingId);
+    BookingDTO cancelBooking(String bookingId, String currentUserId);
     BookingDTO acceptBooking(String bookingId);
     BookingDTO getBookingById(String bookingId);
     List<BookingDTO> getBookingsForTutorBetweenDates(String tutorId, String startDate, String endDate);

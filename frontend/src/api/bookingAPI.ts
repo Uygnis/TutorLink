@@ -64,11 +64,12 @@ export const GetBookingsForStudent = async (
 /** Cancel a booking  */
 export const CancelBooking = async (
   bookingId: string,
+  currentUserId: string,
   authtoken: string
 ): Promise<AxiosResponse<BookingResponse>> => {
   return await axios.put(
-    `${BASE_URL}/${bookingId}/cancel`,
-    {},
+    `${BASE_URL}/${bookingId}/cancel/${currentUserId}`,
+    {}, // empty body
     {
       headers: { Authorization: `Bearer ${authtoken}` },
     }

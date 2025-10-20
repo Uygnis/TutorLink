@@ -12,7 +12,7 @@ const AdminViewTutorDetail = () => {
   const { tutorId } = useParams<{ tutorId: string }>();
   const [tutor, setTutor] = useState<any | null>(null);
   const { user } = useAppSelector((state) => state.user);
-  const [bookedSlots, setBookedSlots] = useState<{ date: string }[]>([]);
+  const [bookedSlots, setBookedSlots] = useState<{ date: string; status: string }[]>([]);
   const [monthStart, setMonthStart] = useState<Date>(() => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
@@ -39,7 +39,7 @@ const AdminViewTutorDetail = () => {
           studentsCount: data.studentsCount ?? 0,
           lessonsCount: data.lessonsCount ?? 0,
           lessonType: data.lessonType ?? ["N/A"],
-          reviews: data.reviews ?? []
+          reviews: data.reviews ?? [],
         };
 
         console.log("data", tutorWithDefaults);
@@ -67,11 +67,14 @@ const AdminViewTutorDetail = () => {
 
       try {
         const res = await GetBookingsForTutorRange(tutorId, firstDay, lastDay, user.token!);
-        setBookedSlots(res.data.map((b: any) => ({ date: b.date })));
-        console.log(
-          "dates",
-          res.data.map((b: any) => ({ date: b.date }))
-        );
+
+        const mappedSlots = res.data.map((b: any) => ({
+          date: b.date,
+          status: b.status ?? "booked", // required by AvailabilityCalendar
+        }));
+
+        setBookedSlots(mappedSlots);
+        console.log("bookedSlots", mappedSlots);
       } catch (err) {
         console.error("Failed to fetch bookings:", err);
       }
@@ -79,7 +82,6 @@ const AdminViewTutorDetail = () => {
 
     fetchBookingsForMonth();
   }, [monthStart, tutorId, user]);
-
 
   if (!loading || tutor) {
     return (
@@ -125,16 +127,17 @@ const AdminViewTutorDetail = () => {
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-gray-700">Status:</span>
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${tutor?.status === "ACTIVE"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                      }`}>
-                    {tutor?.status}</span>
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      tutor?.status === "ACTIVE"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}>
+                    {tutor?.status}
+                  </span>
                 </div>
-                <p className="mt-3 mb-4 text-primary font-bold text-xl">SGD {tutor?.hourlyRate}/hr</p>
-
-
-
+                <p className="mt-3 mb-4 text-primary font-bold text-xl">
+                  SGD {tutor?.hourlyRate}/hr
+                </p>
               </div>
             </div>
 
@@ -144,7 +147,9 @@ const AdminViewTutorDetail = () => {
               {tutor?.qualifications && tutor?.qualifications.length > 0 ? (
                 <ul className="space-y-3">
                   {tutor?.qualifications.map((q: any, idx: number) => (
-                    <li key={idx} className="border rounded-lg p-3 flex justify-between items-center">
+                    <li
+                      key={idx}
+                      className="border rounded-lg p-3 flex justify-between items-center">
                       <div>
                         <p className="font-semibold">{q.name}</p>
                         <p className="text-gray-500 text-sm">{q.type}</p>
@@ -201,13 +206,13 @@ const AdminViewTutorDetail = () => {
           <div className="bg-white rounded-lg shadow-md mb-6 p-6">
             <h2 className="text-xl font-semibold mb-3">Tutor Availability</h2>
             <AvailabilityCalendar
+              role="student"
               availability={tutor?.availability}
               bookedSlots={bookedSlots}
               initialMonth={monthStart}
               onMonthChange={(newMonth) => setMonthStart(newMonth)}
             />
           </div>
-
 
           {/* Reviews */}
           <div className="bg-white rounded-lg shadow-md p-6 mt-6">
@@ -229,7 +234,7 @@ const AdminViewTutorDetail = () => {
         </div>
       </div>
     );
-  };
-}
+  }
+};
 
 export default AdminViewTutorDetail;

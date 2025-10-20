@@ -20,6 +20,6 @@ public class Booking {
     private String date;   // yyyy-MM-dd
     private String start;  // HH:mm
     private String end;    // HH:mm
-
+    private String lessonType;
     private String status; // confirmed, pending, cancelled
 }
