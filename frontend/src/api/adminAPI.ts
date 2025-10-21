@@ -42,6 +42,19 @@ export const GetAllAdmins = async (userId: string, authtoken: string): Promise<A
   });
 };
 
+export const ApproveTutor = async (userId: any, tutorId: string, authtoken: string): Promise<AxiosResponse<any>> => {
+  return await axios.put(`${BASE_URL}/approveTutor/${userId}/${tutorId}`, {}, {
+    headers: { Authorization: `Bearer ${authtoken}` },
+  });
+};
+
+export const RejectTutor = async (userId: any, tutorId: string, authtoken: string): Promise<AxiosResponse<any>> => {
+  return await axios.put(`${BASE_URL}/rejectTutor/${userId}/${tutorId}`, {}, {
+    headers: { Authorization: `Bearer ${authtoken}` },
+  });
+};
+
+
 export const SuspendUser = async (
   adminId: any,
   id: any,

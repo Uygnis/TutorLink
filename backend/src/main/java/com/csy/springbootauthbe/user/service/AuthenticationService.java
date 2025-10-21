@@ -41,14 +41,15 @@ public class AuthenticationService {
     public AuthenticationResponse register(RegisterRequest request) {
         logger.info("Register request received: email={}, role={}", request.getEmail(), request.getRole());
 
-        AccountStatus status = AccountStatus.ACTIVE;
-
         if (repository.existsByEmail(request.getEmail())) {
             logger.warn("Registration failed: Email already exists - {}", request.getEmail());
             throw new DataIntegrityViolationException("Email already exists");
         }
 
         Role userRole = getUserRole(request);
+
+        AccountStatus status = userRole == Role.TUTOR ?
+            AccountStatus.PENDING_APPROVAL : AccountStatus.ACTIVE;
 
         var user = User.builder()
                 .firstname(request.getFirstname())
@@ -138,6 +139,16 @@ public class AuthenticationService {
         if (user.getStatus() == AccountStatus.DELETED) {
             logger.warn("Login blocked: User is deleted. userId={}", user.getId());
             throw new RuntimeException("Your account has been deleted. Please contact administrator for support.");
+        }
+
+        if (user.getStatus() == AccountStatus.PENDING_APPROVAL) {
+            logger.warn("Login blocked: User is pending approval. userId={}", user.getId());
+            throw new RuntimeException("Your account is pending approval. Please wait for administrator confirmation.");
+        }
+
+        if (user.getStatus() == AccountStatus.REJECTED) {
+            logger.warn("Login blocked: User account has been rejected. userId={}", user.getId());
+            throw new RuntimeException("Your account creation has been rejected. Please contact administrator for support.");
         }
 
         var jwtToken = jwtService.generateToken(user);

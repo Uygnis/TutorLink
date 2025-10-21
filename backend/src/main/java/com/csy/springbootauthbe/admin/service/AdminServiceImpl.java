@@ -166,19 +166,21 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public void approveTutor(String adminUserId, String tutorId) {
+    public String approveTutor(String adminUserId, String tutorId) {
         checkAdminWithPermission(adminUserId, Permissions.APPROVE_TUTOR);
         User tutor = getUserOrThrow(tutorId, Role.TUTOR);
         tutor.setStatus(AccountStatus.ACTIVE);
         userRepository.save(tutor);
+        return adminUserId;
     }
 
     @Override
-    public void rejectTutor(String adminUserId, String tutorId) {
+    public String rejectTutor(String adminUserId, String tutorId) {
         checkAdminWithPermission(adminUserId, Permissions.REJECT_TUTOR);
         User tutor = getUserOrThrow(tutorId, Role.TUTOR);
         tutor.setStatus(AccountStatus.REJECTED);
         userRepository.save(tutor);
+        return adminUserId;
     }
 
     @Override
