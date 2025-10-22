@@ -147,7 +147,7 @@ jobs:
               with:
                 project: 'frontend'
                 path: './frontend'
-                format: 'HTML'
+                format: 'ALL'
                 out: 'reports/frontend'
                 
             - name: Upload OWASP Report (Frontend)
@@ -168,7 +168,7 @@ jobs:
               with:
                 project: 'backend'
                 path: './backend'
-                format: 'HTML'
+                format: 'ALL'
                 out: 'reports/backend'
                 
             - name: Upload OWASP Report (Backend)
@@ -176,3 +176,36 @@ jobs:
               with:
                 name: dependency-check-report-backend
                 path: reports/backend
+            
+    ai-classification:
+        name: AI Classification & Remediation
+        runs-on: ubuntu-latest
+        needs: [asp-scan-frontend, asp-scan-backend]
+        steps:
+          - uses: actions/checkout@v4
+
+          - name: Download scan artifacts
+            uses: actions/download-artifact@v4
+            with:
+              path: reports
+
+          - name: Install Python
+            uses: actions/setup-python@v5
+            with:
+              python-version: '3.10'
+    
+          - name: Install dependencies
+            run: |
+              pip install google-generativeai pandas
+    
+          - name: Run AI Classification Script
+            env:
+              GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+            run: python .github/scripts/ai_classify_security.py
+            
+          - name: Upload AI Report
+            uses: actions/upload-artifact@v4
+            with:
+              name: ai-security-summary
+              path: reports/ai/security_summary.md
+        
