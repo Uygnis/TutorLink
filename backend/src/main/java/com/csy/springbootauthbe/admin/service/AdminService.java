@@ -30,9 +30,9 @@ public interface AdminService {
 
     Optional<TutorDTO> viewTutorDetail(String tutorId);
 
-    void approveTutor(String adminUserId, String tutorId);
+    String approveTutor(String adminUserId, String tutorId);
 
-    void rejectTutor(String adminUserId, String tutorId);
+    String rejectTutor(String adminUserId, String tutorId);
 
     String suspendTutor(String adminUserId, String tutorId);
 

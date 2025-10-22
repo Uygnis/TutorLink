@@ -29,76 +29,97 @@ public class AdminController {
     public ResponseEntity<AdminDTO> getAdminByUserId(@PathVariable String userId) {
         Optional<AdminDTO> adminOpt = adminService.getAdminByUserId(userId);
         return adminOpt.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/tutors/{adminId}")
-    public ResponseEntity<List<TutorDTO>> getAllTutors(@PathVariable String adminId) { return ResponseEntity.ok(adminService.viewTutors(adminId));}
-
-    @GetMapping("/getTutorDetails/{tutorId}")
-    public ResponseEntity<Optional<TutorDTO>> getTutorDetails(@PathVariable String tutorId) { return ResponseEntity.ok(adminService.viewTutorDetail(tutorId));}
-
-    @GetMapping("/students/{adminId}")
-    public ResponseEntity<List<UserResponse>> getAllStudents(@PathVariable String adminId) { return ResponseEntity.ok(adminService.viewStudents(adminId));}
-
     @GetMapping("/admins/{adminId}")
-    public ResponseEntity<List<UserResponse>> getAllAdmins(@PathVariable String adminId) { return ResponseEntity.ok(adminService.viewAdmins(adminId));}
-
-    @GetMapping("/getStudentDetails/{studentId}")
-    public ResponseEntity<Optional<StudentDTO>> getStudentDetails(@PathVariable String studentId) { return ResponseEntity.ok(adminService.viewStudentDetail(studentId));}
-
+    public ResponseEntity<List<UserResponse>> getAllAdmins(@PathVariable String adminId) {
+        return ResponseEntity.ok(adminService.viewAdmins(adminId));
+    }
 
     @PutMapping("/suspendAdmin/{adminId}/{userId}")
     public ResponseEntity<UserResponse> suspendAdmin(@PathVariable String adminId, @PathVariable String userId) {
-        String updatedUserOpt = adminService.suspendAdmin(adminId, userId);
-        return ResponseEntity.ok(UserResponse.builder().id(updatedUserOpt).role(Role.ADMIN).build());
+        String updatedUserId = adminService.suspendAdmin(adminId, userId);
+        return ResponseEntity.ok(UserResponse.builder().id(updatedUserId).role(Role.ADMIN).build());
     }
 
     @PutMapping("/activateAdmin/{adminId}/{userId}")
     public ResponseEntity<UserResponse> activateAdmin(@PathVariable String adminId, @PathVariable String userId) {
-        String updatedUserOpt = adminService.activateAdmin(adminId, userId);
-        return ResponseEntity.ok(UserResponse.builder().id(updatedUserOpt).role(Role.ADMIN).build());
+        String updatedUserId = adminService.activateAdmin(adminId, userId);
+        return ResponseEntity.ok(UserResponse.builder().id(updatedUserId).role(Role.ADMIN).build());
+    }
+
+    @DeleteMapping("/admin/{adminId}/{userId}")
+    public ResponseEntity<UserResponse> deleteAdmin(@PathVariable String adminId, @PathVariable String userId) {
+        String deletedUserId = adminService.deleteAdmin(adminId, userId);
+        return ResponseEntity.ok(UserResponse.builder().id(deletedUserId).role(Role.ADMIN).build());
+    }
+
+    @GetMapping("/tutors/{adminId}")
+    public ResponseEntity<List<TutorDTO>> getAllTutors(@PathVariable String adminId) {
+        return ResponseEntity.ok(adminService.viewTutors(adminId));
+    }
+
+    @GetMapping("/getTutorDetails/{tutorId}")
+    public ResponseEntity<Optional<TutorDTO>> getTutorDetails(@PathVariable String tutorId) {
+        return ResponseEntity.ok(adminService.viewTutorDetail(tutorId));
     }
 
     @PutMapping("/suspendTutor/{adminId}/{userId}")
     public ResponseEntity<UserResponse> suspendTutor(@PathVariable String adminId, @PathVariable String userId) {
-        String updatedUserOpt = adminService.suspendTutor(adminId, userId);
-        return ResponseEntity.ok(UserResponse.builder().id(updatedUserOpt).role(Role.TUTOR).build());
+        String updatedUserId = adminService.suspendTutor(adminId, userId);
+        return ResponseEntity.ok(UserResponse.builder().id(updatedUserId).role(Role.TUTOR).build());
     }
 
     @PutMapping("/activateTutor/{adminId}/{userId}")
     public ResponseEntity<UserResponse> activateTutor(@PathVariable String adminId, @PathVariable String userId) {
-        String updatedUserOpt = adminService.activateTutor(adminId, userId);
-        return ResponseEntity.ok(UserResponse.builder().id(updatedUserOpt).role(Role.TUTOR).build());
+        String updatedUserId = adminService.activateTutor(adminId, userId);
+        return ResponseEntity.ok(UserResponse.builder().id(updatedUserId).role(Role.TUTOR).build());
+    }
+
+    @PutMapping("/approveTutor/{adminId}/{userId}")
+    public ResponseEntity<UserResponse> approveTutor(@PathVariable String adminId, @PathVariable String userId) {
+        String updatedUserId = adminService.approveTutor(adminId, userId);
+        return ResponseEntity.ok(UserResponse.builder().id(updatedUserId).role(Role.TUTOR).build());
+    }
+
+    @PutMapping("/rejectTutor/{adminId}/{userId}")
+    public ResponseEntity<UserResponse> rejectTutor(@PathVariable String adminId, @PathVariable String userId) {
+        String updatedUserId = adminService.rejectTutor(adminId, userId);
+        return ResponseEntity.ok(UserResponse.builder().id(updatedUserId).role(Role.TUTOR).build());
+    }
+
+    @DeleteMapping("/tutor/{adminId}/{userId}")
+    public ResponseEntity<UserResponse> deleteTutor(@PathVariable String adminId, @PathVariable String userId) {
+        String deletedUserId = adminService.deleteTutor(adminId, userId);
+        return ResponseEntity.ok(UserResponse.builder().id(deletedUserId).role(Role.TUTOR).build());
+    }
+
+    @GetMapping("/students/{adminId}")
+    public ResponseEntity<List<UserResponse>> getAllStudents(@PathVariable String adminId) {
+        return ResponseEntity.ok(adminService.viewStudents(adminId));
+    }
+
+    @GetMapping("/getStudentDetails/{studentId}")
+    public ResponseEntity<Optional<StudentDTO>> getStudentDetails(@PathVariable String studentId) {
+        return ResponseEntity.ok(adminService.viewStudentDetail(studentId));
     }
 
     @PutMapping("/suspendStudent/{adminId}/{userId}")
     public ResponseEntity<UserResponse> suspendStudent(@PathVariable String adminId, @PathVariable String userId) {
-        String updatedUserOpt = adminService.suspendStudent(adminId, userId);
-        return ResponseEntity.ok(UserResponse.builder().id(updatedUserOpt).role(Role.STUDENT).build());
+        String updatedUserId = adminService.suspendStudent(adminId, userId);
+        return ResponseEntity.ok(UserResponse.builder().id(updatedUserId).role(Role.STUDENT).build());
     }
 
     @PutMapping("/activateStudent/{adminId}/{userId}")
     public ResponseEntity<UserResponse> activateStudent(@PathVariable String adminId, @PathVariable String userId) {
-        String updatedUserOpt = adminService.activateStudent(adminId, userId);
-        return ResponseEntity.ok(UserResponse.builder().id(updatedUserOpt).role(Role.STUDENT).build());
+        String updatedUserId = adminService.activateStudent(adminId, userId);
+        return ResponseEntity.ok(UserResponse.builder().id(updatedUserId).role(Role.STUDENT).build());
     }
 
-    @DeleteMapping("admin/{adminId}/{userId}")
-    public ResponseEntity<UserResponse> deleteAdmin(@PathVariable String adminId, @PathVariable String userId) {
-        String deletedUserOpt = adminService.deleteAdmin(adminId, userId);
-        return ResponseEntity.ok(UserResponse.builder().id(deletedUserOpt).role(Role.ADMIN).build());
-    }
-
-    @DeleteMapping("tutor/{adminId}/{userId}")
-    public ResponseEntity<UserResponse> deleteTutor(@PathVariable String adminId, @PathVariable String userId) {
-        String deletedUserOpt = adminService.deleteTutor(adminId, userId);
-        return ResponseEntity.ok(UserResponse.builder().id(deletedUserOpt).role(Role.ADMIN).build());
-    }
-
-    @DeleteMapping("student/{adminId}/{userId}")
+    @DeleteMapping("/student/{adminId}/{userId}")
     public ResponseEntity<UserResponse> deleteStudent(@PathVariable String adminId, @PathVariable String userId) {
-        String deletedUserOpt = adminService.deleteStudent(adminId, userId);
-        return ResponseEntity.ok(UserResponse.builder().id(deletedUserOpt).role(Role.ADMIN).build());
+        String deletedUserId = adminService.deleteStudent(adminId, userId);
+        return ResponseEntity.ok(UserResponse.builder().id(deletedUserId).role(Role.STUDENT).build());
     }
 }

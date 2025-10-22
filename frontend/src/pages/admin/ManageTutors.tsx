@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { EyeIcon, PauseCircleIcon, PlayCircleIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { GetAllTutors, DeleteUser, ActivateUser, SuspendUser } from "@/api/adminAPI";
+import { GetAllTutors, DeleteUser, ActivateUser, SuspendUser, ApproveTutor, RejectTutor } from "@/api/adminAPI";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { Tutor } from "@/types/TutorType";
@@ -14,7 +14,6 @@ const ManageTutors = () => {
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const tutorsPerPage = 5;
-  const { loading } = useAppSelector((state) => state.loaders);
   const dispatch = useAppDispatch();
 
   // Sorting
@@ -69,12 +68,6 @@ const ManageTutors = () => {
     }
   };
 
-  // const handleCloseModal = () => {
-  //   setIsModalOpen(false);
-  //   setSelectedTutor(null);
-  //   fetchTutors(); // Refresh list
-  // };
-
   const handleDelete = async (tutorId: any) => {
     if (!confirm("Are you sure you want to delete this tutor?")) return;
 
@@ -87,6 +80,38 @@ const ManageTutors = () => {
       fetchTutors(); // Refresh the list
     } catch (error: any) {
       toast.error("Failed to delete tutor");
+      console.error(error);
+    }
+  };
+
+  const handleApproveTutor = async (tutor: Tutor) => {
+    if (!confirm("Are you sure you want to approve this tutor?")) return;
+
+    try {
+      const token = user?.token;
+      if (!token) return;
+
+      await ApproveTutor(user.id, tutor.userId, token);
+      toast.success("Tutor approved successfully");
+      fetchTutors();
+    } catch (error: any) {
+      toast.error("Failed to approve tutor");
+      console.error(error);
+    }
+  };
+
+  const handleRejectTutor = async (tutor: Tutor) => {
+    if (!confirm("Are you sure you want to reject this tutor?")) return;
+
+    try {
+      const token = user?.token;
+      if (!token) return;
+
+      await RejectTutor(user.id, tutor.userId, token);
+      toast.success("Tutor rejected successfully");
+      fetchTutors();
+    } catch (error: any) {
+      toast.error("Failed to reject tutor");
       console.error(error);
     }
   };
@@ -215,66 +240,93 @@ const ManageTutors = () => {
                   <td className="px-2 py-2">{tutor.email}</td>
                   <td
                     className={`px-2 py-2 ${tutor.status === "ACTIVE"
-                      ? "text-green-600"
-                      : tutor.status === "SUSPENDED"
-                        ? "text-red-600"
-                        : "text-gray-600"
+                        ? "text-green-600"
+                        : tutor.status === "SUSPENDED"
+                          ? "text-orange-600"
+                          : tutor.status === "PENDING_APPROVAL"
+                            ? "text-blue-600"
+                            : tutor.status === "REJECTED"
+                              ? "text-red-600"
+                              : "text-gray-600"
                       }`}
                   >
                     {tutor.status}
                   </td>
                   <td className="px-2 py-2 space-x-2">
-                    <button
-                      onClick={() => handleViewTutor(tutor)}
-                      className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-blue-200 transition inline-flex items-center space-x-1">
-                      <EyeIcon className="h-4 w-4" />
-                      <span>View</span>
-                    </button>
-                    <div className="relative group inline-block">
-                      <button
-                        onClick={() => currentPermissions.includes("SUSPEND_TUTOR") && handleSuspendModal(tutor)}
-                        disabled={!currentPermissions.includes("SUSPEND_TUTOR") || tutor.status === "DELETED"}
-                        className={`px-3 py-1 rounded-md backdrop-blur-sm transition inline-flex items-center space-x-1
-                          ${!currentPermissions.includes("SUSPEND_TUTOR") || tutor.status === "DELETED"
-                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            : tutor.status === "SUSPENDED"
-                              ? "bg-green-100 text-green-700 hover:bg-green-200"
-                              : "bg-orange-100 text-orange-700 hover:bg-orange-200"
-                          }`}
-                      >
-                        {tutor.status === "SUSPENDED" ? (
+                    {tutor.status === "PENDING_APPROVAL" ? (
+                      <>
+                        <button
+                          onClick={() => handleApproveTutor(tutor)}
+                          className="bg-green-100 text-green-700 px-3 py-1 rounded-md hover:bg-green-200 transition inline-flex items-center space-x-1"
+                        >
                           <PlayCircleIcon className="h-4 w-4" />
-                        ) : (
-                          <PauseCircleIcon className="h-4 w-4" />
-                        )}
-                        <span>{tutor.status === "SUSPENDED" ? "Activate" : "Suspend"}</span>
-                      </button>
+                          <span>Approve</span>
+                        </button>
+                        <button
+                          onClick={() => handleRejectTutor(tutor)}
+                          className="bg-red-100 text-red-700 px-3 py-1 rounded-md hover:bg-red-200 transition inline-flex items-center space-x-1"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                          <span>Reject</span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleViewTutor(tutor)}
+                          className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md backdrop-blur-sm hover:bg-blue-200 transition inline-flex items-center space-x-1">
+                          <EyeIcon className="h-4 w-4" />
+                          <span>View</span>
+                        </button>
+                        <div className="relative group inline-block">
+                          {/* Suspend/Activate Button */}
+                          <button
+                            onClick={() => currentPermissions.includes("SUSPEND_TUTOR") && handleSuspendModal(tutor)}
+                            disabled={!currentPermissions.includes("SUSPEND_TUTOR") || tutor.status === "DELETED" || tutor.status === "REJECTED"}
+                            className={`px-3 py-1 rounded-md backdrop-blur-sm transition inline-flex items-center space-x-1
+                          ${!currentPermissions.includes("SUSPEND_TUTOR") || tutor.status === "DELETED" || tutor.status === "REJECTED"
+                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                : tutor.status === "SUSPENDED"
+                                  ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                  : "bg-orange-100 text-orange-700 hover:bg-orange-200"
+                              }`}
+                          >
+                            {tutor.status === "SUSPENDED" ? (
+                              <PlayCircleIcon className="h-4 w-4" />
+                            ) : (
+                              <PauseCircleIcon className="h-4 w-4" />
+                            )}
+                            <span>{tutor.status === "SUSPENDED" ? "Activate" : "Suspend"}</span>
+                          </button>
 
-                      {/* Tooltip if no permission */}
-                      {!currentPermissions.includes("SUSPEND_TUTOR") && (
-                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
+                          {/* Tooltip if no permission */}
+                          {!currentPermissions.includes("SUSPEND_TUTOR") && (
+                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
                     bg-gray-700 text-white text-xs px-2 py-2 rounded opacity-0 
                     group-hover:opacity-100 transition">
-                          You do not have permission to suspend tutors
-                        </div>
-                      )}
-                      {tutor.status === "DELETED" && (
-                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
+                              You do not have permission to suspend tutors
+                            </div>
+                          )}
+                          {tutor.status === "DELETED" || tutor.status === "REJECTED" && (
+                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
                     bg-gray-700 text-white text-xs px-2 py-2 rounded opacity-0 
                     group-hover:opacity-100 transition">
-                          You cannot suspend a deleted tutor
+                              You cannot suspend a deleted/rejected tutor
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
 
+
+                      </>
+                    )}
                     <div className="relative group inline-block">
                       <button
                         onClick={() => currentPermissions.includes("DELETE_TUTOR") && handleDelete(tutor.userId)}
-                        disabled={!currentPermissions.includes("DELETE_TUTOR") || tutor.status !== "SUSPENDED"}
+                        disabled={!currentPermissions.includes("DELETE_TUTOR") || (tutor.status !== "SUSPENDED" && tutor.status !== "REJECTED")}
                         className={`px-3 py-1 rounded-md backdrop-blur-sm transition inline-flex items-center space-x-1
                           ${!currentPermissions.includes("DELETE_TUTOR")
                             ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            : tutor.status !== "SUSPENDED"
+                            : (tutor.status !== "SUSPENDED" && tutor.status !== "REJECTED")
                               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                               : "bg-red-100 text-red-700 hover:bg-red-200"
                           }`}
@@ -290,11 +342,11 @@ const ManageTutors = () => {
                     group-hover:opacity-100 transition">
                           You do not have permission to delete tutors
                         </div>
-                      ) : tutor.status === "ACTIVE" ? (
+                      ) : tutor.status === "ACTIVE" || tutor.status === "PENDING_APPROVAL" ? (
                         <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
                     bg-gray-700 text-white text-xs px-2 py-2 rounded opacity-0 
                     group-hover:opacity-100 transition">
-                          You cannot delete an active tutor
+                          You cannot delete an active/pending tutor
                         </div>
                       ) : null}
                     </div>
