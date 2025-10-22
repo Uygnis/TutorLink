@@ -2,6 +2,7 @@ package com.csy.springbootauthbe.booking.service;
 
 import com.csy.springbootauthbe.booking.dto.BookingDTO;
 import com.csy.springbootauthbe.booking.dto.BookingRequest;
+import com.csy.springbootauthbe.booking.dto.RecentBookingResponse;
 import com.csy.springbootauthbe.booking.entity.Booking;
 import com.csy.springbootauthbe.booking.mapper.BookingMapper;
 import com.csy.springbootauthbe.booking.repository.BookingRepository;
@@ -14,10 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,12 +30,13 @@ public class BookingServiceImpl implements BookingService {
     private final BookingMapper bookingMapper;
     private final NotificationService notificationService;
     private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
-
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     @Override
     public BookingDTO createBooking(BookingRequest dto) {
         // Check for overlapping booking
         List<Booking> existing = bookingRepository.findByTutorIdAndDate(dto.getTutorId(), dto.getDate());
-        boolean overlap = existing.stream().anyMatch(b ->
+        boolean overlap = existing.stream().filter(b -> b.getStatus().equals("pending") || b.getStatus().equals("confirmed"))
+                .anyMatch(b ->
                 (b.getStart().compareTo(dto.getEnd()) < 0) && (dto.getStart().compareTo(b.getEnd()) < 0)
         );
 
@@ -59,6 +59,44 @@ public class BookingServiceImpl implements BookingService {
 
         return bookingMapper.toDto(saved);
     }
+
+    @Override
+    public RecentBookingResponse getRecentPastBookings(String tutorId) {
+        String todayStr = LocalDate.now().format(formatter);
+        String status = "confirmed";
+        long totalCompleted = bookingRepository
+                .countByTutorIdAndStatusAndDateBefore(tutorId, status, todayStr);
+
+        List<Booking> recentPastSessions = bookingRepository
+                .findTop5ByTutorIdAndStatusAndDateBeforeOrderByDateDesc(
+                        tutorId, status, todayStr);
+
+        RecentBookingResponse response = new RecentBookingResponse();
+        response.setRecentSessions(recentPastSessions.stream().map(bookingMapper::toDto).toList());
+        response.setTotalCount(totalCompleted);
+
+        return response;
+    }
+
+    @Override
+    public RecentBookingResponse getUpcomingBookings(String tutorId) {
+        String todayStr = LocalDate.now().format(formatter);
+        List<String> statuses = List.of("confirmed", "pending");
+
+        List<Booking> upcomingSessions = bookingRepository
+                .findByTutorIdAndStatusInAndDateGreaterThanEqualOrderByDateAsc(
+                        tutorId, statuses, todayStr);
+
+        // limit to 5 upcoming sessions
+        List<Booking> next5Sessions = upcomingSessions.stream()
+                .limit(5)
+                .toList();
+        RecentBookingResponse response = new RecentBookingResponse();
+        response.setRecentSessions(next5Sessions.stream().map(bookingMapper::toDto).toList());
+        response.setTotalCount(upcomingSessions.size());
+        return response;
+    }
+
 
 
     @Override

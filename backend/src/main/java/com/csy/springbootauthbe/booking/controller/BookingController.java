@@ -3,12 +3,14 @@ package com.csy.springbootauthbe.booking.controller;
 
 import com.csy.springbootauthbe.booking.dto.BookingDTO;
 import com.csy.springbootauthbe.booking.dto.BookingRequest;
+import com.csy.springbootauthbe.booking.dto.RecentBookingResponse;
 import com.csy.springbootauthbe.booking.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/bookings")
@@ -41,13 +43,27 @@ public class BookingController {
         return ResponseEntity.ok(bookings);
     }
 
+    @GetMapping("/tutor/range/{tutorId}/past")
+    public ResponseEntity<RecentBookingResponse> getRecentPastBookings(
+            @PathVariable String tutorId) {
+
+        RecentBookingResponse response = bookingService.getRecentPastBookings(tutorId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/tutor/range/{tutorId}/upcoming")
+    public ResponseEntity<RecentBookingResponse> getUpcomingBookings(@PathVariable String tutorId) {
+        RecentBookingResponse response = bookingService.getUpcomingBookings(tutorId);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/student/{studentId}")
     public ResponseEntity<List<BookingDTO>> getBookingsForStudent(@PathVariable String studentId) {
         List<BookingDTO> bookings = bookingService.getBookingsForStudent(studentId);
         return ResponseEntity.ok(bookings);
     }
 
-    @PutMapping("/{bookingId}/cancel")
+    @PutMapping("/{bookingId}/cancel/{currentUserId}")
     public ResponseEntity<BookingDTO> cancelBooking(@PathVariable String bookingId,@PathVariable String currentUserId ) {
         BookingDTO cancelled = bookingService.cancelBooking(bookingId,currentUserId);
         return ResponseEntity.ok(cancelled);
