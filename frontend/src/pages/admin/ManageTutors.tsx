@@ -53,11 +53,11 @@ const ManageTutors = () => {
 
       if (isSuspended) {
         // tutor is suspended → call activate API
-        await ActivateUser(user?.id, tutor.id, token, "TUTOR");
+        await ActivateUser(user?.id, tutor.userId, token, "TUTOR");
         toast.success("Tutor activated successfully");
       } else {
         // tutor is active → call suspend API
-        await SuspendUser(user?.id, tutor.id, token, "TUTOR");
+        await SuspendUser(user?.id, tutor.userId, token, "TUTOR");
         toast.success("Tutor suspended successfully");
       }
 

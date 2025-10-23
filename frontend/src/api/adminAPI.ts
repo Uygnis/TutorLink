@@ -11,6 +11,15 @@ export const GetAdminByUserId = async (
   });
 };
 
+export const GetDashboardSummary = async (
+  id: string,
+  authtoken?: string
+): Promise<AxiosResponse<any>> => {
+  return await axios.get(`${BASE_URL}/dashboard/${id}`, {
+    headers: { Authorization: `Bearer ${authtoken}` },
+  });
+};
+
 export const GetAllTutors = async (userId: string, authtoken: string): Promise<AxiosResponse<any>> => {
   return await axios.get(`${BASE_URL}/tutors/${userId}`, {
     headers: { Authorization: `Bearer ${authtoken}` },

@@ -1,6 +1,7 @@
 package com.csy.springbootauthbe.admin.controller;
 
 import com.csy.springbootauthbe.admin.dto.AdminDTO;
+import com.csy.springbootauthbe.admin.dto.AdminDashboardDTO;
 import com.csy.springbootauthbe.admin.service.AdminService;
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
@@ -30,6 +31,11 @@ public class AdminController {
         Optional<AdminDTO> adminOpt = adminService.getAdminByUserId(userId);
         return adminOpt.map(ResponseEntity::ok)
             .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/dashboard/{adminId}")
+    public ResponseEntity<AdminDashboardDTO> getDashboardSummary(@PathVariable String adminId) {
+        return ResponseEntity.ok(adminService.getDashboardSummary(adminId));
     }
 
     @GetMapping("/admins/{adminId}")

@@ -1,6 +1,7 @@
 package com.csy.springbootauthbe.admin.service;
 
 import com.csy.springbootauthbe.admin.dto.AdminDTO;
+import com.csy.springbootauthbe.admin.dto.AdminDashboardDTO;
 import com.csy.springbootauthbe.admin.entity.Permissions;
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
@@ -61,4 +62,6 @@ public interface AdminService {
     String activateAdmin(String adminUserId, String targetAdminId);
 
     String deleteAdmin(String adminUserId, String targetAdminId);
+
+    AdminDashboardDTO getDashboardSummary(String adminId);
 }
