@@ -1,6 +1,8 @@
 name: CI/CD Pipeline
 # unit tests > SAST > Owasp dependency check (SCA) > build > DAST
 on:
+    push:
+        branches: [ main ]
     pull_request:
         branches: [ main ]
     workflow_dispatch: # manual trigger allowed
@@ -76,13 +78,37 @@ jobs:
                 verbose: true
 
     sast:
+        name: SAST - CodeQL Scan
         needs: [frontend-test, backend-test]
         runs-on: ubuntu-latest
+        permissions:
+            security-events: write
+            actions: read
+            contents: read
         steps:
-          - uses: github/codeql-action/init@v3
+          - name: Checkout repository
+            uses: actions/checkout@v4
+
+          - name: Initialize CodeQL
+            uses: github/codeql-action/init@v3
             with:
               languages: javascript, java
-          - uses: github/codeql-action/analyze@v3
+              queries: security-extended,security-and-quality
+          - name: Install frontend dependencies
+            run: |
+                cd frontend
+                npm ci
+        
+          - name: Build frontend
+            run: |
+                cd frontend
+                npm run build --if-present    
+          - name: Build backend
+            run: |
+                cd backend
+                mvn compile -DskipTests
+          - name: Perform CodeQL Analysis
+            uses: github/codeql-action/analyze@v3
           
     # ----------------- SECURITY SCAN -----------------
     asp-scan-frontend:
