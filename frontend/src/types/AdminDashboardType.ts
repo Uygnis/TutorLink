@@ -13,5 +13,9 @@ export interface AdminDashboardType {
     totalStudents: number,
     activeStudents: number,
     suspendedStudents: number,
+
+    totalAdmins: number,
+    activeAdmins: number,
+    suspendedAdmins: number,
     pendingTutors: Tutor[]
 }

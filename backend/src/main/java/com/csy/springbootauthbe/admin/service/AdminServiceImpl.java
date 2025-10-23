@@ -341,6 +341,15 @@ public class AdminServiceImpl implements AdminService {
                 .filter(user -> user.getStatus() == AccountStatus.SUSPENDED)
                 .count());
 
+        int totalAdmins = Math.toIntExact(adminRepository.count());
+        List<User> admins =  userRepository.findAllByRole(Role.ADMIN);
+        int activeAdmins = Math.toIntExact(admins.stream()
+                .filter(user -> user.getStatus() == AccountStatus.ACTIVE)
+                .count());
+        int suspendedAdmins = Math.toIntExact(admins.stream()
+                .filter(user -> user.getStatus() == AccountStatus.SUSPENDED)
+                .count());
+
         List<TutorDTO> pendingTutors = tutors.stream()
                 .map(user -> tutorRepository.findByUserId(user.getId())
                         .map(tutor -> TutorDTO.builder()
@@ -365,7 +374,7 @@ public class AdminServiceImpl implements AdminService {
 
         return new AdminDashboardDTO(totalUsers, activeUsers, suspendedUsers,
                 totalTutors, activeTutors, suspendedTutors, rejectedTutors, totalStudents, activeStudents,
-                suspendedStudents, pendingTutors);
+                suspendedStudents, totalAdmins, activeAdmins, suspendedAdmins, pendingTutors);
     }
 
     // -------------------------------

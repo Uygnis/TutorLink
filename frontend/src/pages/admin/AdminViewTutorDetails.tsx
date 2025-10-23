@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
 import Navbar from "@/components/Navbar";
-import { GetTutorDetails } from "@/api/adminAPI";
+import { ApproveTutor, GetTutorDetails, RejectTutor } from "@/api/adminAPI";
 import AvailabilityCalendar, { TimeSlot } from "@/components/AvailabilityCalendar";
 import { GetBookingsForTutorRange } from "@/api/bookingAPI";
 import { setLoading } from "@/redux/loaderSlice";
+import { toast } from "react-toastify";
+import { Tutor } from "@/types/TutorType";
 
 const AdminViewTutorDetail = () => {
   const { tutorId } = useParams<{ tutorId: string }>();
@@ -21,36 +23,38 @@ const AdminViewTutorDetail = () => {
   const { loading } = useAppSelector((state) => state.loaders);
   const dispatch = useAppDispatch();
 
+  const fetchTutor = async () => {
+    if (!tutorId || !user?.token) return;
+
+    try {
+      dispatch(setLoading(true));
+      const res = await GetTutorDetails(tutorId, user.token);
+      const data = res.data;
+
+      const tutorWithDefaults = {
+        ...data,
+        description:
+          data.description ||
+          "No Description has been provided.",
+        rating: data.rating ?? "N/A",
+        studentsCount: data.studentsCount ?? 0,
+        lessonsCount: data.lessonsCount ?? 0,
+        lessonType: data.lessonType ?? ["N/A"],
+        hourlyRate: data.hourlyRate ?? ["??"],
+        reviews: data.reviews ?? [],
+      };
+
+      setTutor(tutorWithDefaults);
+    } catch (err) {
+      console.error("Failed to fetch tutor:", err);
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+
+  // Fetch tutor when component mounts
   useEffect(() => {
-    const fetchTutor = async () => {
-      if (!tutorId || !user?.token) return;
-
-      try {
-        dispatch(setLoading(true));
-        const res = await GetTutorDetails(tutorId, user.token);
-        const data = res.data;
-
-        const tutorWithDefaults = {
-          ...data,
-          description:
-            data.description ||
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
-          rating: data.rating ?? "N/A",
-          studentsCount: data.studentsCount ?? 0,
-          lessonsCount: data.lessonsCount ?? 0,
-          lessonType: data.lessonType ?? ["N/A"],
-          reviews: data.reviews ?? [],
-        };
-
-        console.log("data", tutorWithDefaults);
-        setTutor(tutorWithDefaults);
-      } catch (err) {
-        console.error("Failed to fetch tutor:", err);
-      } finally {
-        dispatch(setLoading(false));
-      }
-    };
-
+    if (!tutorId || !user?.token) return;
     fetchTutor();
   }, [tutorId, user]);
 
@@ -83,16 +87,68 @@ const AdminViewTutorDetail = () => {
     fetchBookingsForMonth();
   }, [monthStart, tutorId, user]);
 
+  const handleApproveTutor = async (tutor: Tutor) => {
+    if (!confirm("Are you sure you want to approve this tutor?")) return;
+
+    try {
+      const token = user?.token;
+      if (!token) return;
+
+      await ApproveTutor(user.id, tutor.userId, token);
+      toast.success("Tutor approved successfully");
+      fetchTutor();
+    } catch (error: any) {
+      toast.error("Failed to approve tutor");
+      console.error(error);
+    }
+  };
+
+  const handleRejectTutor = async (tutor: Tutor) => {
+    if (!confirm("Are you sure you want to reject this tutor?")) return;
+
+    try {
+      const token = user?.token;
+      if (!token) return;
+
+      await RejectTutor(user.id, tutor.userId, token);
+      toast.success("Tutor rejected successfully");
+      fetchTutor();
+    } catch (error: any) {
+      toast.error("Failed to reject tutor");
+      console.error(error);
+    }
+  };
+
   if (!loading || tutor) {
     return (
       <div>
         <Navbar />
         <div className="min-h-screen bg-[#f9f9f9] p-6">
-          <button
-            onClick={() => navigate(-1)}
-            className="mb-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
-            ← Back
-          </button>
+          <div className="flex justify-between items-center mb-6">
+            <button
+              onClick={() => navigate("/admin/tutors")}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+            >
+              ← Back
+            </button>
+
+            {tutor?.status === "PENDING_APPROVAL" && (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleApproveTutor(tutor)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => handleRejectTutor(tutor)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                >
+                  Reject
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Tutor Profile + Qualifications */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
@@ -127,11 +183,10 @@ const AdminViewTutorDetail = () => {
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-gray-700">Status:</span>
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      tutor?.status === "ACTIVE"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}>
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${tutor?.status === "ACTIVE"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                      }`}>
                     {tutor?.status}
                   </span>
                 </div>

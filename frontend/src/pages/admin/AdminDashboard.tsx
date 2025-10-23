@@ -7,6 +7,7 @@ import { GetAdminByUserId, GetDashboardSummary } from "@/api/adminAPI";
 import { setLoading } from "@/redux/loaderSlice";
 import { Tutor } from "@/types/TutorType";
 import { AdminDashboardType } from "@/types/AdminDashboardType";
+import RingChart from "@/components/RingChart";
 
 const AdminDashboard = () => {
   const [adminDetails, setAdminDetails] = useState<AdminDetails | null>(null);
@@ -84,82 +85,58 @@ const AdminDashboard = () => {
     return (
       <div>
         <Navbar />
-        <div className="min-h-screen bg-[#f2f2f2] p-6">
-          <h1 className="font-bold text-xl mb-5 ">Welcome to your Dashboard ! </h1>
+        <div className=" bg-[#f2f2f2] p-6 overflow-hidden flex flex-col">
+          <h1 className="font-bold text-xl mb-5">Welcome to your Dashboard!</h1>
           {/* Two-column layout */}
-          <div className="flex gap-6">
-            <div className="flex flex-col w-[70%] space-y-6">
-              <div className="bg-white rounded-md shadow-md p-5">
-                <h2 className="font-bold text-lg mb-3">Users Summary</h2>
+          <div className="flex gap-6 flex-1 overflow-hidden">
+
+            <div className="flex flex-col w-[70%] space-y-6 overflow-y-auto pr-2">
+              <div className="bg-white rounded-md shadow-md p-5 flex-1">
+                <h2 className="font-bold text-lg mb-3">Active Users Summary</h2>
                 {metrics ? (
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-blue-50 p-3 rounded text-center">
-                      <p className="text-sm text-gray-500">Total Users</p>
-                      <p className="font-bold text-xl">{metrics.totalUsers}</p>
-                    </div>
-                    <div className="bg-green-50 p-3 rounded text-center">
-                      <p className="text-sm text-gray-500">Total Tutors</p>
-                      <p className="font-bold text-xl">{metrics.totalTutors}</p>
-                    </div>
-                    <div className="bg-yellow-50 p-3 rounded text-center">
-                      <p className="text-sm text-gray-500">Total Students</p>
-                      <p className="font-bold text-xl">{metrics.totalStudents}</p>
-                    </div>
-                    <div className="bg-red-50 p-3 rounded text-center">
-                      <p className="text-sm text-gray-500">Suspended Users</p>
-                      <p className="font-bold text-xl">{metrics.suspendedUsers}</p>
-                    </div>
+                    <RingChart
+                      title="All Users"
+                      total={metrics.totalUsers}
+                      active={metrics.activeUsers}
+                      suspended={metrics.suspendedUsers}
+                    />
+                    <RingChart
+                      title="Tutors"
+                      total={metrics.totalTutors}
+                      active={metrics.activeTutors}
+                      suspended={metrics.suspendedTutors}
+                      pending={metrics.pendingTutors.length}
+                      rejected={metrics.rejectedTutors}
+                    />
+                    <RingChart
+                      title="Students"
+                      total={metrics.totalStudents}
+                      active={metrics.activeStudents}
+                      suspended={metrics.suspendedStudents}
+                    />
+                    <RingChart
+                      title="Admins"
+                      total={metrics.totalStudents}
+                      active={metrics.activeAdmins}
+                      suspended={metrics.suspendedAdmins}
+                    />
                   </div>
                 ) : (
                   <div className="h-40 flex items-center justify-center text-gray-400">
                     No users to show for summary.
                   </div>
                 )}
-
-
               </div>
 
-              <div className="bg-white rounded-md shadow-md p-5">
-                <h2 className="font-bold text-lg mb-3">Pending Activities</h2>
 
-                {metrics && metrics?.pendingTutors.length > 0 ? (
-                  <div className="space-y-3">
-                    {metrics.pendingTutors.map((tutor: Tutor) => (
-                      <div
-                        key={tutor.userId}
-                        className="flex justify-between items-center border p-3 rounded-md hover:bg-gray-50"
-                      >
-                        <div>
-                          <p className="font-semibold">
-                            {tutor.firstName} {tutor.lastName}
-                          </p>
-                          <p className="text-sm text-gray-600">{tutor.email}</p>
-                          <p className="text-xs text-gray-500">
-                            Subject: {tutor.subject ?? "N/A"}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => navigate(`/admin/tutors/${tutor.userId}`)}
-                          className="bg-blue-600 text-white text-sm px-3 py-1 rounded hover:bg-blue-700"
-                        >
-                          View
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="h-40 flex items-center justify-center text-gray-400">
-                    No pending tutor activities at this time.
-                  </div>
-                )}
-              </div>
             </div>
 
             {/* Right side (Admin Profile Card) */}
-            <div className="w-[30%]">
+            <div className="flex flex-col w-[30%] space-y-5 overflow-hidden">
               <div className="bg-white rounded-md shadow-md p-5">
-                <div className="text-center">
-                  <h1 className="font-bold text-xl">Admin Profile</h1>
+                <div className="text-left">
+                  <h2 className="font-bold text-lg">Admin Profile</h2>
                   {adminDetails ? (
                     <div className="mt-4 text-left">
                       <p>
@@ -185,8 +162,79 @@ const AdminDashboard = () => {
                   )}
                 </div>
               </div>
+              <div className="bg-white rounded-md shadow-md p-5 flex-1 flex flex-col overflow-hidden max-h-[300px]">
+                <h2 className="font-bold text-lg mb-3">Pending Activities</h2>
+                <h3 className="font-bold text-md mb-3">Tutors requesting approval</h3>
+                {metrics && metrics?.pendingTutors.length > 0 ? (
+                  <div className="overflow-y-auto flex-1 space-y-3 pr-2">
+                    {metrics.pendingTutors.map((tutor: Tutor) => (
+                      <div
+                        key={tutor.userId}
+                        className="flex justify-between items-center border p-3 rounded-md hover:bg-gray-50"
+                      >
+                        <div>
+                          <p className="font-semibold">
+                            {tutor.firstName} {tutor.lastName}
+                          </p>
+                          <p className="text-sm text-gray-600">{tutor.email}</p>
+                          <p className="text-xs text-gray-500">
+                            Subject: {tutor.subject ?? "N/A"}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => navigate(`/admin/tutors/${tutor.userId}`)}
+                          className="bg-blue-600 text-white text-sm px-3 py-1 rounded hover:bg-blue-700"
+                        >
+                          View
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-gray-400">
+                    No pending tutor activities at this time.
+                  </div>
+                )}
+              </div>
             </div>
+            
           </div>
+          
+           <div className="bg-white rounded-md shadow-md p-5 mt-6 flex-1 flex flex-col overflow-hidden">
+                <h2 className="font-bold text-lg mb-3">Pending test</h2>
+                <h3 className="font-bold text-md mb-3">Payment history</h3>
+                {metrics && metrics?.pendingTutors.length > 0 ? (
+                  <div className="overflow-y-auto flex-1 space-y-3 pr-2">
+                    {metrics.pendingTutors.map((tutor: Tutor) => (
+                      <div
+                        key={tutor.userId}
+                        className="flex justify-between items-center border p-3 rounded-md hover:bg-gray-50"
+                      >
+                        <div>
+                          <p className="font-semibold">
+                            {tutor.firstName} {tutor.lastName}
+                          </p>
+                          <p className="text-sm text-gray-600">{tutor.email}</p>
+                          <p className="text-xs text-gray-500">
+                            Subject: {tutor.subject ?? "N/A"}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => navigate(`/admin/tutors/${tutor.userId}`)}
+                          className="bg-blue-600 text-white text-sm px-3 py-1 rounded hover:bg-blue-700"
+                        >
+                          View
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-gray-400">
+                    No history
+                  </div>
+                )}
+              </div>
+
         </div>
       </div>
     );

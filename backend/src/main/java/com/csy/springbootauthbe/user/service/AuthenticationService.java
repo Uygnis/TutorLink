@@ -141,16 +141,6 @@ public class AuthenticationService {
             throw new RuntimeException("Your account has been deleted. Please contact administrator for support.");
         }
 
-        if (user.getStatus() == AccountStatus.PENDING_APPROVAL) {
-            logger.warn("Login blocked: User is pending approval. userId={}", user.getId());
-            throw new RuntimeException("Your account is pending approval. Please wait for administrator confirmation.");
-        }
-
-        if (user.getStatus() == AccountStatus.REJECTED) {
-            logger.warn("Login blocked: User account has been rejected. userId={}", user.getId());
-            throw new RuntimeException("Your account creation has been rejected. Please contact administrator for support.");
-        }
-
         var jwtToken = jwtService.generateToken(user);
         logger.info("JWT generated for login: userId={}", user.getId());
 

@@ -26,5 +26,9 @@ public class AdminDashboardDTO {
     private int totalStudents;
     private int activeStudents;
     private int suspendedStudents;
+
+    private int totalAdmins;
+    private int activeAdmins;
+    private int suspendedAdmins;
     private List<TutorDTO> pendingTutors;
 }
