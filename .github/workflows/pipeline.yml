@@ -1,6 +1,8 @@
 name: CI/CD Pipeline
 # unit tests > SAST > Owasp dependency check (SCA) > build > DAST
 on:
+    push:
+        branches: [ main ]
     pull_request:
         branches: [ main ]
     workflow_dispatch: # manual trigger allowed
