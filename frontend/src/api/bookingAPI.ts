@@ -1,5 +1,9 @@
 import axios, { AxiosResponse } from "axios";
-import { BookingRequest, BookingResponse } from "@/types/BookingType";
+import {
+  BookingRequest,
+  BookingResponse,
+  RecentBookingResponse,
+} from "@/types/BookingType";
 
 const BASE_URL = `${import.meta.env.VITE_APP_API}/bookings`;
 
@@ -35,6 +39,24 @@ export const GetBookingsForTutor = async (
 ): Promise<AxiosResponse<BookingResponse[]>> => {
   return await axios.get(`${BASE_URL}/tutor/${tutorId}`, {
     params: { date },
+    headers: { Authorization: `Bearer ${authtoken}` },
+  });
+};
+
+export const GetRecentBookingsForTutor = async (
+  tutorId: string,
+  authtoken: string
+): Promise<AxiosResponse<RecentBookingResponse>> => {
+  return await axios.get(`${BASE_URL}/tutor/range/${tutorId}/upcoming`, {
+    headers: { Authorization: `Bearer ${authtoken}` },
+  });
+};
+
+export const GetPastBookingsForTutor = async (
+  tutorId: string,
+  authtoken: string
+): Promise<AxiosResponse<RecentBookingResponse>> => {
+  return await axios.get(`${BASE_URL}/tutor/range/${tutorId}/past`, {
     headers: { Authorization: `Bearer ${authtoken}` },
   });
 };

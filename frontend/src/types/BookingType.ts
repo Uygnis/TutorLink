@@ -19,3 +19,8 @@ export interface BookingResponse {
   status: "confirmed" | "pending" | "cancelled";
   lessonType: string;
 }
+
+export interface RecentBookingResponse {
+  totalCount: number;
+  recentSessions: BookingResponse[];
+}
