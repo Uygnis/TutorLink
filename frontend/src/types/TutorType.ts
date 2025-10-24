@@ -29,4 +29,5 @@ export interface Tutor {
   qualifications: QualificationFileType[];
   email: string;
   status: string;
+  stagedProfile: Tutor | null;
 }

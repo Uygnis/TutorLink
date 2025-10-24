@@ -1,13 +1,12 @@
 package com.csy.springbootauthbe.common.aws;
 
-import com.csy.springbootauthbe.config.AwsConfig;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -17,6 +16,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AwsService {
     private final S3Client s3Client;
 
@@ -75,6 +75,17 @@ public class AwsService {
         return res;
     }
 
+    public void deleteFile(String key) {
+        if (key == null || key.isEmpty()) return;
+
+        try {
+            s3Client.deleteObject(b -> b.bucket(bucketName).key(key));
+            log.info("Deleted S3 file: {}", key);
+        } catch (Exception e) {
+            log.error("Failed to delete S3 file: {}", key, e);
+            throw new RuntimeException("Failed to delete S3 file: " + key, e);
+        }
+    }
 
     public void deleteProfilePic(String key) {
         try {

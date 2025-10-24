@@ -11,6 +11,8 @@ import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.repository.StudentRepository;
 import com.csy.springbootauthbe.student.utils.StudentResponse;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
+import com.csy.springbootauthbe.tutor.dto.TutorStagedProfileDTO;
+import com.csy.springbootauthbe.tutor.entity.Tutor;
 import com.csy.springbootauthbe.tutor.repository.TutorRepository;
 import com.csy.springbootauthbe.user.entity.AccountStatus;
 import com.csy.springbootauthbe.user.entity.Role;
@@ -18,6 +20,8 @@ import com.csy.springbootauthbe.user.entity.User;
 import com.csy.springbootauthbe.user.repository.UserRepository;
 import com.csy.springbootauthbe.user.utils.UserResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,6 +30,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AdminServiceImpl implements AdminService {
 
     private final AdminMapper adminMapper;
@@ -161,6 +166,8 @@ public class AdminServiceImpl implements AdminService {
                         .lessonType(tutor.getLessonType())
                         .profileImageUrl(tutor.getProfileImageUrl())
                         .qualifications(tutor.getQualifications())
+                        .rejectedReason(tutor.getRejectedReason())
+                        .stagedProfile(tutor.getStagedProfile())
                         .build()
                     )
             );
@@ -170,17 +177,50 @@ public class AdminServiceImpl implements AdminService {
     public String approveTutor(String adminUserId, String tutorId) {
         checkAdminWithPermission(adminUserId, new Permissions[]{Permissions.APPROVE_TUTOR});
         User tutor = getUserOrThrow(tutorId, Role.TUTOR);
+        Tutor tutorDetails = tutorRepository.findByUserId(tutorId)
+            .orElseThrow(() -> new UsernameNotFoundException("Tutor not found"));
+        TutorStagedProfileDTO stagedProfile = tutorDetails.getStagedProfile();
+        
+        if (stagedProfile != null) {
+            // Apply staged profile changes
+            tutorDetails.setHourlyRate(stagedProfile.getHourlyRate());
+            tutorDetails.setAvailability(stagedProfile.getAvailability());
+            tutorDetails.setQualifications(stagedProfile.getQualifications());
+            tutorDetails.setDescription(stagedProfile.getDescription());
+            tutorDetails.setLessonType(stagedProfile.getLessonType());
+            tutorDetails.setProfileImageUrl(stagedProfile.getProfileImageUrl());
+            tutorDetails.setSubject(stagedProfile.getSubject());
+            tutorDetails.setStagedProfile(null); // Clear staged profile after approval
+        }
+        tutorDetails.setRejectedReason(null);
         tutor.setStatus(AccountStatus.ACTIVE);
+        
+        
+        //TODO: Send notification to tutor about approval
+
         userRepository.save(tutor);
+        tutorRepository.save(tutorDetails);
         return adminUserId;
     }
 
     @Override
-    public String rejectTutor(String adminUserId, String tutorId) {
+    public String rejectTutor(String adminUserId, String tutorId, String reason) {
         checkAdminWithPermission(adminUserId, new Permissions[]{Permissions.REJECT_TUTOR});
         User tutor = getUserOrThrow(tutorId, Role.TUTOR);
-        tutor.setStatus(AccountStatus.REJECTED);
+
+        Tutor tutorDetails = tutorRepository.findByUserId(tutorId)
+            .orElseThrow(() -> new UsernameNotFoundException("Tutor not found"));
+
+        tutorDetails.setRejectedReason(reason);
+        if (tutorDetails.getPreviousStatus() == AccountStatus.UNVERIFIED) {
+            tutor.setStatus(AccountStatus.UNVERIFIED);
+        } else {
+            tutor.setStatus(AccountStatus.ACTIVE);
+        }
+
+        //TODO: Send notification to tutor about rejection reason
         userRepository.save(tutor);
+        tutorRepository.save(tutorDetails);
         return adminUserId;
     }
 
@@ -328,8 +368,8 @@ public class AdminServiceImpl implements AdminService {
         int suspendedTutors = Math.toIntExact(tutors.stream()
                 .filter(user -> user.getStatus() == AccountStatus.SUSPENDED)
                 .count());
-        int rejectedTutors = Math.toIntExact(tutors.stream()
-                .filter(user -> user.getStatus() == AccountStatus.REJECTED)
+        int unverifiedTutors = Math.toIntExact(tutors.stream()
+                .filter(user -> user.getStatus() == AccountStatus.UNVERIFIED)
                 .count());
 
         int totalStudents = Math.toIntExact(studentRepository.count());
@@ -373,7 +413,7 @@ public class AdminServiceImpl implements AdminService {
                 .toList();
 
         return new AdminDashboardDTO(totalUsers, activeUsers, suspendedUsers,
-                totalTutors, activeTutors, suspendedTutors, rejectedTutors, totalStudents, activeStudents,
+                totalTutors, activeTutors, suspendedTutors, unverifiedTutors, totalStudents, activeStudents,
                 suspendedStudents, totalAdmins, activeAdmins, suspendedAdmins, pendingTutors);
     }
 

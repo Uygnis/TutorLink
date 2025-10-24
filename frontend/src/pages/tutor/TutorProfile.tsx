@@ -34,6 +34,7 @@ const ViewTutorProfile = () => {
     lessonType: [],
     status: "",
     email: "",
+    stagedProfile: null,
   };
 
   const [profile, setProfile] = useState<Tutor>(defaultProfile);
@@ -65,6 +66,7 @@ const ViewTutorProfile = () => {
           profileImageUrl: res.data.profileImageUrl || defaultProfile.profileImageUrl,
           status: res.data.status || defaultProfile.status,
           email: res.data.email || defaultProfile.email,
+          stagedProfile: null,
         };
         setProfile(newProfile);
         console.log("Fetched profile:", newProfile);

@@ -49,7 +49,7 @@ public class AuthenticationService {
         Role userRole = getUserRole(request);
 
         AccountStatus status = userRole == Role.TUTOR ?
-            AccountStatus.PENDING_APPROVAL : AccountStatus.ACTIVE;
+            AccountStatus.UNVERIFIED : AccountStatus.ACTIVE;
 
         var user = User.builder()
                 .firstname(request.getFirstname())

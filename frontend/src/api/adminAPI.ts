@@ -57,10 +57,22 @@ export const ApproveTutor = async (userId: any, tutorId: string, authtoken: stri
   });
 };
 
-export const RejectTutor = async (userId: any, tutorId: string, authtoken: string): Promise<AxiosResponse<any>> => {
-  return await axios.put(`${BASE_URL}/rejectTutor/${userId}/${tutorId}`, {}, {
-    headers: { Authorization: `Bearer ${authtoken}` },
-  });
+export const RejectTutor = async (
+  userId: any,
+  tutorId: string,
+  authtoken: string,
+  reason?: string
+): Promise<AxiosResponse<any>> => {
+  return await axios.put(
+    `${BASE_URL}/rejectTutor/${userId}/${tutorId}`,
+    { reason },
+    {
+      headers: {
+        Authorization: `Bearer ${authtoken}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
 };
 
 

@@ -33,7 +33,7 @@ public interface AdminService {
 
     String approveTutor(String adminUserId, String tutorId);
 
-    String rejectTutor(String adminUserId, String tutorId);
+    String rejectTutor(String adminUserId, String tutorId, String reason);
 
     String suspendTutor(String adminUserId, String tutorId);
 
