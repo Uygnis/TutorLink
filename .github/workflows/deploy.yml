@@ -21,7 +21,7 @@ jobs:
             
             # ----- BACKEND -----
             - name: Create backend application.yml
-              run: echo "${{ secrets.BACKEND_APP_YML }}" > backend/application.yml
+              run: echo "${{ secrets.BACKEND_APP_YML }}" > backend/src/main/resources/application.yml
             
             - name: Build backend Docker image
               run: docker build -t backend:latest ./backend
