@@ -81,4 +81,19 @@ public class BookingController {
         return ResponseEntity.ok(booking);
     }
 
+    /**Student requests to reschedule a confirmed booking*/
+    @PostMapping("/{bookingId}/reschedule")
+    public ResponseEntity<BookingDTO> requestReschedule(@PathVariable String bookingId,
+                                                        @RequestBody BookingRequest newSlotRequest) {
+        BookingDTO rescheduleBooking = bookingService.requestReschedule(bookingId, newSlotRequest);
+        return ResponseEntity.ok(rescheduleBooking);
+    }
+
+    /**Tutor approves a reschedule request*/
+    @PutMapping("/reschedule/{newBookingId}/approve")
+    public ResponseEntity<BookingDTO> approveReschedule(@PathVariable String newBookingId) {
+        BookingDTO approvedBooking = bookingService.approveReschedule(newBookingId);
+        return ResponseEntity.ok(approvedBooking);
+    }
+
 }
