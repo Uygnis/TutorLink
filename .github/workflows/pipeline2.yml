@@ -14,6 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     # if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
+      - name: Debug secret
+        run: |
+          if [ -z "${{ secrets.STAGING_URL }}" ]; then
+            echo "STAGING_URL is empty"
+            exit 1
+          else
+            echo "STAGING_URL is set"
+          fi
       - name: Test connectivity
         run: curl -I ${{ secrets.STAGING_URL }}
         
