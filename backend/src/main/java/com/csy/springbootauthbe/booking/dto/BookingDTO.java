@@ -2,6 +2,8 @@ package com.csy.springbootauthbe.booking.dto;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -17,4 +19,5 @@ public class BookingDTO {
     private String start;
     private String end;
     private String status;
+    private BigDecimal amount;
 }

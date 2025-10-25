@@ -112,6 +112,13 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>com.stripe</groupId>
+			<artifactId>stripe-java</artifactId>
+			<version>24.6.0</version> <!-- latest as of Oct 2025 -->
+		</dependency>
+
+
 	</dependencies>
 
 	<build>

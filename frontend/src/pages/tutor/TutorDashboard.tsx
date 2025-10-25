@@ -73,12 +73,10 @@ const TutorDashboard = () => {
   const { user } = useAppSelector((state) => state.user);
   const navigate = useNavigate();
 
-
   const hasConfirmedBookings = useMemo(
-    () => bookedSlots.some(b => b.status === "confirmed"),
+    () => bookedSlots.some((b) => b.status === "confirmed"),
     [bookedSlots]
   );
-
 
   const fetchTutorDetails = async (id: string): Promise<Tutor | null> => {
     try {
@@ -187,8 +185,9 @@ const TutorDashboard = () => {
   };
 
   const handleEdit = () => {
-    confirm("Updating your profile will require a re-verification. Students will temporarily not be able to view your profile, proceed?") &&
-      navigate("/tutor/profile");
+    confirm(
+      "Updating your profile will require a re-verification. Students will temporarily not be able to view your profile, proceed?"
+    ) && navigate("/tutor/profile");
   };
   const handleSlotClick = (date: Date, slot: TimeSlot) => {
     setSelectedSlot({ date, slot });
@@ -309,7 +308,8 @@ const TutorDashboard = () => {
     try {
       await ApproveReschedule(bookingId, user.token);
       alert(
-        `✅ Reschedule approved on ${selectedSlot.date.toLocaleDateString("en-CA")} | ${selectedSlot.slot.start
+        `✅ Reschedule approved on ${selectedSlot.date.toLocaleDateString("en-CA")} | ${
+          selectedSlot.slot.start
         } - ${selectedSlot.slot.end}`
       );
 
@@ -352,7 +352,17 @@ const TutorDashboard = () => {
     <div>
       <Navbar />
       <div className="min-h-screen bg-[#f2f2f2] p-6">
-        <h1 className="font-bold text-xl mb-5 ">Welcome to your Dashboard ! </h1>
+        <div className="flex justify-between items-center mb-5">
+          <div className="flex items-center gap-4">
+            <h1 className="font-bold text-xl">Welcome to your Dashboard!</h1>
+          </div>
+
+          <button
+            onClick={() => navigate("/tutor/wallet")}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
+            Go to Wallet
+          </button>
+        </div>
         {tutorDetails?.status === "PENDING_APPROVAL" && (
           <div className="mb-5 bg-orange-600 text-white px-6 py-2 rounded-lg shadow-md text-center">
             <p className="text-sm font-medium leading-snug">
@@ -364,7 +374,8 @@ const TutorDashboard = () => {
         {tutorDetails?.rejectedReason && (
           <div className="mb-5 bg-red-600 text-white px-6 py-2 rounded-lg shadow-md text-center">
             <p className="text-sm font-medium leading-snug">
-              Your profile is has been rejected for the following reason: {tutorDetails.rejectedReason}
+              Your profile is has been rejected for the following reason:{" "}
+              {tutorDetails.rejectedReason}
             </p>
           </div>
         )}
@@ -402,12 +413,13 @@ const TutorDashboard = () => {
                             <p className="text-sm text-gray-500">
                               {b.start} | Status:{" "}
                               <span
-                                className={`font-semibold ${b.status === "confirmed"
-                                  ? "text-green-600"
-                                  : b.status === "pending"
+                                className={`font-semibold ${
+                                  b.status === "confirmed"
+                                    ? "text-green-600"
+                                    : b.status === "pending"
                                     ? "text-yellow-600"
                                     : "text-gray-400"
-                                  }`}>
+                                }`}>
                                 {b.status}
                               </span>
                             </p>
@@ -522,34 +534,43 @@ const TutorDashboard = () => {
                       )}
                     </div>
 
-
-                    <p><strong>Full Name:</strong> {user?.name}</p>
-                    <p><strong>Email:</strong> {user?.email}</p>
-                    <p><strong>Specialization:</strong> {tutorDetails.subject}</p>
+                    <p>
+                      <strong>Full Name:</strong> {user?.name}
+                    </p>
+                    <p>
+                      <strong>Email:</strong> {user?.email}
+                    </p>
+                    <p>
+                      <strong>Specialization:</strong> {tutorDetails.subject}
+                    </p>
 
                     {/* Edit Button */}
                     <div className="mt-4 flex justify-center gap-x-4 relative group">
                       <button
                         onClick={() => handleEdit()} // define handleEdit function
-                        disabled={tutorDetails?.status === "PENDING_APPROVAL" || hasConfirmedBookings}
+                        disabled={
+                          tutorDetails?.status === "PENDING_APPROVAL" || hasConfirmedBookings
+                        }
                         className={`px-4 py-2 rounded-md text-white transition
-                        ${tutorDetails?.status === "PENDING_APPROVAL" || hasConfirmedBookings
+                        ${
+                          tutorDetails?.status === "PENDING_APPROVAL" || hasConfirmedBookings
                             ? "bg-gray-400 cursor-not-allowed"
                             : "bg-blue-600 hover:bg-blue-700"
-                          }`}
-                      >
+                        }`}>
                         Update Profile
                       </button>
                       {tutorDetails?.status === "PENDING_APPROVAL" && (
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap 
-      bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
+                        <div
+                          className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap
+      bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0
       group-hover:opacity-100 transition-opacity duration-200 z-10">
                           Your profile is under review. You cannot update it at this time.
                         </div>
                       )}
                       {hasConfirmedBookings && (
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap 
-      bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
+                        <div
+                          className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap
+      bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0
       group-hover:opacity-100 transition-opacity duration-200 z-10">
                           You have confirmed bookings. You cannot update it at this time.
                         </div>
@@ -577,12 +598,11 @@ const TutorDashboard = () => {
               <h2 className="font-bold text-lg mb-3">Lesson Types </h2>
               <ul className="list-disc list-inside text-gray-700">
                 {tutorDetails && tutorDetails.lessonType?.length > 0 ? (
-                  tutorDetails.lessonType.map((type, index) => (
-                    <li key={index}>{type}</li>
-                  ))
+                  tutorDetails.lessonType.map((type, index) => <li key={index}>{type}</li>)
                 ) : (
                   <p>No lesson types specified.</p>
-                )}</ul>
+                )}
+              </ul>
             </div>
             <div className="grid grid-cols-1 gap-4">
               <div className="bg-white rounded-lg shadow-md p-6 max-h-[320px] overflow-y-auto">
@@ -590,7 +610,9 @@ const TutorDashboard = () => {
                 {tutorDetails?.qualifications && tutorDetails.qualifications.length > 0 ? (
                   <ul className="space-y-3">
                     {tutorDetails.qualifications.map((q: any, idx: number) => (
-                      <li key={idx} className="border rounded-lg p-3 flex justify-between items-center">
+                      <li
+                        key={idx}
+                        className="border rounded-lg p-3 flex justify-between items-center">
                         <div>
                           <p className="font-semibold">{q.name}</p>
                           <p className="text-gray-500 text-sm">{q.type}</p>
