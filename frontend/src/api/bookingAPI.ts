@@ -1,9 +1,5 @@
 import axios, { AxiosResponse } from "axios";
-import {
-  BookingRequest,
-  BookingResponse,
-  RecentBookingResponse,
-} from "@/types/BookingType";
+import { BookingRequest, BookingResponse, RecentBookingResponse } from "@/types/BookingType";
 
 const BASE_URL = `${import.meta.env.VITE_APP_API}/bookings`;
 
@@ -106,4 +102,29 @@ export const GetBookingById = async (
   return await axios.get(`${BASE_URL}/${bookingId}`, {
     headers: { Authorization: `Bearer ${authtoken}` },
   });
+};
+
+/** Request reschedule for a confirmed booking (student) */
+export const RequestReschedule = async (
+  bookingId: string,
+  req: BookingRequest,
+  authtoken: string
+): Promise<AxiosResponse<BookingResponse>> => {
+  return await axios.post(`${BASE_URL}/${bookingId}/reschedule`, req, {
+    headers: { Authorization: `Bearer ${authtoken}` },
+  });
+};
+
+/** Approve a reschedule request (tutor) */
+export const ApproveReschedule = async (
+  newBookingId: string,
+  authtoken: string
+): Promise<AxiosResponse<BookingResponse>> => {
+  return await axios.put(
+    `${BASE_URL}/reschedule/${newBookingId}/approve`,
+    {},
+    {
+      headers: { Authorization: `Bearer ${authtoken}` },
+    }
+  );
 };

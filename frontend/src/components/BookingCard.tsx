@@ -12,12 +12,14 @@ export interface BookingCardProps {
   status: "confirmed" | "pending" | "cancelled";
   lessonType: string;
   isPastSession?: boolean;
-  onClick?: (id: string) => void; // optional click handler
-  onCancel?: (id: string) => void; // NEW: cancel handler
+  onClick?: (id: string) => void; // optional card click
+  onCancel?: (id: string) => void; // cancel handler
+  onReschedule?: (bookingId: string, tutorId: string) => void; // reschedule handler
 }
 
 const BookingCard: React.FC<BookingCardProps> = ({
   id,
+  tutorId,
   tutorName,
   date,
   start,
@@ -27,6 +29,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
   isPastSession = false,
   onClick,
   onCancel,
+  onReschedule,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -37,11 +40,19 @@ const BookingCard: React.FC<BookingCardProps> = ({
   } as const;
 
   const handleCancelClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // prevent triggering onClick
+    e.stopPropagation();
     if (onCancel) onCancel(id);
   };
 
-  const isPendingHover = status === "pending" && isHovered;
+  const showCancelOverlay = status === "pending" && isHovered;
+  const showRescheduleOverlay = status === "confirmed" && isHovered;
+
+  const month = new Date(date).toLocaleString("default", { month: "short" });
+  const day = new Date(date).getDate();
+  const weekday = new Date(date).toLocaleDateString(undefined, {
+    weekday: "short",
+    year: "numeric",
+  });
 
   return (
     <div
@@ -49,17 +60,15 @@ const BookingCard: React.FC<BookingCardProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`relative flex items-center justify-between border rounded-md p-4 shadow-sm transition cursor-pointer ${
-        isPendingHover ? "bg-red-100" : "bg-white hover:shadow-md"
+        showCancelOverlay ? "bg-red-100" : "bg-white hover:shadow-md"
       }`}>
       {/* Left: Date */}
       <div className="text-center pr-4 border-r">
-        <p className={`uppercase ${isPastSession ? "text-xs" : "text-sm"} text-gray-500`}>Mar</p>
-        <p className={`font-bold ${isPastSession ? "text-lg" : "text-2xl"}`}>
-          {new Date(date).getDate()}
+        <p className={`uppercase ${isPastSession ? "text-xs" : "text-sm"} text-gray-500`}>
+          {month}
         </p>
-        <p className={`${isPastSession ? "text-xs" : "text-sm"} text-gray-500`}>
-          {new Date(date).toLocaleDateString(undefined, { weekday: "short", year: "numeric" })}
-        </p>
+        <p className={`font-bold ${isPastSession ? "text-lg" : "text-2xl"}`}>{day}</p>
+        <p className={`${isPastSession ? "text-xs" : "text-sm"} text-gray-500`}>{weekday}</p>
       </div>
 
       {/* Middle: Main Info */}
@@ -71,8 +80,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
         <p className={`${isPastSession ? "text-xs" : "text-sm"} text-gray-600`}>{tutorName}</p>
       </div>
 
-      {/* Right: Actions / Status */}
-      {!isPastSession && !isPendingHover && (
+      {/* Right: Status */}
+      {!isPastSession && (
         <div className="flex flex-col items-end gap-1">
           <span className={`px-2 py-1 rounded-md text-LG font-semibold ${statusColor[status]}`}>
             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -80,12 +89,26 @@ const BookingCard: React.FC<BookingCardProps> = ({
         </div>
       )}
 
-      {/* Cancel button overlay for pending sessions */}
-      {isPendingHover && (
+      {/* Cancel overlay for pending */}
+      {showCancelOverlay && (
         <button
           onClick={handleCancelClick}
-          className="absolute inset-0 flex items-center justify-center bg-red-500/70 text-white font-bold rounded-md backdrop-blur-sm">
+          className="absolute inset-0 flex items-center justify-center bg-red-500/70 text-white font-bold rounded-md backdrop-blur-sm"
+          aria-label="Cancel Booking">
           Cancel
+        </button>
+      )}
+
+      {/* Reschedule overlay for confirmed */}
+      {showRescheduleOverlay && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onReschedule && tutorId) onReschedule(id, tutorId);
+          }}
+          className="absolute inset-0 flex items-center justify-center bg-blue-500/70 text-white font-bold rounded-md backdrop-blur-sm opacity-0 hover:opacity-100 transition"
+          aria-label="Reschedule Booking">
+          Reschedule
         </button>
       )}
     </div>

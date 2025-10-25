@@ -13,13 +13,12 @@ public class Booking {
 
     @Id
     private String id; // MongoDB _id
-
     private String tutorId;
     private String studentId;
-
     private String date;   // yyyy-MM-dd
     private String start;  // HH:mm
     private String end;    // HH:mm
     private String lessonType;
     private String status; // confirmed, pending, cancelled
+    private String originalBookingId;
 }
