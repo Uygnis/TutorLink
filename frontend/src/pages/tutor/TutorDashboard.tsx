@@ -8,6 +8,7 @@ import ProfilePicModal from "@/components/ProfilePicModal";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
 import { Tutor } from "@/types/TutorType";
 import AvailabilityCalendar, { TimeSlot } from "@/components/AvailabilityCalendar";
+import { useMemo } from "react";
 import {
   AcceptBooking,
   ApproveReschedule,
@@ -71,6 +72,13 @@ const TutorDashboard = () => {
 
   const { user } = useAppSelector((state) => state.user);
   const navigate = useNavigate();
+
+
+  const hasConfirmedBookings = useMemo(
+    () => bookedSlots.some(b => b.status === "confirmed"),
+    [bookedSlots]
+  );
+
 
   const fetchTutorDetails = async (id: string): Promise<Tutor | null> => {
     try {
@@ -523,12 +531,13 @@ const TutorDashboard = () => {
                     <div className="mt-4 flex justify-center gap-x-4 relative group">
                       <button
                         onClick={() => handleEdit()} // define handleEdit function
-                        disabled={tutorDetails?.status === "PENDING_APPROVAL"}
+                        disabled={tutorDetails?.status === "PENDING_APPROVAL" || hasConfirmedBookings}
                         className={`px-4 py-2 rounded-md text-white transition
-                          ${tutorDetails?.status === "PENDING_APPROVAL"
+                        ${tutorDetails?.status === "PENDING_APPROVAL" || hasConfirmedBookings
                             ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-blue-600 hover:bg-blue-700"}`}>
-
+                            : "bg-blue-600 hover:bg-blue-700"
+                          }`}
+                      >
                         Update Profile
                       </button>
                       {tutorDetails?.status === "PENDING_APPROVAL" && (
@@ -536,6 +545,13 @@ const TutorDashboard = () => {
       bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
       group-hover:opacity-100 transition-opacity duration-200 z-10">
                           Your profile is under review. You cannot update it at this time.
+                        </div>
+                      )}
+                      {hasConfirmedBookings && (
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap 
+      bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
+      group-hover:opacity-100 transition-opacity duration-200 z-10">
+                          You have confirmed bookings. You cannot update it at this time.
                         </div>
                       )}
                       <button
@@ -569,36 +585,36 @@ const TutorDashboard = () => {
                 )}</ul>
             </div>
             <div className="grid grid-cols-1 gap-4">
-                    <div className="bg-white rounded-lg shadow-md p-6 max-h-[320px] overflow-y-auto">
-                        <h2 className="text-xl font-semibold mb-3">Qualifications</h2>
-                        {tutorDetails?.qualifications && tutorDetails.qualifications.length > 0 ? (
-                            <ul className="space-y-3">
-                                {tutorDetails.qualifications.map((q: any, idx: number) => (
-                                    <li key={idx} className="border rounded-lg p-3 flex justify-between items-center">
-                                        <div>
-                                            <p className="font-semibold">{q.name}</p>
-                                            <p className="text-gray-500 text-sm">{q.type}</p>
-                                            {q.uploadedAt && (
-                                                <p className="text-xs text-gray-400">
-                                                    Uploaded: {new Date(q.uploadedAt).toLocaleDateString()}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <a
-                                            href={q.path}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-600 hover:underline text-sm">
-                                            View
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="text-gray-500">No qualifications uploaded.</p>
-                        )}
-                    </div>
-                </div>
+              <div className="bg-white rounded-lg shadow-md p-6 max-h-[320px] overflow-y-auto">
+                <h2 className="text-xl font-semibold mb-3">Qualifications</h2>
+                {tutorDetails?.qualifications && tutorDetails.qualifications.length > 0 ? (
+                  <ul className="space-y-3">
+                    {tutorDetails.qualifications.map((q: any, idx: number) => (
+                      <li key={idx} className="border rounded-lg p-3 flex justify-between items-center">
+                        <div>
+                          <p className="font-semibold">{q.name}</p>
+                          <p className="text-gray-500 text-sm">{q.type}</p>
+                          {q.uploadedAt && (
+                            <p className="text-xs text-gray-400">
+                              Uploaded: {new Date(q.uploadedAt).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                        <a
+                          href={q.path}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline text-sm">
+                          View
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500">No qualifications uploaded.</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
