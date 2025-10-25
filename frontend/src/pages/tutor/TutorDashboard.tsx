@@ -507,7 +507,7 @@ const TutorDashboard = () => {
                           ${tutorDetails?.status === "PENDING_APPROVAL"
                             ? "bg-gray-400 cursor-not-allowed"
                             : "bg-blue-600 hover:bg-blue-700"}`}
-                      >
+                      
                         Update Profile
                       </button>
                       {tutorDetails?.status === "PENDING_APPROVAL" && (
