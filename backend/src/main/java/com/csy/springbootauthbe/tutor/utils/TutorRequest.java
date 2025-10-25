@@ -19,6 +19,8 @@ public class TutorRequest {
     private String userId;
     private String subject;
     private Double hourlyRate;
+    private String description;
+    private List<String> lessonType;
     private List<MultipartFile> fileUploads;
     private List<QualificationFile> qualifications;
     private Map<String, Availability> availability;

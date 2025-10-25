@@ -107,7 +107,7 @@ const AdminDashboard = () => {
                       active={metrics.activeTutors}
                       suspended={metrics.suspendedTutors}
                       pending={metrics.pendingTutors.length}
-                      rejected={metrics.rejectedTutors}
+                      unverified={metrics.unverifiedTutors}
                     />
                     <RingChart
                       title="Students"

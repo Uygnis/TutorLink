@@ -49,7 +49,13 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public Optional<TutorDTO> getTutorByUserId(String userId) {
-        return tutorRepository.findByUserId(userId).map(tutorMapper::toDTO);
+        User user = userRepository.findById(userId).orElse(null);
+        Optional<TutorDTO> tutor = tutorRepository.findByUserId(userId).map(tutorMapper::toDTO);
+        tutor.map(t -> {
+            t.setStatus(user != null ? user.getStatus().toString() : null);
+            return t;
+        });
+        return tutor;
     }
 
     @Override
@@ -80,6 +86,12 @@ public class TutorServiceImpl implements TutorService {
         TutorStagedProfileDTO stagedTutor = new TutorStagedProfileDTO();
 
         stagedTutor.setSubject(updatedData.getSubject());
+        stagedTutor.setDescription(updatedData.getDescription());
+        stagedTutor.setLessonType(
+            updatedData.getLessonType() != null
+                ? new ArrayList<>(updatedData.getLessonType())
+                : new ArrayList<>()
+        );
         stagedTutor.setHourlyRate(updatedData.getHourlyRate());
         stagedTutor.setAvailability(
             updatedData.getAvailability() != null

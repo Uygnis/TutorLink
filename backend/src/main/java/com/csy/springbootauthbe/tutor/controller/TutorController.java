@@ -7,6 +7,7 @@ import com.csy.springbootauthbe.tutor.entity.QualificationFile;
 import com.csy.springbootauthbe.tutor.service.TutorService;
 import com.csy.springbootauthbe.tutor.utils.TutorRequest;
 import com.csy.springbootauthbe.tutor.utils.TutorResponse;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -35,12 +36,15 @@ public class TutorController {
     @PutMapping("/{userId}")
     public ResponseEntity<TutorResponse> updateTutor(@PathVariable String userId,
                                                      @RequestParam("hourlyRate") Integer hourlyRate,
+                                                     @RequestParam("description") String description,
+                                                     @RequestParam("lessonType") String lessonTypeJson,
                                                      @RequestParam("subject") String subject,
                                                      @RequestParam("availability") String availabilityJson,
                                                      @RequestParam(value  = "qualifications", required = false) String qualificationsJson,
                                                      @RequestParam(value  = "fileUploads", required = false) List<MultipartFile> fileUploads) throws IOException, NoSuchAlgorithmException {
 
         ObjectMapper mapper = new ObjectMapper();
+        List<String> lessonType = mapper.readValue(lessonTypeJson, new TypeReference<List<String>>() {});
         Map<String, Availability> availability =
                 mapper.readValue(availabilityJson, new TypeReference<>() {});
         List<QualificationFile> qualifications = mapper.readValue(
@@ -53,6 +57,8 @@ public class TutorController {
         request.setAvailability(availability);
         request.setHourlyRate(hourlyRate.doubleValue());
         request.setSubject(subject);
+        request.setDescription(description);
+        request.setLessonType(lessonType);
         request.setUserId(userId);
         TutorResponse response = tutorService.updateTutor(userId, request);
         return ResponseEntity.ok(response);

@@ -8,7 +8,7 @@ export interface AdminDashboardType {
     totalTutors: number,
     activeTutors: number,
     suspendedTutors: number,
-    rejectedTutors: number,
+    unverifiedTutors: number,
     
     totalStudents: number,
     activeStudents: number,

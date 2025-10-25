@@ -8,16 +8,16 @@ interface RingChartProps {
   active: number;
   suspended: number;
   pending? :number;
-  rejected?: number; // optional since not all categories have it
+  unverified?: number; // optional since not all categories have it
   
 }
 
-const RingChart = ({ title, total, active, suspended, pending = 0, rejected = 0 }: RingChartProps) => {
+const RingChart = ({ title, total, active, suspended, pending = 0, unverified = 0 }: RingChartProps) => {
   const data = [
     { name: "Active", value: active },
     { name: "Suspended", value: suspended },
     { name: "Pending", value: pending},
-    { name: "Rejected", value: rejected },
+    { name: "Unverified", value: unverified },
   ];
 
   const percentage = total ? ((active / total) * 100).toFixed(1) : "0";
@@ -52,8 +52,8 @@ const RingChart = ({ title, total, active, suspended, pending = 0, rejected = 0 
       <div className="text-xs text-gray-500 mt-2 space-y-1 text-center">
         <p>{active} active</p>
         <p>{suspended} suspended</p>
-        {pending > 0 && <p>{pending} pending</p>}
-        {rejected > 0 && <p>{rejected} rejected</p>}
+        {pending > 0 && <p>{pending} pending approval</p>}
+        {unverified > 0 && <p>{unverified} unverified</p>}
       </div>
     </div>
   );

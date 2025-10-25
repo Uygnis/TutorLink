@@ -90,7 +90,7 @@ const TutorDashboard = () => {
         return null;
       }
     } catch (error: any) {
-      toast.error("Failed to fetch student details");
+      toast.error("Failed to fetch tutor details");
       console.error(error);
       return null;
     }
@@ -177,7 +177,8 @@ const TutorDashboard = () => {
   };
 
   const handleEdit = () => {
-    navigate("/tutor/profile");
+    confirm("Updating your profile will require a re-verification. Students will temporarily not be able to view your profile, proceed?") &&
+      navigate("/tutor/profile");
   };
   const handleSlotClick = (date: Date, slot: TimeSlot) => {
     setSelectedSlot({ date, slot });
@@ -282,6 +283,7 @@ const TutorDashboard = () => {
   };
 
   useEffect(() => {
+    console.log(user);
     if (!user) {
       navigate("/login");
       return;
@@ -349,13 +351,12 @@ const TutorDashboard = () => {
                             <p className="text-sm text-gray-500">
                               {b.start} | Status:{" "}
                               <span
-                                className={`font-semibold ${
-                                  b.status === "confirmed"
-                                    ? "text-green-600"
-                                    : b.status === "pending"
+                                className={`font-semibold ${b.status === "confirmed"
+                                  ? "text-green-600"
+                                  : b.status === "pending"
                                     ? "text-yellow-600"
                                     : "text-gray-400"
-                                }`}
+                                  }`}
                               >
                                 {b.status}
                               </span>
@@ -457,8 +458,8 @@ const TutorDashboard = () => {
             </div>
           </div>
 
-          {/* Right side (Student Profile Card) */}
-          <div className="w-[30%]">
+          {/* Right side (Tutor Profile Card) */}
+          <div className="w-[30%] space-y-4">
             <div className="bg-white rounded-md shadow-md p-5">
               <div className="text-center">
                 <h1 className="font-bold text-xl">Tutor Profile</h1>
@@ -472,23 +473,47 @@ const TutorDashboard = () => {
                         className="w-24 h-24 rounded-full object-cover border"
                       />
                     </div>
-                    <p>
-                      <strong>Full Name:</strong> {user?.name}
-                    </p>
-                    <p>
-                      <strong>Email:</strong> {user?.email}
-                    </p>
-                    <p>
-                      <strong>Specialization:</strong> {tutorDetails.subject}
-                    </p>
+                    {/* Status Indicator */}
+                    <div className="flex justify-center mb-3">
+                      {tutorDetails?.status === "ACTIVE" ? (
+                        <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 font-semibold text-sm">
+                          Live
+                        </span>
+                      ) : tutorDetails?.status === "PENDING_APPROVAL" ? (
+                        <span className="px-3 py-1 rounded-full bg-orange-100 text-orange-800 font-semibold text-sm">
+                          Pending Verification
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full bg-red-100 text-red-800 font-semibold text-sm">
+                          Unverified
+                        </span>
+                      )}
+                    </div>
+
+
+                    <p><strong>Full Name:</strong> {user?.name}</p>
+                    <p><strong>Email:</strong> {user?.email}</p>
+                    <p><strong>Specialization:</strong> {tutorDetails.subject}</p>
+
                     {/* Edit Button */}
-                    <div className="mt-4 flex justify-center">
+                    <div className="mt-4 flex justify-center gap-x-4 relative group">
                       <button
                         onClick={() => handleEdit()} // define handleEdit function
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                        disabled={tutorDetails?.status === "PENDING_APPROVAL"}
+                        className={`px-4 py-2 rounded-md text-white transition
+                          ${tutorDetails?.status === "PENDING_APPROVAL"
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700"}`}
                       >
-                        Edit
+                        Update Profile
                       </button>
+                      {tutorDetails?.status === "PENDING_APPROVAL" && (
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap 
+      bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
+      group-hover:opacity-100 transition-opacity duration-200 z-10">
+                          Your profile is under review. You cannot update it at this time.
+                        </div>
+                      )}
                       <button
                         onClick={() => setIsModalOpen(true)}
                         className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
@@ -508,6 +533,17 @@ const TutorDashboard = () => {
                   <p>Loading tutor details...</p>
                 )}
               </div>
+            </div>
+            <div className="bg-white rounded-md shadow-md p-5">
+              <h2 className="font-bold text-lg mb-3">Lesson Types </h2>
+              <ul className="list-disc list-inside text-gray-700">
+                {tutorDetails && tutorDetails.lessonType?.length > 0 ? (
+                  tutorDetails.lessonType.map((type, index) => (
+                    <li key={index}>{type}</li>
+                  ))
+                ) : (
+                  <p>No lesson types specified.</p>
+                )}</ul>
             </div>
           </div>
         </div>

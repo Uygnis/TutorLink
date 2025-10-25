@@ -3,14 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { UpdateTutorProfile, GetTutorProfile } from "@/api/tutorAPI";
 import { toast } from "react-toastify";
-import { useAppSelector } from "@/redux/store";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
 import Navbar from "@/components/Navbar";
 import AvailabilityPicker from "../../components/AvailabilityPicker";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { Tutor } from "@/types/TutorType";
+import TutorLessonTypeInput from "@/components/TutorLessonTypeInput";
+import { LessonTypesBySubject } from "@/types/LessonTypes";
+import { setLoading } from "@/redux/loaderSlice";
+import { set } from "react-hook-form";
 
 const ViewTutorProfile = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.user);
   const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -44,6 +49,7 @@ const ViewTutorProfile = () => {
     const fetchProfile = async () => {
       console.log("called fetchProfile");
       try {
+        dispatch(setLoading(true));
         if (!user?.token) {
           toast.error("No token found. Please login again.");
           navigate("/login");
@@ -72,6 +78,9 @@ const ViewTutorProfile = () => {
         console.log("Fetched profile:", newProfile);
       } catch (err) {
         console.error("Failed to load profile", err);
+      }
+      finally {
+        dispatch(setLoading(false));
       }
     };
     fetchProfile();
@@ -145,24 +154,38 @@ const ViewTutorProfile = () => {
   };
 
   const handleSave = async () => {
-    if (!user?.token) {
-      toast.error("No token found. Please login again.");
-      navigate("/login");
-      return;
-    }
-    console.log(profile);
-    const formData = new FormData();
-    formData.append("userId", profile.userId);
-    formData.append("hourlyRate", profile.hourlyRate.toString());
-    formData.append("subject", profile.subject);
-    formData.append("availability", JSON.stringify(profile.availability));
-    profile.fileUploads.forEach((file) => {
-      formData.append(`fileUploads`, file);
-    });
-    formData.append(`qualifications`, JSON.stringify(profile.qualifications));
+    confirm("Once submitted, your profile will be sent for re-verification. Are you sure you want to submit changes to your profile?") &&
+    dispatch(setLoading(true));
+    try {
+      if (!user?.token) {
+        toast.error("No token found. Please login again.");
+        dispatch(setLoading(false));
+        navigate("/login");
+        return;
+      }
+      console.log(profile);
+      const formData = new FormData();
+      formData.append("userId", profile.userId);
+      formData.append("hourlyRate", profile.hourlyRate.toString());
+      formData.append("lessonType", JSON.stringify(profile.lessonType));
+      formData.append("description", profile.description);
+      formData.append("subject", profile.subject);
+      formData.append("availability", JSON.stringify(profile.availability));
+      profile.fileUploads.forEach((file) => {
+        formData.append(`fileUploads`, file);
+      });
+      formData.append(`qualifications`, JSON.stringify(profile.qualifications));
 
-    await UpdateTutorProfile(user.token, profile.userId, formData);
-    toast.success("Profile updated successfully");
+      await UpdateTutorProfile(user.token, profile.userId, formData);
+      toast.success("Profile updated successfully");
+      navigate(-1); // go back after saving
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update profile");
+    } finally {
+      dispatch(setLoading(false));
+    }
+
   };
 
   const handleCancel = () => {
@@ -184,9 +207,33 @@ const ViewTutorProfile = () => {
                 type="text"
                 name="name"
                 value={user?.name}
-                onChange={handleChange}
+                disabled
                 className="mt-1 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none"
-                placeholder="Enter name"
+                placeholder="Name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Subject</label>
+              <input
+                type="text"
+                name="name"
+                value={profile?.subject}
+                disabled
+                className="mt-1 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none"
+                placeholder="Subject"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Description</label>
+              <textarea
+                name="description"
+                onChange={(e) =>
+                  setProfile((prev) => ({ ...prev, description: e.target.value }))
+                }
+                value={profile?.description}
+                className="mt-1 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none resize-none"
+                placeholder="Write a short description about yourself"
+                rows={4} // sets the initial height
               />
             </div>
             <div>
@@ -216,6 +263,16 @@ const ViewTutorProfile = () => {
                 step={0.01}
               />
             </div>
+            <TutorLessonTypeInput
+              value={profile.lessonType}
+              onChange={(newTypes) =>
+                setProfile((prev) => ({
+                  ...prev,
+                  lessonType: newTypes,
+                }))
+              }
+              suggestions={LessonTypesBySubject[profile.subject] || []}
+            />
 
             {/* <div>
             <label className="block text-sm font-medium">Qualifications</label>
@@ -236,9 +293,8 @@ const ViewTutorProfile = () => {
               </label>
               <div
                 {...getRootProps()}
-                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition ${
-                  isDragActive ? "border-primary bg-primary/10" : "border-gray-300"
-                }`}>
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition ${isDragActive ? "border-primary bg-primary/10" : "border-gray-300"
+                  }`}>
                 <input {...getInputProps()} />
                 {isDragActive ? (
                   <p className="text-primary font-medium">Drop files here...</p>
@@ -289,7 +345,7 @@ const ViewTutorProfile = () => {
             <button
               onClick={handleSave}
               className="w-full rounded-lg bg-primary text-white py-2 transition duration-300 hover:bg-primary/90">
-              Save Changes
+              Submit Changes
             </button>
             <button
               onClick={handleCancel}

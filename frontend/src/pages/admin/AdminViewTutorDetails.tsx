@@ -4,7 +4,6 @@ import { useAppDispatch, useAppSelector } from "@/redux/store";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
 import Navbar from "@/components/Navbar";
 import { ApproveTutor, GetTutorDetails, RejectTutor } from "@/api/adminAPI";
-import AvailabilityCalendar, { TimeSlot } from "@/components/AvailabilityCalendar";
 import { GetBookingsForTutorRange } from "@/api/bookingAPI";
 import { setLoading } from "@/redux/loaderSlice";
 import { toast } from "react-toastify";
@@ -18,10 +17,11 @@ const AdminViewTutorDetail = () => {
   const [stagingProfile, setStagingProfile] = useState<any>(null);
   const { user } = useAppSelector((state) => state.user);
   const [bookedSlots, setBookedSlots] = useState<{ date: string; status: string }[]>([]);
-  const [monthStart, setMonthStart] = useState<Date>(() => {
+  const [monthStart] = useState<Date>(() => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"approve" | "reject" | null>(null);
 
@@ -232,37 +232,43 @@ const AdminViewTutorDetail = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 items-stretch">
             {/* Current Active Profile */}
             <div
-              className={`grid grid-cols-1 bg-white rounded-lg shadow-md p-6 ${!stagingProfile ? "md:col-span-2" : ""
+              className={`flex flex-col bg-white rounded-lg shadow-md p-6 h-full ${!stagingProfile ? "md:col-span-2" : ""
                 }`}
             >
               <h2 className="text-xl font-semibold text-green-700 mb-3">
                 Current Live Profile
               </h2>
-              <TutorProfileSummary profile={tutor} bookedSlots={bookedSlots} />
+              <div className="flex-1">
+                <TutorProfileSummary profile={tutor} bookedSlots={bookedSlots} />
+              </div>
             </div>
 
             {/* Staging / Pending Profile */}
             {stagingProfile && (
               <div
-                className={`grid grid-cols-1 rounded-lg shadow-md p-6 
-                ${tutor?.rejectedReason
+                className={`flex flex-col rounded-lg shadow-md p-6 h-full ${tutor?.rejectedReason
                     ? "bg-pink-100 border border-pink-200"
                     : "bg-yellow-50 border border-yellow-200"
                   }`}
               >
                 <h2
-                  className={`text-xl font-semibold mb-3 ${tutor?.rejectedReason ? "text-pink-700" : "text-yellow-700"}`}
+                  className={`text-xl font-semibold mb-3 ${tutor?.rejectedReason ? "text-pink-700" : "text-yellow-700"
+                    }`}
                 >
                   {tutor?.rejectedReason
                     ? "Rejected Profile"
                     : "Pending Updated Profile"}
                 </h2>
-                <TutorProfileSummary profile={stagingProfile} bookedSlots={bookedSlots} />
+                <div className="flex-1">
+                  <TutorProfileSummary
+                    profile={stagingProfile}
+                    bookedSlots={bookedSlots}
+                  />
+                </div>
               </div>
-
             )}
           </div>
 
