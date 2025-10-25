@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     # if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
+      - uses: actions/checkout@v3
+      
       - name: Debug secret
         run: |
           if [ -z "${{ secrets.STAGING_URL }}" ]; then
@@ -22,17 +24,18 @@ jobs:
           else
             echo "STAGING_URL is set"
           fi
+          
       - name: Test connectivity
         run: curl -I ${{ secrets.STAGING_URL }}
-        
-      - name: Run OWASP ZAP baseline scan
-        uses: zaproxy/action-baseline@v0.10.0
-        with:
-          target: ${{ secrets.STAGING_URL }} # e.g. https://staging.tutorlink.com
-          cmd_options: "-t ${{ secrets.STAGING_URL }} -r zap-report.html"
 
-      - name: Upload ZAP report artifact
-        uses: actions/upload-artifact@v4
+      - name: Run ZAP Scan
+        uses: zaproxy/action-full-scan@v0.7.0
         with:
-          name: zap-dast-report
+          target: ${{ secrets.STAGING_URL }}
+          cmd_options: "-r zap-report.html -d"
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-report
           path: zap-report.html
