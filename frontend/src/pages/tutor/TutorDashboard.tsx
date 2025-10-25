@@ -500,13 +500,11 @@ const TutorDashboard = () => {
                     <div className="mt-4 flex justify-center gap-x-4 relative group">
                       <button
                         onClick={() => handleEdit()} // define handleEdit function
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
-                        Edit
                         disabled={tutorDetails?.status === "PENDING_APPROVAL"}
                         className={`px-4 py-2 rounded-md text-white transition
                           ${tutorDetails?.status === "PENDING_APPROVAL"
                             ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-blue-600 hover:bg-blue-700"}`}
+                            : "bg-blue-600 hover:bg-blue-700"}`}>
                       
                         Update Profile
                       </button>
