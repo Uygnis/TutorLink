@@ -5,12 +5,16 @@ import com.csy.springbootauthbe.common.aws.AwsService;
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.entity.Student;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
+import com.csy.springbootauthbe.tutor.dto.TutorStagedProfileDTO;
 import com.csy.springbootauthbe.tutor.entity.QualificationFile;
 import com.csy.springbootauthbe.tutor.entity.Tutor;
 import com.csy.springbootauthbe.tutor.mapper.TutorMapper;
 import com.csy.springbootauthbe.tutor.repository.TutorRepository;
 import com.csy.springbootauthbe.tutor.utils.TutorRequest;
 import com.csy.springbootauthbe.tutor.utils.TutorResponse;
+import com.csy.springbootauthbe.user.entity.AccountStatus;
+import com.csy.springbootauthbe.user.entity.User;
+import com.csy.springbootauthbe.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -29,6 +33,7 @@ import java.util.*;
 public class TutorServiceImpl implements TutorService {
 
     private final TutorRepository tutorRepository;
+    private final UserRepository userRepository;
     private final TutorMapper tutorMapper;
     private final AwsService awsService;
 
@@ -44,33 +49,81 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public Optional<TutorDTO> getTutorByUserId(String userId) {
-        return tutorRepository.findByUserId(userId).map(tutorMapper::toDTO);
+        User user = userRepository.findById(userId).orElse(null);
+        Optional<TutorDTO> tutor = tutorRepository.findByUserId(userId).map(tutorMapper::toDTO);
+        tutor.map(t -> {
+            t.setStatus(user != null ? user.getStatus().toString() : null);
+            return t;
+        });
+        return tutor;
     }
 
     @Override
     public TutorResponse updateTutor(String userId, TutorRequest updatedData)
-            throws NoSuchAlgorithmException, IOException {
+        throws NoSuchAlgorithmException, IOException {
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         Tutor tutor = tutorRepository.findByUserId(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("Tutor not found"));
+            .orElseThrow(() -> new UsernameNotFoundException("Tutor not found"));
 
-        tutor.setHourlyRate(updatedData.getHourlyRate());
-        tutor.setAvailability(updatedData.getAvailability());
+        // If previous staged profile was rejected, delete old staged files from AWS
+        if (tutor.getStagedProfile() != null && tutor.getRejectedReason() != null) {
+            List<QualificationFile> oldStagedFiles = tutor.getStagedProfile().getQualifications();
+            if (oldStagedFiles != null) {
+                for (QualificationFile file : oldStagedFiles) {
+                    if (file.getPath() != null) {
+                        awsService.deleteFile(file.getPath());
+                        log.info("Deleted rejected staged qualification from S3: {}", file.getPath());
+                    }
+                }
+            }
+            // Clear previous staged profile
+            tutor.setStagedProfile(new TutorStagedProfileDTO());
+        }
 
-        List<QualificationFile> qualifications = tutor.getQualifications();
+        TutorStagedProfileDTO stagedTutor = new TutorStagedProfileDTO();
+
+        stagedTutor.setSubject(updatedData.getSubject());
+        stagedTutor.setDescription(updatedData.getDescription());
+        stagedTutor.setLessonType(
+            updatedData.getLessonType() != null
+                ? new ArrayList<>(updatedData.getLessonType())
+                : new ArrayList<>()
+        );
+        stagedTutor.setHourlyRate(updatedData.getHourlyRate());
+        stagedTutor.setAvailability(
+            updatedData.getAvailability() != null
+                ? new HashMap<>(updatedData.getAvailability())
+                : new HashMap<>()
+        );
+
+        List<QualificationFile> activeQualifications = Optional.ofNullable(tutor.getQualifications())
+            .orElseGet(ArrayList::new);
+
+        List<QualificationFile> stagedQualifications = new ArrayList<>();
+        for (QualificationFile q : activeQualifications) {
+            QualificationFile copy = new QualificationFile();
+            copy.setName(q.getName());
+            copy.setType(q.getType());
+            copy.setHash(q.getHash());
+            copy.setPath(q.getPath());
+            copy.setDeleted(q.isDeleted());
+            copy.setUploadedAt(q.getUploadedAt());
+            copy.setUpdatedAt(q.getUpdatedAt());
+            stagedQualifications.add(copy);
+        }
+
         Set<String> newHashes = new HashSet<>();
 
-        // Handle new file uploads
         if (updatedData.getFileUploads() != null) {
             for (MultipartFile file : updatedData.getFileUploads()) {
                 String hash = hash(file);
-
-                // Add hash to newHashes set
                 newHashes.add(hash);
 
-                // Only upload if not already in DB
-                boolean exists = qualifications.stream()
-                        .anyMatch(f -> f.getHash().equals(hash));
+                boolean exists = stagedQualifications.stream()
+                    .anyMatch(f -> f.getHash().equals(hash));
                 if (!exists) {
                     QualificationFile qFile = new QualificationFile();
                     qFile.setName(file.getOriginalFilename());
@@ -82,34 +135,39 @@ public class TutorServiceImpl implements TutorService {
                     qFile.setPath(awsRes.getKey());
                     qFile.setDeleted(false);
 
-                    qualifications.add(qFile);
+                    stagedQualifications.add(qFile);
                 }
             }
         }
 
-        //include existing metadata from updatedData
         if (updatedData.getQualifications() != null) {
             for (QualificationFile metaFile : updatedData.getQualifications()) {
                 newHashes.add(metaFile.getHash());
             }
         }
 
-        // Update deleted status
-        for (QualificationFile oldFile : qualifications) {
+        for (QualificationFile oldFile : stagedQualifications) {
             oldFile.setDeleted(!newHashes.contains(oldFile.getHash()));
             if (!oldFile.isDeleted() && oldFile.getUpdatedAt() != null) {
-                oldFile.setUpdatedAt(null); // reset deletedAt if file is now active
+                oldFile.setUpdatedAt(null);
             } else if (oldFile.isDeleted() && oldFile.getUpdatedAt() == null) {
-                oldFile.setUpdatedAt(new Date()); // mark deletion timestamp
+                oldFile.setUpdatedAt(new Date());
             }
         }
 
-        tutor.setQualifications(qualifications);
+        stagedTutor.setQualifications(stagedQualifications);
+        tutor.setStagedProfile(stagedTutor);
+        tutor.setPreviousStatus(user.getStatus());
 
+        user.setStatus(AccountStatus.PENDING_APPROVAL);
+        tutor.setRejectedReason(null);
+
+        userRepository.save(user);
         tutorRepository.save(tutor);
 
-        return createTutorResponse(tutor);
+        return createTutorResponse(tutor, user);
     }
+
 
     @Override
     public TutorDTO updateProfilePicture(String tutorId, MultipartFile file) {
@@ -143,9 +201,6 @@ public class TutorServiceImpl implements TutorService {
         return tutorMapper.toDTO(saved);
     }
 
-
-
-
     private String hash(MultipartFile file) throws NoSuchAlgorithmException, IOException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(file.getBytes());
@@ -159,12 +214,13 @@ public class TutorServiceImpl implements TutorService {
         tutorRepository.delete(tutor);
     }
 
-    private TutorResponse createTutorResponse(Tutor tutor) {
+    private TutorResponse createTutorResponse(Tutor tutor, User user) {
         return TutorResponse.builder()
                 .id(tutor.getId())
                 .hourlyRate(tutor.getHourlyRate())
                 .qualifications(tutor.getQualifications())
                 .availability(tutor.getAvailability())
+                .status(user.getStatus().toString())
                 .build();
     }
 

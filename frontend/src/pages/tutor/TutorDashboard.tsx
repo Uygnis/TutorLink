@@ -8,6 +8,7 @@ import ProfilePicModal from "@/components/ProfilePicModal";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
 import { Tutor } from "@/types/TutorType";
 import AvailabilityCalendar, { TimeSlot } from "@/components/AvailabilityCalendar";
+import { useMemo } from "react";
 import {
   AcceptBooking,
   ApproveReschedule,
@@ -72,6 +73,13 @@ const TutorDashboard = () => {
   const { user } = useAppSelector((state) => state.user);
   const navigate = useNavigate();
 
+
+  const hasConfirmedBookings = useMemo(
+    () => bookedSlots.some(b => b.status === "confirmed"),
+    [bookedSlots]
+  );
+
+
   const fetchTutorDetails = async (id: string): Promise<Tutor | null> => {
     try {
       if (!user?.token) {
@@ -82,13 +90,22 @@ const TutorDashboard = () => {
 
       const response = await GetTutorProfile(user.token, id);
       if (response.data) {
+        console.log("Tutor Profile Data:", response.data);
+        if (response.data.status === "PENDING_APPROVAL" && response.data.stagedProfile) {
+          const stagedProfile = {
+            ...response.data.stagedProfile,
+            status: "PENDING_APPROVAL",
+          };
+          setTutorDetails(stagedProfile);
+          return stagedProfile;
+        }
         setTutorDetails(response.data);
         return response.data;
       } else {
         return null;
       }
     } catch (error: any) {
-      toast.error("Failed to fetch student details");
+      toast.error("Failed to fetch tutor details");
       console.error(error);
       return null;
     }
@@ -170,7 +187,8 @@ const TutorDashboard = () => {
   };
 
   const handleEdit = () => {
-    navigate("/tutor/profile");
+    confirm("Updating your profile will require a re-verification. Students will temporarily not be able to view your profile, proceed?") &&
+      navigate("/tutor/profile");
   };
   const handleSlotClick = (date: Date, slot: TimeSlot) => {
     setSelectedSlot({ date, slot });
@@ -291,8 +309,7 @@ const TutorDashboard = () => {
     try {
       await ApproveReschedule(bookingId, user.token);
       alert(
-        `✅ Reschedule approved on ${selectedSlot.date.toLocaleDateString("en-CA")} | ${
-          selectedSlot.slot.start
+        `✅ Reschedule approved on ${selectedSlot.date.toLocaleDateString("en-CA")} | ${selectedSlot.slot.start
         } - ${selectedSlot.slot.end}`
       );
 
@@ -310,6 +327,7 @@ const TutorDashboard = () => {
   };
 
   useEffect(() => {
+    console.log(user);
     if (!user) {
       navigate("/login");
       return;
@@ -335,6 +353,21 @@ const TutorDashboard = () => {
       <Navbar />
       <div className="min-h-screen bg-[#f2f2f2] p-6">
         <h1 className="font-bold text-xl mb-5 ">Welcome to your Dashboard ! </h1>
+        {tutorDetails?.status === "PENDING_APPROVAL" && (
+          <div className="mb-5 bg-orange-600 text-white px-6 py-2 rounded-lg shadow-md text-center">
+            <p className="text-sm font-medium leading-snug">
+              Your profile is under review. You cannot update it at this time.
+            </p>
+          </div>
+        )}
+
+        {tutorDetails?.rejectedReason && (
+          <div className="mb-5 bg-red-600 text-white px-6 py-2 rounded-lg shadow-md text-center">
+            <p className="text-sm font-medium leading-snug">
+              Your profile is has been rejected for the following reason: {tutorDetails.rejectedReason}
+            </p>
+          </div>
+        )}
         {/* Two-column layout */}
         <div className="flex gap-6">
           {/* Left side (Upcoming + Past Sessions) */}
@@ -369,13 +402,12 @@ const TutorDashboard = () => {
                             <p className="text-sm text-gray-500">
                               {b.start} | Status:{" "}
                               <span
-                                className={`font-semibold ${
-                                  b.status === "confirmed"
-                                    ? "text-green-600"
-                                    : b.status === "pending"
+                                className={`font-semibold ${b.status === "confirmed"
+                                  ? "text-green-600"
+                                  : b.status === "pending"
                                     ? "text-yellow-600"
                                     : "text-gray-400"
-                                }`}>
+                                  }`}>
                                 {b.status}
                               </span>
                             </p>
@@ -458,8 +490,8 @@ const TutorDashboard = () => {
             </div>
           </div>
 
-          {/* Right side (Student Profile Card) */}
-          <div className="w-[30%]">
+          {/* Right side (Tutor Profile Card) */}
+          <div className="w-[30%] space-y-4">
             <div className="bg-white rounded-md shadow-md p-5">
               <div className="text-center">
                 <h1 className="font-bold text-xl">Tutor Profile</h1>
@@ -473,22 +505,55 @@ const TutorDashboard = () => {
                         className="w-24 h-24 rounded-full object-cover border"
                       />
                     </div>
-                    <p>
-                      <strong>Full Name:</strong> {user?.name}
-                    </p>
-                    <p>
-                      <strong>Email:</strong> {user?.email}
-                    </p>
-                    <p>
-                      <strong>Specialization:</strong> {tutorDetails.subject}
-                    </p>
+                    {/* Status Indicator */}
+                    <div className="flex justify-center mb-3">
+                      {tutorDetails?.status === "ACTIVE" ? (
+                        <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 font-semibold text-sm">
+                          Live
+                        </span>
+                      ) : tutorDetails?.status === "PENDING_APPROVAL" ? (
+                        <span className="px-3 py-1 rounded-full bg-orange-100 text-orange-800 font-semibold text-sm">
+                          Pending Verification
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full bg-red-100 text-red-800 font-semibold text-sm">
+                          Unverified
+                        </span>
+                      )}
+                    </div>
+
+
+                    <p><strong>Full Name:</strong> {user?.name}</p>
+                    <p><strong>Email:</strong> {user?.email}</p>
+                    <p><strong>Specialization:</strong> {tutorDetails.subject}</p>
+
                     {/* Edit Button */}
-                    <div className="mt-4 flex justify-center">
+                    <div className="mt-4 flex justify-center gap-x-4 relative group">
                       <button
                         onClick={() => handleEdit()} // define handleEdit function
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
-                        Edit
+                        disabled={tutorDetails?.status === "PENDING_APPROVAL" || hasConfirmedBookings}
+                        className={`px-4 py-2 rounded-md text-white transition
+                        ${tutorDetails?.status === "PENDING_APPROVAL" || hasConfirmedBookings
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700"
+                          }`}
+                      >
+                        Update Profile
                       </button>
+                      {tutorDetails?.status === "PENDING_APPROVAL" && (
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap 
+      bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
+      group-hover:opacity-100 transition-opacity duration-200 z-10">
+                          Your profile is under review. You cannot update it at this time.
+                        </div>
+                      )}
+                      {hasConfirmedBookings && (
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap 
+      bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
+      group-hover:opacity-100 transition-opacity duration-200 z-10">
+                          You have confirmed bookings. You cannot update it at this time.
+                        </div>
+                      )}
                       <button
                         onClick={() => setIsModalOpen(true)}
                         className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
@@ -505,6 +570,48 @@ const TutorDashboard = () => {
                   </div>
                 ) : (
                   <p>Loading tutor details...</p>
+                )}
+              </div>
+            </div>
+            <div className="bg-white rounded-md shadow-md p-5">
+              <h2 className="font-bold text-lg mb-3">Lesson Types </h2>
+              <ul className="list-disc list-inside text-gray-700">
+                {tutorDetails && tutorDetails.lessonType?.length > 0 ? (
+                  tutorDetails.lessonType.map((type, index) => (
+                    <li key={index}>{type}</li>
+                  ))
+                ) : (
+                  <p>No lesson types specified.</p>
+                )}</ul>
+            </div>
+            <div className="grid grid-cols-1 gap-4">
+              <div className="bg-white rounded-lg shadow-md p-6 max-h-[320px] overflow-y-auto">
+                <h2 className="text-xl font-semibold mb-3">Qualifications</h2>
+                {tutorDetails?.qualifications && tutorDetails.qualifications.length > 0 ? (
+                  <ul className="space-y-3">
+                    {tutorDetails.qualifications.map((q: any, idx: number) => (
+                      <li key={idx} className="border rounded-lg p-3 flex justify-between items-center">
+                        <div>
+                          <p className="font-semibold">{q.name}</p>
+                          <p className="text-gray-500 text-sm">{q.type}</p>
+                          {q.uploadedAt && (
+                            <p className="text-xs text-gray-400">
+                              Uploaded: {new Date(q.uploadedAt).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                        <a
+                          href={q.path}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline text-sm">
+                          View
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500">No qualifications uploaded.</p>
                 )}
               </div>
             </div>

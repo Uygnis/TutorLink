@@ -42,6 +42,7 @@ public class TutorServiceTest {
     private TutorServiceImpl tutorService;
 
     private Tutor tutorEntity;
+    private User userEntity;
     private TutorDTO tutorDTO;
     private TutorRequest tutorRequest;
     private TutorResponse tutorResponse;
@@ -55,6 +56,14 @@ public class TutorServiceTest {
         tutorEntity.setId("t1");
         tutorEntity.setUserId("user123");
         tutorEntity.setQualifications(qualificationFiles);
+
+        userEntity = new User();
+        userEntity.setId("user123");
+        userEntity.setRole(Role.TUTOR);
+        userEntity.setStatus(AccountStatus.ACTIVE);
+        userEntity.setFirstname("John");
+        userEntity.setLastname("Doe");
+        userEntity.setEmail("test@test.com");
 
         tutorDTO = new TutorDTO();
         tutorDTO.setId("t1");
@@ -128,6 +137,8 @@ public class TutorServiceTest {
         // prepare
         when(tutorRepository.findByUserId(tutorRequest.getUserId()))
                 .thenReturn(Optional.of(tutorEntity));
+        when(userRepository.findById(tutorRequest.getUserId()))
+                .thenReturn(Optional.of(userEntity));
         when(tutorRepository.save(any(Tutor.class))).thenReturn(tutorEntity);
 
         // act

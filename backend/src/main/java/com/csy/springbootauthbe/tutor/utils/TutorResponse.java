@@ -20,4 +20,5 @@ public class TutorResponse {
     private List<QualificationFile> qualifications;
     private Double hourlyRate;
     private Map<String, Availability> availability;
+    private String status;
 }

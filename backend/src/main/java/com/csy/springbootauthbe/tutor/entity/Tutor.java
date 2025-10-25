@@ -1,5 +1,8 @@
 package com.csy.springbootauthbe.tutor.entity;
 
+import com.csy.springbootauthbe.tutor.dto.TutorDTO;
+import com.csy.springbootauthbe.tutor.dto.TutorStagedProfileDTO;
+import com.csy.springbootauthbe.user.entity.AccountStatus;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -28,5 +31,9 @@ public class Tutor {
     private String profileImageUrl;
     private List<String> lessonType;
     private String description;
+    private String rejectedReason;
+
+    private TutorStagedProfileDTO stagedProfile;
+    private AccountStatus previousStatus;
 }
 
