@@ -27,9 +27,9 @@ jobs:
         
       - name: Run OWASP ZAP baseline scan
         uses: zaproxy/action-baseline@v0.10.0
-        # with:
-        #   target: ${{ secrets.STAGING_URL }} # e.g. https://staging.tutorlink.com
-        #   cmd_options: "-t ${{ secrets.STAGING_URL }} -r zap-report.html"
+        with:
+          target: ${{ secrets.STAGING_URL }} # e.g. https://staging.tutorlink.com
+          cmd_options: "-t ${{ secrets.STAGING_URL }} -r zap-report.html"
 
       - name: Upload ZAP report artifact
         uses: actions/upload-artifact@v4
