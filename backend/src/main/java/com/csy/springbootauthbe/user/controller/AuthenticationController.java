@@ -1,5 +1,6 @@
 package com.csy.springbootauthbe.user.controller;
 
+import com.csy.springbootauthbe.common.utils.SanitizedLogger;
 import com.csy.springbootauthbe.user.service.AuthenticationService;
 import com.csy.springbootauthbe.user.utils.AuthenticationResponse;
 import com.csy.springbootauthbe.user.utils.LoginRequest;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationController {
 
     private final AuthenticationService service;
-    private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
+    private static final SanitizedLogger logger = SanitizedLogger.getLogger(AuthenticationController.class);
 
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
