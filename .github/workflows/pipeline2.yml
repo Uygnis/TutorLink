@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     # if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
+      - name: Test connectivity
+        run: curl -I ${{ secrets.STAGING_URL }}
+        
       - name: Run OWASP ZAP baseline scan
         uses: zaproxy/action-baseline@v0.10.0
         # with:
