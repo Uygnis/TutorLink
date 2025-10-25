@@ -3,6 +3,8 @@ package com.csy.springbootauthbe.common.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+
 public class SanitizedLogger {
 
     private final Logger logger;
@@ -28,34 +30,43 @@ public class SanitizedLogger {
         return message;
     }
 
+    private Object[] sanitizeArgs(Object... args) {
+        if (args == null) {
+            return new Object[] {};
+        }
+        return Arrays.stream(args)
+                .map(arg -> arg == null ? null : sanitize(arg.toString()))
+                .toArray();
+    }
+
     // ---- Safe logging methods ----
     public void info(String msg, Object... args) {
         if (logger.isInfoEnabled()) {
-            logger.info(sanitize(String.format(msg, args)));
+            logger.info(sanitize(msg), sanitizeArgs(args));
         }
     }
 
     public void debug(String msg, Object... args) {
         if(logger.isDebugEnabled()){
-            logger.debug(sanitize(String.format(msg, args)));
+            logger.debug(sanitize(msg), sanitizeArgs(args));
         }
     }
 
     public void warn(String msg, Object... args) {
         if (logger.isWarnEnabled()) {
-            logger.warn(sanitize(String.format(msg, args)));
+            logger.warn(sanitize(msg), sanitizeArgs(args));
         }
     }
 
     public void error(String msg, Object... args) {
         if (logger.isErrorEnabled()) {
-            logger.error(sanitize(String.format(msg, args)));
+            logger.error(sanitize(msg), sanitizeArgs(args));
         }
     }
 
     public void error(String msg, Throwable t, Object... args) {
         if (logger.isErrorEnabled()) {
-            logger.error(sanitize(String.format(msg, args)), t);
+            logger.error(sanitize(msg), sanitizeArgs(args), t);
         }
     }
 }
