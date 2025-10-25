@@ -1,5 +1,5 @@
 name: CI/CD Pipeline
-# unit tests > SAST > Owasp dependency check (SCA) > build > Deploy > DAST
+# unit tests > SAST > Owasp dependency check (SCA) > build > DAST
 on:
     push:
         branches: [ main ]
@@ -123,7 +123,7 @@ jobs:
               with:
                 project: 'frontend'
                 path: './frontend'
-                format: 'ALL'
+                format: 'HTML'
                 out: 'reports/frontend'
                 
             - name: Upload OWASP Report (Frontend)
@@ -144,7 +144,7 @@ jobs:
               with:
                 project: 'backend'
                 path: './backend'
-                format: 'ALL'
+                format: 'HTML'
                 out: 'reports/backend'
                 
             - name: Upload OWASP Report (Backend)
