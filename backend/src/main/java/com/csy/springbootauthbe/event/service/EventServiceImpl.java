@@ -1,6 +1,7 @@
 package com.csy.springbootauthbe.event.service;
 
 import com.csy.springbootauthbe.common.sequence.SequenceGeneratorService;
+import com.csy.springbootauthbe.common.utils.SanitizedLogger;
 import com.csy.springbootauthbe.event.dto.EventDTO;
 import com.csy.springbootauthbe.event.entity.Event;
 import com.csy.springbootauthbe.event.mapper.EventMapper;
@@ -28,7 +29,7 @@ public class EventServiceImpl implements EventService {
     private final EventMapper eventMapper;
     private final MongoTemplate mongoTemplate;
     private final SequenceGeneratorService sequenceGenerator;
-    private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
+    private static final SanitizedLogger logger = SanitizedLogger.getLogger(EventServiceImpl.class);
 
 
     @Override

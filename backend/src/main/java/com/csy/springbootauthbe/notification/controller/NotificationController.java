@@ -1,5 +1,6 @@
 package com.csy.springbootauthbe.notification.controller;
 
+import com.csy.springbootauthbe.common.utils.SanitizedLogger;
 import com.csy.springbootauthbe.notification.dto.NotificationDTO;
 import com.csy.springbootauthbe.notification.service.NotificationService;
 import org.slf4j.Logger;
@@ -15,7 +16,7 @@ import java.util.List;
 public class NotificationController {
 
     private final NotificationService service;
-    private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
+    private static final SanitizedLogger logger = SanitizedLogger.getLogger(NotificationController.class);
 
     public NotificationController(NotificationService service) {
         this.service = service;

@@ -2,6 +2,7 @@ package com.csy.springbootauthbe.user.service;
 
 import com.csy.springbootauthbe.admin.dto.AdminDTO;
 import com.csy.springbootauthbe.admin.service.AdminService;
+import com.csy.springbootauthbe.common.utils.SanitizedLogger;
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.service.StudentService;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
@@ -36,7 +37,7 @@ public class AuthenticationService {
     private final TutorService tutorService;
     private final AdminService adminService;
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
+    private static final SanitizedLogger logger = SanitizedLogger.getLogger(AuthenticationService.class);
 
     public AuthenticationResponse register(RegisterRequest request) {
         logger.info("Register request received: email={}, role={}", request.getEmail(), request.getRole());

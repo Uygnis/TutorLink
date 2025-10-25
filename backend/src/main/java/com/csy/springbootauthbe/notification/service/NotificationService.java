@@ -1,5 +1,6 @@
 package com.csy.springbootauthbe.notification.service;
 
+import com.csy.springbootauthbe.common.utils.SanitizedLogger;
 import com.csy.springbootauthbe.notification.dto.NotificationDTO;
 import com.csy.springbootauthbe.notification.entity.Notification;
 import com.csy.springbootauthbe.notification.mapper.NotificationMapper;
@@ -21,7 +22,7 @@ public class NotificationService {
     private final NotificationRepository repo;
     private final NotificationMapper mapper;
     private final ConcurrentHashMap<String, CopyOnWriteArrayList<SseEmitter>> emitters = new ConcurrentHashMap<>();
-    private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
+    private static final SanitizedLogger logger = SanitizedLogger.getLogger(NotificationService.class);
 
     public NotificationService(NotificationRepository repo, NotificationMapper mapper) {
         this.repo = repo;
