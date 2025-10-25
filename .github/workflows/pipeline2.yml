@@ -8,11 +8,9 @@ on:
   #     - completed
 
 jobs:
-  # ----------------- DAST -----------------
   dast:
     name: DAST Scan - OWASP ZAP
     runs-on: ubuntu-latest
-    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
       
@@ -32,10 +30,19 @@ jobs:
         uses: zaproxy/action-baseline@v0.10.0
         with:
           target: ${{ secrets.STAGING_URL }}
-          cmd_options: "-r zap-report.html -d"
+          cmd_options: >
+            -r $GITHUB_WORKSPACE/zap-report.html
+            -j $GITHUB_WORKSPACE/zap-report.json
+            -d
 
-      - name: Upload ZAP report artifact
+      - name: Upload HTML report artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zap-report
-          path: zap-report.html
+          name: zap-html-report
+          path: $GITHUB_WORKSPACE/zap-report.html
+
+      - name: Upload JSON report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-json-report
+          path: $GITHUB_WORKSPACE/zap-report.json
