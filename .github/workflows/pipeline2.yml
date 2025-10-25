@@ -1,0 +1,27 @@
+name: DAST Scan
+
+on:
+  workflow_dispatch: # manual trigger
+  # workflow_run:
+  #   workflows: ["Deploy Pipeline"]
+  #   types:
+  #     - completed
+
+jobs:
+  # ----------------- DAST -----------------
+  dast:
+    name: DAST Scan - OWASP ZAP
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Run OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: ${{ secrets.STAGING_URL }} # e.g. https://staging.tutorlink.com
+          cmd_options: "-t ${{ secrets.STAGING_URL }} -r zap-report.html"
+
+      - name: Upload ZAP report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-dast-report
+          path: zap-report.html
