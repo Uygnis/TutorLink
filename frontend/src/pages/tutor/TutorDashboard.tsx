@@ -7,11 +7,10 @@ import { GetTutorProfile } from "@/api/tutorAPI";
 import ProfilePicModal from "@/components/ProfilePicModal";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
 import { Tutor } from "@/types/TutorType";
-import AvailabilityCalendar, {
-  TimeSlot,
-} from "@/components/AvailabilityCalendar";
+import AvailabilityCalendar, { TimeSlot } from "@/components/AvailabilityCalendar";
 import {
   AcceptBooking,
+  ApproveReschedule,
   CancelBooking,
   GetBookingsForTutorRange,
   GetPastBookingsForTutor,
@@ -42,8 +41,7 @@ const TutorDashboard = () => {
       start: string;
     }[]
   >([]);
-  const [recentBookedSlotsCount, setRecentBookedSlotsCount] =
-    useState<number>(0);
+  const [recentBookedSlotsCount, setRecentBookedSlotsCount] = useState<number>(0);
   const [recentBookedSlots, setRecentBookedSlots] = useState<
     {
       date: string;
@@ -153,12 +151,7 @@ const TutorDashboard = () => {
     ).padStart(2, "0")}`;
 
     try {
-      const res = await GetBookingsForTutorRange(
-        user.id,
-        firstDay,
-        lastDay,
-        user.token!
-      );
+      const res = await GetBookingsForTutorRange(user.id, firstDay, lastDay, user.token!);
       setBookedSlots(
         res.data.map((b: any) => ({
           date: b.date,
@@ -186,35 +179,54 @@ const TutorDashboard = () => {
   };
 
   const modal = (data: { date: Date; slot: TimeSlot }) => {
-    const booking = bookedSlots.filter(
-      (item) =>
-        item.date === data.date.toLocaleDateString("en-CA") &&
-        item.status !== "cancelled"
-    )[0];
-    return booking.status === "pending" ? (
-      <BookingModalAccept
-        booking={{
-          studentName: booking.studentId,
-          date: data.date,
-          slot: data.slot,
-          lessonType: booking.lessonType,
-        }}
-        onClose={() => setShowModal(false)}
-        onAccept={() => confirmBooking(booking.id)}
-        onReject={() => cancelBooking(booking.id)}
-      />
-    ) : (
-      <BookingModalView
-        booking={{
-          studentName: booking.studentId,
-          tutorName: booking.tutorId,
-          date: data.date,
-          slot: data.slot,
-          lessonType: booking.lessonType,
-        }}
-        onClose={() => setShowModal(false)}
-      />
+    const booking = bookedSlots.find(
+      (item) => item.date === data.date.toLocaleDateString("en-CA") && item.status !== "cancelled"
     );
+
+    if (!booking) return null;
+
+    if (booking.status === "pending") {
+      return (
+        <BookingModalAccept
+          booking={{
+            studentName: booking.studentId,
+            date: data.date,
+            slot: data.slot,
+            lessonType: booking.lessonType,
+          }}
+          onClose={() => setShowModal(false)}
+          onAccept={() => confirmBooking(booking.id)}
+          onReject={() => cancelBooking(booking.id)}
+        />
+      );
+    } else if (booking.status === "on_hold") {
+      return (
+        <BookingModalAccept
+          booking={{
+            studentName: booking.studentId,
+            date: data.date,
+            slot: data.slot,
+            lessonType: booking.lessonType,
+          }}
+          onClose={() => setShowModal(false)}
+          onAccept={() => approveRescheduleBooking(booking.id)}
+          onReject={() => cancelBooking(booking.id)}
+        />
+      );
+    } else {
+      return (
+        <BookingModalView
+          booking={{
+            studentName: booking.studentId,
+            tutorName: booking.tutorId,
+            date: data.date,
+            slot: data.slot,
+            lessonType: booking.lessonType,
+          }}
+          onClose={() => setShowModal(false)}
+        />
+      );
+    }
   };
 
   const cancelBooking = async (bookingId: string) => {
@@ -228,14 +240,10 @@ const TutorDashboard = () => {
     try {
       await CancelBooking(bookingId, user.id, user.token);
       setBookedSlots((prev) =>
-        prev.map((b) =>
-          b.id === bookingId ? { ...b, status: "cancelled" } : b
-        )
+        prev.map((b) => (b.id === bookingId ? { ...b, status: "cancelled" } : b))
       );
       setRecentBookedSlots((prev) =>
-        prev.map((b) =>
-          b.id === bookingId ? { ...b, status: "cancelled" } : b
-        )
+        prev.map((b) => (b.id === bookingId ? { ...b, status: "cancelled" } : b))
       );
       alert(
         `✅ Booking rejected on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
@@ -260,14 +268,10 @@ const TutorDashboard = () => {
     try {
       await AcceptBooking(bookingId, user.token);
       setBookedSlots((prev) =>
-        prev.map((b) =>
-          b.id === bookingId ? { ...b, status: "confirmed" } : b
-        )
+        prev.map((b) => (b.id === bookingId ? { ...b, status: "confirmed" } : b))
       );
       setRecentBookedSlots((prev) =>
-        prev.map((b) =>
-          b.id === bookingId ? { ...b, status: "confirmed" } : b
-        )
+        prev.map((b) => (b.id === bookingId ? { ...b, status: "confirmed" } : b))
       );
       alert(
         `✅ Booking accepted on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
@@ -278,6 +282,30 @@ const TutorDashboard = () => {
     } finally {
       setShowModal(false);
       setSelectedSlot(null);
+    }
+  };
+
+  const approveRescheduleBooking = async (bookingId: string) => {
+    if (!user?.token || !selectedSlot) return;
+
+    try {
+      await ApproveReschedule(bookingId, user.token);
+      alert(
+        `✅ Reschedule approved on ${selectedSlot.date.toLocaleDateString("en-CA")} | ${
+          selectedSlot.slot.start
+        } - ${selectedSlot.slot.end}`
+      );
+
+      // Refresh booked slots for the month to immediately update AvailabilityCalendar
+      fetchBookingsForMonth(user.id);
+      fetchRecentBookings(user.id);
+
+      // Optional: update selectedSlot locally to reflect change
+      setSelectedSlot(null);
+      setShowModal(false);
+    } catch (err) {
+      console.error("Approval failed:", err);
+      alert("❌ Failed to approve reschedule. Please try again.");
     }
   };
 
@@ -306,9 +334,7 @@ const TutorDashboard = () => {
     <div>
       <Navbar />
       <div className="min-h-screen bg-[#f2f2f2] p-6">
-        <h1 className="font-bold text-xl mb-5 ">
-          Welcome to your Dashboard !{" "}
-        </h1>
+        <h1 className="font-bold text-xl mb-5 ">Welcome to your Dashboard ! </h1>
         {/* Two-column layout */}
         <div className="flex gap-6">
           {/* Left side (Upcoming + Past Sessions) */}
@@ -319,24 +345,18 @@ const TutorDashboard = () => {
 
               {/* List of upcoming sessions */}
               <div className="mb-4">
-                {recentBookedSlots.filter((b) => b.status !== "cancelled")
-                  .length > 0 ? (
+                {recentBookedSlots.filter((b) => b.status !== "cancelled").length > 0 ? (
                   <ul className="divide-y divide-gray-200">
                     {recentBookedSlots
                       .filter(
                         (b) =>
-                          b.status === "confirmed" || b.status === "pending"
+                          b.status === "confirmed" ||
+                          b.status === "pending" ||
+                          b.status === "on_hold"
                       )
-                      .sort(
-                        (a, b) =>
-                          new Date(a.date).getTime() -
-                          new Date(b.date).getTime()
-                      )
+                      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                       .map((b) => (
-                        <li
-                          key={b.id}
-                          className="py-3 flex justify-between items-center"
-                        >
+                        <li key={b.id} className="py-3 flex justify-between items-center">
                           <div>
                             <p className="font-medium text-gray-900">
                               {new Date(b.date).toLocaleDateString("en-GB", {
@@ -355,8 +375,7 @@ const TutorDashboard = () => {
                                     : b.status === "pending"
                                     ? "text-yellow-600"
                                     : "text-gray-400"
-                                }`}
-                              >
+                                }`}>
                                 {b.status}
                               </span>
                             </p>
@@ -369,17 +388,14 @@ const TutorDashboard = () => {
                                 end: "",
                               })
                             }
-                            className="text-blue-600 hover:underline"
-                          >
+                            className="text-blue-600 hover:underline">
                             View
                           </button>
                         </li>
                       ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-400 text-center">
-                    No upcoming sessions yet.
-                  </p>
+                  <p className="text-gray-400 text-center">No upcoming sessions yet.</p>
                 )}
               </div>
 
@@ -408,24 +424,15 @@ const TutorDashboard = () => {
                 </span>
               </h2>
 
-              {pastBookedSlots.filter((b) => new Date(b.date) < new Date())
-                .length > 0 ? (
+              {pastBookedSlots.filter((b) => new Date(b.date) < new Date()).length > 0 ? (
                 <ul className="space-y-3 mt-3">
                   {pastBookedSlots
-                    .filter(
-                      (b) =>
-                        b.status === "confirmed" &&
-                        new Date(b.date) < new Date()
-                    )
-                    .sort(
-                      (a, b) =>
-                        new Date(b.date).getTime() - new Date(a.date).getTime()
-                    )
+                    .filter((b) => b.status === "confirmed" && new Date(b.date) < new Date())
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                     .map((b) => (
                       <li
                         key={b.id}
-                        className="p-3 bg-gray-50 rounded-md shadow-sm flex justify-between items-center"
-                      >
+                        className="p-3 bg-gray-50 rounded-md shadow-sm flex justify-between items-center">
                         <div>
                           <p className="font-medium text-gray-800">
                             {new Date(b.date).toLocaleDateString(undefined, {
@@ -436,12 +443,8 @@ const TutorDashboard = () => {
                             })}{" "}
                             | {b.start}
                           </p>
-                          <p className="text-gray-600 text-sm">
-                            {b.lessonType}
-                          </p>
-                          <p className="text-gray-500 text-sm">
-                            Student: {b.studentId}
-                          </p>
+                          <p className="text-gray-600 text-sm">{b.lessonType}</p>
+                          <p className="text-gray-500 text-sm">Student: {b.studentId}</p>
                         </div>
                         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                           {b.status.charAt(0).toUpperCase() + b.status.slice(1)}
@@ -450,9 +453,7 @@ const TutorDashboard = () => {
                     ))}
                 </ul>
               ) : (
-                <p className="text-gray-400 text-center mt-3">
-                  No past sessions yet.
-                </p>
+                <p className="text-gray-400 text-center mt-3">No past sessions yet.</p>
               )}
             </div>
           </div>
@@ -485,14 +486,12 @@ const TutorDashboard = () => {
                     <div className="mt-4 flex justify-center">
                       <button
                         onClick={() => handleEdit()} // define handleEdit function
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-                      >
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
                         Edit
                       </button>
                       <button
                         onClick={() => setIsModalOpen(true)}
-                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
-                      >
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
                         Change Profile Pic
                       </button>
                     </div>

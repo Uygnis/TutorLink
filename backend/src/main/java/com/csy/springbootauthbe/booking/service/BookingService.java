@@ -17,4 +17,6 @@ public interface BookingService {
     List<BookingDTO> getBookingsForTutorBetweenDates(String tutorId, String startDate, String endDate);
     RecentBookingResponse getRecentPastBookings(String tutorId);
     RecentBookingResponse getUpcomingBookings(String tutorId);
+    BookingDTO approveReschedule(String newBookingId);
+    BookingDTO requestReschedule(String bookingId, BookingRequest newSlotRequest);
 }
