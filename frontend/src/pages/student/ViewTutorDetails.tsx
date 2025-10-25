@@ -8,6 +8,7 @@ import defaultProfile from "../../assets/default-profile-pic.jpg";
 import { CreateBooking, GetBookingsForTutor, GetBookingsForTutorRange } from "@/api/bookingAPI";
 import { BookingRequest } from "@/types/BookingType";
 import BookingModal from "@/components/BookingModal";
+import { toast } from "react-toastify";
 
 const ViewTutorDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -103,26 +104,35 @@ const ViewTutorDetails = () => {
       return;
     }
 
-    const dateStr = selectedSlot.date.toLocaleDateString("en-CA"); // YYYY-MM-DD
+    const dateStr = selectedSlot.date.toLocaleDateString("en-CA");
+    const [sh, sm] = selectedSlot.slot.start.split(":").map(Number);
+    const [eh, em] = selectedSlot.slot.end.split(":").map(Number);
+    const hours = eh + em / 60 - (sh + sm / 60);
+    const totalCost = tutor.hourlyRate * hours;
 
-    const bookingReq: BookingRequest = {
+    if (totalCost <= 0) {
+      toast.error("Invalid duration or hourly rate");
+      return;
+    }
+
+    // ✅ Include `amount` in request
+    const bookingReq = {
       tutorId: tutor.userId,
       studentId: user.id,
       date: dateStr,
       start: selectedSlot.slot.start,
       end: selectedSlot.slot.end,
       lessonType,
+      amount: totalCost,
     };
 
     try {
       await CreateBooking(bookingReq, user.token);
       setBookedSlots((prev) => [...prev, { date: dateStr, status: "pending" }]);
-      alert(
-        `✅ Booking confirmed: ${lessonType} on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
-      );
+      toast.success(`Booking created. SGD ${totalCost.toFixed(2)} held temporarily.`);
     } catch (err) {
       console.error("Booking failed:", err);
-      alert("❌ Failed to create booking. Please try again.");
+      toast.error("Failed to create booking");
     } finally {
       setShowModal(false);
       setSelectedSlot(null);
@@ -249,6 +259,7 @@ const ViewTutorDetails = () => {
           <BookingModal
             lessonTypes={tutor.lessonType || ["Beginner Lesson", "Advanced Lesson"]}
             slot={selectedSlot}
+            hourlyRate={tutor.hourlyRate} // ✅ NEW
             onClose={() => setShowModal(false)}
             onConfirm={confirmBooking}
           />

@@ -2,6 +2,8 @@ package com.csy.springbootauthbe.booking.dto;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -12,6 +14,7 @@ public class BookingRequest {
     private String lessonType;
     private String date;   // yyyy-MM-dd
     private String start;  // HH:mm
-    private String end;    // HH:mm
+    private String end;
+    private BigDecimal amount;
 }
 

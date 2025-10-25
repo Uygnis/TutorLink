@@ -10,6 +10,7 @@ import BookingCard from "@/components/BookingCard";
 import RescheduleModal from "@/components/RescheduleModal";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
 import { BookingResponse } from "@/types/BookingType";
+import { GetWalletByUserId } from "@/api/walletAPI";
 
 const StudentDashboard = () => {
   const { user } = useAppSelector((state) => state.user);
@@ -17,12 +18,30 @@ const StudentDashboard = () => {
 
   const [studentDetails, setStudentDetails] = useState<StudentDetails | null>(null);
   const [bookings, setBookings] = useState<BookingResponse[]>([]);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [loadingWallet, setLoadingWallet] = useState<boolean>(true);
   const [showOnlyConfirmed, setShowOnlyConfirmed] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [rescheduleBooking, setRescheduleBooking] = useState<{
     bookingId: string;
     tutorId: string;
   } | null>(null);
+
+  // -------------------------
+  // Fetch wallet
+  // -------------------------
+  const fetchWallet = async (studentId: string) => {
+    if (!user?.token) return;
+    try {
+      const res = await GetWalletByUserId(studentId, user.token);
+      setWalletBalance(res.data.balance ?? 0);
+    } catch (err) {
+      console.error("Failed to fetch wallet:", err);
+      toast.error("Failed to fetch wallet balance");
+    } finally {
+      setLoadingWallet(false);
+    }
+  };
 
   // -------------------------
   // Fetch student details
@@ -64,9 +83,8 @@ const StudentDashboard = () => {
       await CancelBooking(bookingId, user.id, user.token);
       toast.success("Booking cancelled successfully");
 
-      setBookings((prev) =>
-        prev.map((b) => (b.id === bookingId ? { ...b, status: "cancelled" } : b))
-      );
+      // 🔁 Re-fetch updated bookings and wallet
+      await Promise.all([fetchBookings(user.id), fetchWallet(user.id)]);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to cancel booking");
       console.error(err);
@@ -91,6 +109,7 @@ const StudentDashboard = () => {
     }
     fetchStudentDetails(user.id);
     fetchBookings(user.id);
+    fetchWallet(user.id);
   }, [user, navigate]);
 
   const now = new Date();
@@ -109,7 +128,26 @@ const StudentDashboard = () => {
     <div>
       <Navbar />
       <div className="min-h-screen bg-[#f2f2f2] p-6">
-        <h1 className="font-bold text-xl mb-5">Welcome to your Dashboard!</h1>
+        <div className="flex justify-between items-center mb-5">
+          <div className="flex items-center gap-4">
+            <h1 className="font-bold text-xl">Welcome to your Dashboard!</h1>
+
+            {/* ✅ Wallet Balance */}
+            {!loadingWallet ? (
+              <div className="flex items-center bg-green-100 text-green-700 px-3 py-1 rounded-full text-md font-semibold">
+                SGD {walletBalance.toFixed(2)}
+              </div>
+            ) : (
+              <div className="text-gray-400 text-sm">Loading wallet...</div>
+            )}
+          </div>
+
+          <button
+            onClick={() => navigate("/student/wallet")}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
+            Go to Wallet
+          </button>
+        </div>
 
         <div className="flex gap-6">
           {/* Left: Upcoming */}
