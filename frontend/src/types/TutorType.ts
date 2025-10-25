@@ -30,4 +30,5 @@ export interface Tutor {
   email: string;
   status: string;
   stagedProfile: Tutor | null;
+  rejectedReason: string;
 }

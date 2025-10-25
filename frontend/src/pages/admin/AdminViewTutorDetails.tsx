@@ -197,6 +197,28 @@ const AdminViewTutorDetail = () => {
                 <h1 className="text-3xl font-bold">
                   {tutor?.firstName} {tutor?.lastName}
                 </h1>
+                <div className="mt-5 gap-4">
+                <span
+                  className={`px-3 py-1 rounded-full font-semibold text-sm
+                    ${tutor?.status === "ACTIVE"
+                      ? "bg-green-100 text-green-600"
+                      : tutor?.status === "SUSPENDED"
+                        ? "bg-orange-100 text-orange-600"
+                        : tutor?.status === "PENDING_APPROVAL"
+                          ? "bg-blue-100 text-blue-600"
+                          : tutor?.status === "REJECTED"
+                            ? "bg-red-100 text-red-600"
+                            : "bg-gray-100 text-gray-600"
+                    }`}
+                >
+                  {tutor?.status}
+                </span>
+                <div className="mt-5 gap-4">
+                <span>{tutor?.email}</span>
+                </div>
+                </div>
+                
+
               </div>
             </div>
             {/* Stats */}
@@ -250,8 +272,8 @@ const AdminViewTutorDetail = () => {
             {stagingProfile && (
               <div
                 className={`flex flex-col rounded-lg shadow-md p-6 h-full ${tutor?.rejectedReason
-                    ? "bg-pink-100 border border-pink-200"
-                    : "bg-yellow-50 border border-yellow-200"
+                  ? "bg-pink-100 border border-pink-200"
+                  : "bg-yellow-50 border border-yellow-200"
                   }`}
               >
                 <h2

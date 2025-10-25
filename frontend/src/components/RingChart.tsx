@@ -1,22 +1,22 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
-const COLORS = ["#48ea83ff", "#fa5d5dff", "#7ed5d5ff", "#ee904eff"]; 
+const COLORS = ["#48ea83ff", "#fa5d5dff", "#7ed5d5ff", "#ee904eff"];
 
 interface RingChartProps {
   title: string;
   total: number;
   active: number;
   suspended: number;
-  pending? :number;
+  pending?: number;
   unverified?: number; // optional since not all categories have it
-  
+
 }
 
 const RingChart = ({ title, total, active, suspended, pending = 0, unverified = 0 }: RingChartProps) => {
   const data = [
     { name: "Active", value: active },
     { name: "Suspended", value: suspended },
-    { name: "Pending", value: pending},
+    { name: "Pending", value: pending },
     { name: "Unverified", value: unverified },
   ];
 
@@ -49,12 +49,34 @@ const RingChart = ({ title, total, active, suspended, pending = 0, unverified = 
         </div>
       </div>
 
-      <div className="text-xs text-gray-500 mt-2 space-y-1 text-center">
-        <p>{active} active</p>
-        <p>{suspended} suspended</p>
-        {pending > 0 && <p>{pending} pending approval</p>}
-        {unverified > 0 && <p>{unverified} unverified</p>}
+      {/* Legend */}
+      <div className="mt-3 flex flex-col items-center text-xs text-gray-600">
+        <div
+          className={`grid gap-x-4 gap-y-1 ${data.filter((entry) => entry.value > 0).length === 1
+              ? "grid-cols-1 justify-items-center"
+              : "grid-cols-2"
+            }`}
+        >
+          {data.map(
+            (entry, index) =>
+              entry.value > 0 && (
+                <div
+                  key={entry.name}
+                  className="flex items-center justify-center space-x-2"
+                >
+                  <span
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: COLORS[index] }}
+                  ></span>
+                  <span>
+                    {entry.name}: {entry.value}
+                  </span>
+                </div>
+              )
+          )}
+        </div>
       </div>
+
     </div>
   );
 };

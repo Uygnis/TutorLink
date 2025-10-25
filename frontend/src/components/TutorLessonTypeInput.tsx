@@ -60,6 +60,7 @@ const TutorLessonTypeInput: React.FC<LessonTypeInputProps> = ({
         <input
           className="flex-1 bg-transparent outline-none text-sm"
           type="text"
+          required
           placeholder="Type or select..."
           value={input}
           onChange={(e) => {

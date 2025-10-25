@@ -40,6 +40,7 @@ const ViewTutorProfile = () => {
     status: "",
     email: "",
     stagedProfile: null,
+    rejectedReason: "",
   };
 
   const [profile, setProfile] = useState<Tutor>(defaultProfile);
@@ -73,6 +74,7 @@ const ViewTutorProfile = () => {
           status: res.data.status || defaultProfile.status,
           email: res.data.email || defaultProfile.email,
           stagedProfile: null,
+          rejectedReason: res.data.rejectedReason || defaultProfile.rejectedReason,
         };
         setProfile(newProfile);
         console.log("Fetched profile:", newProfile);
@@ -154,6 +156,21 @@ const ViewTutorProfile = () => {
   };
 
   const handleSave = async () => {
+    if (!profile.availability || !Object.values(profile.availability).some(day => day.enabled)) {
+      toast.error("Please set your availability for at least one day.");
+      return;
+    }
+  
+    if (!profile.lessonType || profile.lessonType.length === 0) {
+      toast.error("Please select at least one lesson type.");
+      return;
+    }
+  
+    if (!profile.qualifications || profile.qualifications.length === 0) {
+      toast.error("Please upload at least one qualification file.");
+      return;
+    }
+    
     confirm("Once submitted, your profile will be sent for re-verification. Are you sure you want to submit changes to your profile?") &&
     dispatch(setLoading(true));
     try {

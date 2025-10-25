@@ -21,7 +21,7 @@ public class AdminDashboardDTO {
     private int totalTutors;
     private int activeTutors;
     private int suspendedTutors;
-    private int rejectedTutors;
+    private int unverifiedTutors;
 
     private int totalStudents;
     private int activeStudents;

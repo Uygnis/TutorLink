@@ -44,7 +44,7 @@ const AdminDashboard = () => {
 
       const response = await GetDashboardSummary(id, user.token);
       setMetrics(response.data);
-      console.log(metrics?.pendingTutors);
+      console.log(metrics);
 
     } catch (error: any) {
       console.error("Failed to fetch dashboard metrics", error);
@@ -203,36 +203,6 @@ const AdminDashboard = () => {
            <div className="bg-white rounded-md shadow-md p-5 mt-6 flex-1 flex flex-col overflow-hidden">
                 <h2 className="font-bold text-lg mb-3">Pending test</h2>
                 <h3 className="font-bold text-md mb-3">Payment history</h3>
-                {metrics && metrics?.pendingTutors.length > 0 ? (
-                  <div className="overflow-y-auto flex-1 space-y-3 pr-2">
-                    {metrics.pendingTutors.map((tutor: Tutor) => (
-                      <div
-                        key={tutor.userId}
-                        className="flex justify-between items-center border p-3 rounded-md hover:bg-gray-50"
-                      >
-                        <div>
-                          <p className="font-semibold">
-                            {tutor.firstName} {tutor.lastName}
-                          </p>
-                          <p className="text-sm text-gray-600">{tutor.email}</p>
-                          <p className="text-xs text-gray-500">
-                            Subject: {tutor.subject ?? "N/A"}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => navigate(`/admin/tutors/${tutor.userId}`)}
-                          className="bg-blue-600 text-white text-sm px-3 py-1 rounded hover:bg-blue-700"
-                        >
-                          View
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center text-gray-400">
-                    No history
-                  </div>
-                )}
               </div>
 
         </div>

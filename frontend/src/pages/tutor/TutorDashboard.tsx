@@ -82,6 +82,15 @@ const TutorDashboard = () => {
 
       const response = await GetTutorProfile(user.token, id);
       if (response.data) {
+        console.log("Tutor Profile Data:", response.data);
+        if (response.data.status === "PENDING_APPROVAL" && response.data.stagedProfile) {
+          const stagedProfile = {
+            ...response.data.stagedProfile,
+            status: "PENDING_APPROVAL",
+          };
+          setTutorDetails(stagedProfile);
+          return stagedProfile;
+        }
         setTutorDetails(response.data);
         return response.data;
       } else {
@@ -292,8 +301,7 @@ const TutorDashboard = () => {
     try {
       await ApproveReschedule(bookingId, user.token);
       alert(
-        `✅ Reschedule approved on ${selectedSlot.date.toLocaleDateString("en-CA")} | ${
-          selectedSlot.slot.start
+        `✅ Reschedule approved on ${selectedSlot.date.toLocaleDateString("en-CA")} | ${selectedSlot.slot.start
         } - ${selectedSlot.slot.end}`
       );
 
@@ -337,6 +345,21 @@ const TutorDashboard = () => {
       <Navbar />
       <div className="min-h-screen bg-[#f2f2f2] p-6">
         <h1 className="font-bold text-xl mb-5 ">Welcome to your Dashboard ! </h1>
+        {tutorDetails?.status === "PENDING_APPROVAL" && (
+          <div className="mb-5 bg-orange-600 text-white px-6 py-2 rounded-lg shadow-md text-center">
+            <p className="text-sm font-medium leading-snug">
+              Your profile is under review. You cannot update it at this time.
+            </p>
+          </div>
+        )}
+
+        {tutorDetails?.rejectedReason && (
+          <div className="mb-5 bg-red-600 text-white px-6 py-2 rounded-lg shadow-md text-center">
+            <p className="text-sm font-medium leading-snug">
+              Your profile is has been rejected for the following reason: {tutorDetails.rejectedReason}
+            </p>
+          </div>
+        )}
         {/* Two-column layout */}
         <div className="flex gap-6">
           {/* Left side (Upcoming + Past Sessions) */}
@@ -505,7 +528,7 @@ const TutorDashboard = () => {
                           ${tutorDetails?.status === "PENDING_APPROVAL"
                             ? "bg-gray-400 cursor-not-allowed"
                             : "bg-blue-600 hover:bg-blue-700"}`}>
-                      
+
                         Update Profile
                       </button>
                       {tutorDetails?.status === "PENDING_APPROVAL" && (
@@ -545,6 +568,37 @@ const TutorDashboard = () => {
                   <p>No lesson types specified.</p>
                 )}</ul>
             </div>
+            <div className="grid grid-cols-1 gap-4">
+                    <div className="bg-white rounded-lg shadow-md p-6 max-h-[320px] overflow-y-auto">
+                        <h2 className="text-xl font-semibold mb-3">Qualifications</h2>
+                        {tutorDetails?.qualifications && tutorDetails.qualifications.length > 0 ? (
+                            <ul className="space-y-3">
+                                {tutorDetails.qualifications.map((q: any, idx: number) => (
+                                    <li key={idx} className="border rounded-lg p-3 flex justify-between items-center">
+                                        <div>
+                                            <p className="font-semibold">{q.name}</p>
+                                            <p className="text-gray-500 text-sm">{q.type}</p>
+                                            {q.uploadedAt && (
+                                                <p className="text-xs text-gray-400">
+                                                    Uploaded: {new Date(q.uploadedAt).toLocaleDateString()}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <a
+                                            href={q.path}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline text-sm">
+                                            View
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-gray-500">No qualifications uploaded.</p>
+                        )}
+                    </div>
+                </div>
           </div>
         </div>
       </div>
