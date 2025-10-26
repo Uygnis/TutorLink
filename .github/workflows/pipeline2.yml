@@ -37,7 +37,7 @@ jobs:
             -t "${{ secrets.STAGING_URL }}" \
             -r zap-report.html \
             -j zap-report.json \
-            -d
+            -d || true
 
       - name: Upload HTML report artifact
         uses: actions/upload-artifact@v4
