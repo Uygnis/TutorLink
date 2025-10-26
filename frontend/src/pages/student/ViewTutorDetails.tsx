@@ -40,14 +40,6 @@ const ViewTutorDetails = () => {
         const res = await GetTutorById(id, user.token);
         const data = res.data;
 
-        const avgRating =
-          data.reviews && data.reviews.length > 0
-            ? (
-                data.reviews.reduce((sum: number, r: any) => sum + (r.rating || 0), 0) /
-                data.reviews.length
-              ).toFixed(1)
-            : 0;
-
         const tutorWithDefaults = {
           ...data,
           description: data.description || "No description provided",
