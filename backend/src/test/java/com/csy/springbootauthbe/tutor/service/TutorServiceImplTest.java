@@ -15,9 +15,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.csy.springbootauthbe.user.repository.UserRepository;
+import com.csy.springbootauthbe.user.entity.User;
+
 @ExtendWith(MockitoExtension.class)
 class TutorServiceImplTest {
-
+    
+    @Mock UserRepository userRepository;
     @Mock TutorRepository tutorRepository;
     @Mock TutorMapper tutorMapper;
 
@@ -46,21 +50,25 @@ class TutorServiceImplTest {
     void getTutorByUserId_found_returnsDto() {
         Tutor entity = new Tutor();
         TutorDTO dto = new TutorDTO();
+    
+        User u = new User(); u.setId("U1");
+        when(userRepository.findById("U1")).thenReturn(Optional.of(u));
+    
         when(tutorRepository.findByUserId("U1")).thenReturn(Optional.of(entity));
         when(tutorMapper.toDTO(entity)).thenReturn(dto);
-
+    
         Optional<TutorDTO> result = tutorService.getTutorByUserId("U1");
-
         assertTrue(result.isPresent());
         assertSame(dto, result.get());
     }
 
     @Test
     void getTutorByUserId_notFound_returnsEmpty() {
+        when(userRepository.findById("NOPE")).thenReturn(Optional.empty());
+    
         when(tutorRepository.findByUserId("NOPE")).thenReturn(Optional.empty());
-
+    
         Optional<TutorDTO> result = tutorService.getTutorByUserId("NOPE");
-
         assertTrue(result.isEmpty());
         verify(tutorMapper, never()).toDTO(any());
     }
