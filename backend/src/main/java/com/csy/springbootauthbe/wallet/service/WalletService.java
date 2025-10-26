@@ -50,7 +50,7 @@ public class WalletService {
         return wallet;
     }
 
-    // ✅ NEW: Temporarily hold credits when booking created
+    // Temporarily hold credits when booking created
     @Transactional
     public Wallet holdCredits(String studentId, BigDecimal amount, String bookingId) {
         Wallet wallet = getWallet(studentId);
@@ -67,24 +67,65 @@ public class WalletService {
         return wallet;
     }
 
-    // ✅ NEW: Release funds to tutor on acceptance
+    // Release funds to tutor on acceptance
+    /**
+     * Release funds to tutor on acceptance.
+     * - Tutor receives 95% of the booking amount.
+     * - 5% commission is credited to the COMPANY wallet.
+     */
     @Transactional
     public void releaseToTutor(String studentId, String tutorId, BigDecimal amount, String bookingId) {
-        // 1️⃣ Credit tutor
+        BigDecimal commissionRate = new BigDecimal("0.05");
+        BigDecimal commission = amount.multiply(commissionRate);
+        BigDecimal tutorAmount = amount.subtract(commission);
+
+        // Get wallets
         Wallet tutorWallet = getWallet(tutorId);
-        tutorWallet.setBalance(tutorWallet.getBalance().add(amount));
+        Wallet companyWallet = getWallet("COMPANY_WALLET");
+
+        // 1 Credit tutor 95%
+        tutorWallet.setBalance(tutorWallet.getBalance().add(tutorAmount));
         tutorWallet.setUpdatedAt(LocalDateTime.now());
         walletRepo.save(tutorWallet);
 
-        txnRepo.save(new WalletTransaction(null, tutorId, "BOOKING_PAYMENT", amount,
-                "Payment received for booking ID: " + bookingId, bookingId, LocalDateTime.now()));
+        txnRepo.save(new WalletTransaction(
+                null,
+                tutorId,
+                "BOOKING_PAYMENT_TUTOR",
+                tutorAmount,
+                "Payment (95%) for booking ID: " + bookingId,
+                bookingId,
+                LocalDateTime.now()
+        ));
 
-        // 2️⃣ Record final debit for student (for trace)
-        txnRepo.save(new WalletTransaction(null, studentId, "BOOKING_CONFIRMED", amount.negate(),
-                "Booking confirmed - funds transferred to tutor", bookingId, LocalDateTime.now()));
+        // 2 Credit 5% to company wallet
+        companyWallet.setBalance(companyWallet.getBalance().add(commission));
+        companyWallet.setUpdatedAt(LocalDateTime.now());
+        walletRepo.save(companyWallet);
+
+        txnRepo.save(new WalletTransaction(
+                null,
+                "COMPANY_WALLET",
+                "BOOKING_COMMISSION",
+                commission,
+                "5% commission from booking ID: " + bookingId,
+                bookingId,
+                LocalDateTime.now()
+        ));
+
+        // 3️⃣ Record final debit for student (for trace)
+        txnRepo.save(new WalletTransaction(
+                null,
+                studentId,
+                "BOOKING_CONFIRMED",
+                amount.negate(),
+                "Booking confirmed - funds split to tutor and company",
+                bookingId,
+                LocalDateTime.now()
+        ));
     }
 
-    // ✅ NEW: Refund if cancelled or rejected
+    // Refund if cancelled or rejected
     @Transactional
     public void refundStudent(String studentId, BigDecimal amount, String bookingId) {
         Wallet wallet = getWallet(studentId);
