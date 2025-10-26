@@ -11,6 +11,8 @@ jobs:
   dast:
     name: DAST Scan - OWASP ZAP
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       
@@ -30,7 +32,6 @@ jobs:
         uses: zaproxy/action-baseline@v0.10.0
         with:
           target: ${{ secrets.STAGING_URL }}
-          allow-root: true
           cmd_options: >
             -r zap-report.html
             -j zap-report.json
