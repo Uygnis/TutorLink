@@ -17,6 +17,7 @@ import static org.mockito.Mockito.*;
 
 import com.csy.springbootauthbe.user.repository.UserRepository;
 import com.csy.springbootauthbe.user.entity.User;
+import com.csy.springbootauthbe.user.entity.AccountStatus;
 
 @ExtendWith(MockitoExtension.class)
 class TutorServiceImplTest {
@@ -50,14 +51,17 @@ class TutorServiceImplTest {
     void getTutorByUserId_found_returnsDto() {
         Tutor entity = new Tutor();
         TutorDTO dto = new TutorDTO();
-    
-        User u = new User(); u.setId("U1");
+
+        User u = new User();
+        u.setId("U1");
+        u.setStatus(AccountStatus.ACTIVE);
+
         when(userRepository.findById("U1")).thenReturn(Optional.of(u));
-    
         when(tutorRepository.findByUserId("U1")).thenReturn(Optional.of(entity));
         when(tutorMapper.toDTO(entity)).thenReturn(dto);
-    
+
         Optional<TutorDTO> result = tutorService.getTutorByUserId("U1");
+
         assertTrue(result.isPresent());
         assertSame(dto, result.get());
     }
