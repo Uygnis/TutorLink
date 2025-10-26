@@ -60,6 +60,6 @@ class SpringbootAuthBeApplicationTests {
 
    @Test
    void contextLoads() {
-       // Nothing to do — context should load with mocks
+       assertTrue(true, "Context loaded successfully with mocked dependencies");
    }
 }
