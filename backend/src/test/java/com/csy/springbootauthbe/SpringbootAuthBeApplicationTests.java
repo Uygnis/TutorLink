@@ -16,6 +16,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.test.context.TestPropertySource;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @SpringBootTest(
    classes = SpringbootAuthBeApplication.class,
    webEnvironment = SpringBootTest.WebEnvironment.NONE
