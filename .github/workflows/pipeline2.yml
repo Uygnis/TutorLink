@@ -30,6 +30,7 @@ jobs:
         uses: zaproxy/action-baseline@v0.10.0
         with:
           target: ${{ secrets.STAGING_URL }}
+          allow-root: true
           cmd_options: >
             -r zap-report.html
             -j zap-report.json
