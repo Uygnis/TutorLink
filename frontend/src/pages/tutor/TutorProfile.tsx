@@ -11,7 +11,6 @@ import { Tutor } from "@/types/TutorType";
 import TutorLessonTypeInput from "@/components/TutorLessonTypeInput";
 import { LessonTypesBySubject } from "@/types/LessonTypes";
 import { setLoading } from "@/redux/loaderSlice";
-import { set } from "react-hook-form";
 
 const ViewTutorProfile = () => {
   const navigate = useNavigate();

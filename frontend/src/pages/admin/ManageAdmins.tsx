@@ -9,13 +9,13 @@ import { useNavigate } from "react-router-dom";
 
 const ManageAdmins = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [, setIsModalOpen] = useState(false);
+  // const [, setIsModalOpen] = useState(false);
   const [admins, setAdmins] = useState<AdminDetails[]>([]);
-  const [, setSelectedAdmin] = useState<AdminDetails | null>(null);
+  // const [, setSelectedAdmin] = useState<AdminDetails | null>(null);
 
   const { user } = useAppSelector((state) => state.user);
   const currentPermissions: string[] = user?.permissions || [];
-  const { loading } = useAppSelector((state) => state.loaders);
+  // const { loading } = useAppSelector((state) => state.loaders);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 

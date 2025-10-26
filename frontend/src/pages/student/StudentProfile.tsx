@@ -1,5 +1,3 @@
-import { useAppSelector } from "@/redux/store";
-import { useState } from "react";
 import Navbar from "@/components/Navbar";
 
 const StudentProfile = () => {
