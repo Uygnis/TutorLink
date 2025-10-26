@@ -44,27 +44,37 @@ jobs:
 
       # ----- BACKEND -----
       - name: Create backend application.yml
+        if: ${{ steps.changes.outputs.backend == 'true' }}
         run: echo "${{ secrets.BACKEND_APP_YML }}" > backend/application.yml
 
       - name: Build backend Docker image
+        if: ${{ steps.changes.outputs.backend == 'true' }}
         run: docker build -t backend:latest ./backend
 
       # ----- FRONTEND -----
       - name: Create frontend .env from secret
+        if: ${{ steps.changes.outputs.frontend == 'true' }}
         run: echo "${{ secrets.FRONTEND_ENV_FILE }}" > frontend/.env
 
       - name: Build frontend Docker image
+        if: ${{ steps.changes.outputs.frontend == 'true' }}
         run: docker build -t frontend:latest ./frontend
 
       # ----- Save Docker images -----
       - name: Save Docker images
+        if: ${{ steps.changes.outputs.frontend == 'true' || steps.changes.outputs.backend == 'true' }}
         run: |
           mkdir -p docker-images
-          docker save frontend:latest -o docker-images/frontend.tar
-          docker save backend:latest -o docker-images/backend.tar
+          if [ "${{ steps.changes.outputs.frontend }}" == "true" ]; then
+            docker save frontend:latest -o docker-images/frontend.tar
+          fi
+          if [ "${{ steps.changes.outputs.backend }}" == "true" ]; then
+            docker save backend:latest -o docker-images/backend.tar
+          fi
 
       # ----- Copy Docker images + docker-compose.yml to EC2 -----
       - name: Copy Docker images via SCP
+        if: ${{ steps.changes.outputs.frontend == 'true' || steps.changes.outputs.backend == 'true' }}
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -76,6 +86,7 @@ jobs:
 
       # ----- Deploy containers on EC2 -----
       - name: Deploy Docker images on EC2
+        if: ${{ steps.changes.outputs.frontend == 'true' || steps.changes.outputs.backend == 'true' }}
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
