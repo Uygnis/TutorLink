@@ -43,9 +43,6 @@ const ViewTutorDetails = () => {
         const tutorWithDefaults = {
           ...data,
           description: data.description || "No description provided",
-          rating: data.rating ?? 4.5,
-          studentsCount: data.studentsCount ?? 0,
-          lessonsCount: data.lessonsCount ?? 0,
           lessonType: data.lessonType ?? ["Beginner Lesson"],
           reviews: data.reviews ?? [],
         };
@@ -130,9 +127,17 @@ const ViewTutorDetails = () => {
       await CreateBooking(bookingReq, user.token);
       setBookedSlots((prev) => [...prev, { date: dateStr, status: "pending" }]);
       toast.success(`Booking created. SGD ${totalCost.toFixed(2)} held temporarily.`);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Booking failed:", err);
-      toast.error("Failed to create booking");
+
+      // Try to extract backend message
+      const backendMsg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to create booking";
+
+      toast.error(backendMsg);
     } finally {
       setShowModal(false);
       setSelectedSlot(null);
@@ -216,22 +221,6 @@ const ViewTutorDetails = () => {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="bg-white rounded-lg shadow-md mb-6 p-6 grid grid-cols-3 text-center gap-4">
-          <div>
-            <p className="text-2xl font-bold">{tutor.rating} ⭐</p>
-            <p className="text-gray-500">Rating</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold">{tutor.studentsCount}</p>
-            <p className="text-gray-500">Students</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold">{tutor.lessonsCount}</p>
-            <p className="text-gray-500">Lessons</p>
-          </div>
-        </div>
-
         {/* Lesson Types */}
         <div className="bg-white rounded-lg shadow-md mb-6 p-6">
           <h2 className="text-xl font-semibold mb-3">Lesson Types</h2>
@@ -259,7 +248,7 @@ const ViewTutorDetails = () => {
           <BookingModal
             lessonTypes={tutor.lessonType || ["Beginner Lesson", "Advanced Lesson"]}
             slot={selectedSlot}
-            hourlyRate={tutor.hourlyRate} // ✅ NEW
+            hourlyRate={tutor.hourlyRate}
             onClose={() => setShowModal(false)}
             onConfirm={confirmBooking}
           />

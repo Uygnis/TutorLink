@@ -10,6 +10,7 @@ import com.csy.springbootauthbe.student.mapper.StudentMapper;
 import com.csy.springbootauthbe.student.repository.StudentRepository;
 import com.csy.springbootauthbe.student.utils.TutorSearchRequest;
 import com.csy.springbootauthbe.tutor.entity.QualificationFile;
+import com.csy.springbootauthbe.tutor.entity.Review;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
@@ -107,7 +108,7 @@ public class StudentServiceImpl implements StudentService {
             ops.add(Aggregation.match(new Criteria().andOperator(criteriaList.toArray(new Criteria[0]))));
         }
 
-        ops.add(Aggregation.project("subject", "hourlyRate", "availability", "firstname", "lastname", "email", "profileImageUrl", "description", "lessonType", "qualifications" ));
+        ops.add(Aggregation.project("subject", "hourlyRate", "availability", "firstname", "lastname", "email", "profileImageUrl", "description", "lessonType", "qualifications","reviews" ));
 
         Aggregation aggregation = Aggregation.newAggregation(ops);
         List<Document> docs = mongoTemplate.aggregate(aggregation, "tutors", Document.class).getMappedResults();
@@ -141,7 +142,7 @@ public class StudentServiceImpl implements StudentService {
 
         ops.add(Aggregation.match(Criteria.where("_id").is(new ObjectId(tutorId))));
 
-        ops.add(Aggregation.project("subject", "hourlyRate", "availability", "userId", "firstname", "lastname", "email", "profileImageUrl", "description", "lessonType", "qualifications"));
+        ops.add(Aggregation.project("subject", "hourlyRate", "availability", "userId", "firstname", "lastname", "email", "profileImageUrl", "description", "lessonType", "qualifications", "reviews"));
 
         Aggregation aggregation = Aggregation.newAggregation(ops);
         List<Document> docs = mongoTemplate.aggregate(aggregation, "tutors", Document.class).getMappedResults();
@@ -200,6 +201,7 @@ public class StudentServiceImpl implements StudentService {
 
 
     /* ======= Helper Methods  ====================================================== */
+    /* ======= Helper Methods  ====================================================== */
     private TutorProfileDTO mapToTutorDTO(Document doc) {
         TutorProfileDTO dto = new TutorProfileDTO();
         dto.setId(doc.getObjectId("_id").toHexString());
@@ -213,6 +215,21 @@ public class StudentServiceImpl implements StudentService {
         dto.setProfileImageUrl(doc.getString("profileImageUrl"));
         dto.setLessonType((List<String>) doc.get("lessonType"));
 
+        //  Handle reviews
+        List<Document> reviewDocs = (List<Document>) doc.get("reviews");
+        if (reviewDocs != null) {
+            List<Review> reviews = new ArrayList<>();
+            for (Document rDoc : reviewDocs) {
+                Review review = new Review();
+                review.setStudentName(rDoc.getString("studentName"));
+                review.setRating(rDoc.getInteger("rating", 0)); // default 0 if null
+                review.setComment(rDoc.getString("comment"));
+                reviews.add(review);
+            }
+            dto.setReviews(reviews);
+        }
+
+        //  Handle qualifications
         List<Document> qDocs = (List<Document>) doc.get("qualifications");
         if (qDocs != null) {
             List<QualificationFile> files = new ArrayList<>();
@@ -230,9 +247,9 @@ public class StudentServiceImpl implements StudentService {
             dto.setQualifications(files);
         }
 
-
         return dto;
     }
+
 
 
 

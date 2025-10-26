@@ -33,6 +33,7 @@ import Wallet from "./pages/student/Wallet";
 import WalletSuccessPage from "./pages/student/WalletSuccessPage";
 import WalletCancelPage from "./pages/student/WalletCancelPage";
 import TutorWalletPage from "./pages/tutor/TutorWalletPage";
+import PastSessionsPage from "./pages/student/PastSessionsPage";
 
 function App() {
   // Redux
@@ -89,6 +90,7 @@ function App() {
             <Route path="/student/wallet" element={<Wallet />} />
             <Route path="/wallet/success" element={<WalletSuccessPage />} />
             <Route path="/wallet/cancel" element={<WalletCancelPage />} />
+            <Route path="/student/past-sessions" element={<PastSessionsPage />} />
           </Route>
         </Routes>
       </Router>

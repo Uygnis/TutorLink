@@ -128,3 +128,13 @@ export const ApproveReschedule = async (
     }
   );
 };
+
+/** Get all past sessions for a student */
+export const GetPastSessionsForStudent = async (
+  studentId: string,
+  authtoken: string
+): Promise<AxiosResponse<RecentBookingResponse>> => {
+  return await axios.get(`${BASE_URL}/student/${studentId}/past`, {
+    headers: { Authorization: `Bearer ${authtoken}` },
+  });
+};
