@@ -29,12 +29,14 @@ jobs:
         run: curl -I ${{ secrets.STAGING_URL }}
 
       - name: Run OWASP ZAP baseline scan
-        uses: zaproxy/action-baseline@v0.10.0
-        with:
-          target: ${{ secrets.STAGING_URL }}
-          cmd_options: >
-            -r zap-report.html
-            -j zap-report.json
+        run: |
+          docker run --user root --rm \
+            -v $(pwd):/zap/wrk/:rw \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t "${{ secrets.STAGING_URL }}" \
+            -r zap-report.html \
+            -j zap-report.json \
             -d
 
       - name: Upload HTML report artifact
