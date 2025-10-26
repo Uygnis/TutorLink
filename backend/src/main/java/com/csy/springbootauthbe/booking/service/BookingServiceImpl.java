@@ -36,36 +36,53 @@ public class BookingServiceImpl implements BookingService {
     private final WalletService walletService;
     private static final SanitizedLogger logger = SanitizedLogger.getLogger(BookingService.class);
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
     @Override
     @Transactional
     public BookingDTO createBooking(BookingRequest dto) {
-        // 1️⃣ Overlap check
+        // 1️⃣ Overlap check (same tutor)
         List<Booking> existing = bookingRepository.findByTutorIdAndDate(dto.getTutorId(), dto.getDate());
         boolean overlap = existing.stream()
-                .filter(b -> List.of("pending","confirmed","on_hold").contains(b.getStatus()))
+                .filter(b -> List.of("pending", "confirmed", "on_hold").contains(b.getStatus()))
                 .anyMatch(b -> b.getStart().compareTo(dto.getEnd()) < 0 && dto.getStart().compareTo(b.getEnd()) < 0);
-        if (overlap) throw new RuntimeException("Selected slot is already booked.");
+        if (overlap) {
+            throw new RuntimeException("Selected slot is already booked.");
+        }
 
-        // 2️⃣ Validate amount
+        // 2️⃣ Check if student already booked with another tutor on same day
+        List<Booking> studentSameDay = bookingRepository.findByStudentIdAndDate(dto.getStudentId(), dto.getDate());
+        boolean conflict = studentSameDay.stream()
+                .filter(b -> List.of("pending", "confirmed", "on_hold").contains(b.getStatus()))
+                .anyMatch(b -> !b.getTutorId().equals(dto.getTutorId()));
+        if (conflict) {
+            throw new RuntimeException("You already have a booking with another tutor on this date.");
+        }
+
+        // 3️⃣ Validate amount
         if (dto.getAmount() == null || dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Invalid booking amount");
         }
 
-        // 3️⃣ Hold student credits
+        // 4️⃣ Hold student credits
         walletService.holdCredits(dto.getStudentId(), dto.getAmount(), "BOOKING-" + UUID.randomUUID());
 
-        // 4️⃣ Save booking
+        // 5️⃣ Save booking
         Booking booking = bookingMapper.toEntity(dto);
         booking.setStatus("pending");
         booking.setAmount(dto.getAmount());
         Booking saved = bookingRepository.save(booking);
 
-        // 5️⃣ Notify tutor
-        notificationService.createNotification(dto.getTutorId(), "booking_created", saved.getId(),
-                "A new booking for " + dto.getLessonType() + " has been created.");
+        // 6️⃣ Notify tutor
+        notificationService.createNotification(
+                dto.getTutorId(),
+                "booking_created",
+                saved.getId(),
+                "A new booking for " + dto.getLessonType() + " has been created."
+        );
 
         return bookingMapper.toDto(saved);
     }
+
 
 
     @Override
@@ -344,6 +361,52 @@ public class BookingServiceImpl implements BookingService {
 
         return bookingMapper.toDto(savedNewBooking);
     }
+
+    @Override
+    public RecentBookingResponse getPastSessionsForStudent(String studentId) {
+        String todayStr = LocalDate.now().format(formatter);
+        List<String> completedStatuses = List.of("completed", "confirmed");
+
+        // 1 Fetch all past sessions before today
+        List<Booking> pastSessions = bookingRepository
+                .findByStudentIdAndStatusInAndDateBeforeOrderByDateDesc(studentId, completedStatuses, todayStr);
+
+        long totalCount = pastSessions.size();
+
+        // 2 Collect all tutor IDs
+        Set<String> tutorIds = pastSessions.stream()
+                .map(Booking::getTutorId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // 3 Fetch tutor user info
+        Map<String, User> tutorMap = userRepository.findAllById(tutorIds)
+                .stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
+        // 4 Map bookings to DTOs with tutor name
+        List<BookingDTO> dtoList = pastSessions.stream().map(b -> {
+            BookingDTO dto = bookingMapper.toDto(b);
+
+            User tutor = tutorMap.get(b.getTutorId());
+            if (tutor != null) {
+                dto.setTutorName(tutor.getFirstname() + " " + tutor.getLastname());
+            } else {
+                dto.setTutorName("Unknown Tutor");
+            }
+
+            return dto;
+        }).toList();
+
+        // 5 Build response
+        RecentBookingResponse response = new RecentBookingResponse();
+        response.setRecentSessions(dtoList);
+        response.setTotalCount(totalCount);
+
+        return response;
+    }
+
+
 
 
 

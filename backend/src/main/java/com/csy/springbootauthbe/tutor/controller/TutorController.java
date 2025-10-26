@@ -76,6 +76,22 @@ public class TutorController {
         return ResponseEntity.ok(tutorService.updateProfilePicture(id, file));
     }
 
+    @PostMapping("/{tutorId}/review")
+    public ResponseEntity<TutorDTO> addReview(
+            @PathVariable String tutorId,
+            @RequestBody Map<String, Object> body) {
+
+        String bookingId = (String) body.get("bookingId");
+        String studentName = (String) body.get("studentName");
+        int rating = (int) body.get("rating");
+        String comment = (String) body.get("comment");
+
+        TutorDTO updatedTutor = tutorService.addReview(tutorId, bookingId, studentName, rating, comment);
+        return ResponseEntity.ok(updatedTutor);
+    }
+
+
+
 
 
 }

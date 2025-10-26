@@ -20,11 +20,9 @@ public class Tutor {
     @Id
     private String id;
     private String subject;
-    // Reference to User document for login credentials, composite
     private String userId;
     private Double hourlyRate;
 
-    // List of uploaded qualifications
     private List<QualificationFile> qualifications;
     private Map<String, Availability> availability;
 
@@ -35,5 +33,6 @@ public class Tutor {
 
     private TutorStagedProfileDTO stagedProfile;
     private AccountStatus previousStatus;
-}
 
+    private List<Review> reviews;
+}

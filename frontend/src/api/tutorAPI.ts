@@ -45,3 +45,19 @@ export const UploadTutorProfilePicture = async (
     },
   });
 };
+
+/** Add a review for a tutor */
+export const AddTutorReview = async (
+  token: string,
+  tutorId: string,
+  review: {
+    bookingId: string;
+    studentName: string;
+    rating: number;
+    comment: string;
+  }
+): Promise<AxiosResponse<any>> => {
+  const api = getApiInstance(token);
+  const url = `${BASE_URL}/${tutorId}/review`;
+  return await api.post(url, review);
+};

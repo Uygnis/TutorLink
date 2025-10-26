@@ -19,4 +19,5 @@ public interface BookingService {
     RecentBookingResponse getUpcomingBookings(String tutorId);
     BookingDTO approveReschedule(String newBookingId);
     BookingDTO requestReschedule(String bookingId, BookingRequest newSlotRequest);
+    RecentBookingResponse getPastSessionsForStudent(String studentId);
 }

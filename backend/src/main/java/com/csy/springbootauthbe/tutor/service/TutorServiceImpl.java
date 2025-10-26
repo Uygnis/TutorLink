@@ -214,6 +214,40 @@ public class TutorServiceImpl implements TutorService {
         tutorRepository.delete(tutor);
     }
 
+    @Override
+    public TutorDTO addReview(String tutorId, String bookingId, String studentName, int rating, String comment) {
+        Tutor tutor = tutorRepository.findByUserId(tutorId)
+                .orElseThrow(() -> new RuntimeException("Tutor not found"));
+
+        // Initialize reviews if null
+        if (tutor.getReviews() == null) {
+            tutor.setReviews(new ArrayList<>());
+        }
+
+        // Prevent duplicate review per session
+        boolean alreadyReviewed = tutor.getReviews().stream()
+                .anyMatch(r -> r.getBookingId() != null && r.getBookingId().equals(bookingId));
+
+        if (alreadyReviewed) {
+            throw new RuntimeException("You have already reviewed this session.");
+        }
+
+        // Build new review
+        com.csy.springbootauthbe.tutor.entity.Review review = com.csy.springbootauthbe.tutor.entity.Review.builder()
+                .bookingId(bookingId)
+                .studentName(studentName)
+                .rating(rating)
+                .comment(comment)
+                .build();
+
+        tutor.getReviews().add(review);
+
+        Tutor saved = tutorRepository.save(tutor);
+        return tutorMapper.toDTO(saved);
+    }
+
+
+
     private TutorResponse createTutorResponse(Tutor tutor, User user) {
         return TutorResponse.builder()
                 .id(tutor.getId())

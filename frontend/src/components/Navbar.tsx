@@ -7,6 +7,7 @@ import { GetAdminByUserId } from "@/api/adminAPI";
 import NotificationsModal from "./NotificationsModal";
 import { fetchNotifications, markNotificationAsRead } from "@/api/notificationAPI";
 import { NotificationType } from "@/types/NotificationType";
+import { BellIcon } from "@heroicons/react/24/outline";
 
 const Navbar = () => {
   const dispatch = useAppDispatch();
@@ -129,8 +130,9 @@ const Navbar = () => {
         {/* Notifications Button */}
         <button
           onClick={() => setIsNotifOpen(true)}
-          className="relative px-3 py-1 bg-primary text-white rounded-md hover:bg-primary/90 transition">
-          Notifications
+          className="relative flex items-center justify-center w-10 h-10 rounded-full bg-primary hover:bg-gray-200  transition"
+          aria-label="Notifications">
+          <BellIcon className="w-6 h-6 text-white hover:text-primary" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
               {unreadCount}
