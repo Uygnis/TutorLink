@@ -160,7 +160,7 @@ class AuthenticationServiceTest {
                 .thenReturn(new UsernamePasswordAuthenticationToken("nobody@nowhere.com", "pw"));
         when(repository.findByEmail("nobody@nowhere.com")).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> authService.login(req));
+        assertThrows(IllegalArgumentException.class, () -> authService.login(req));
     }
 
     // ---- helpers ----
