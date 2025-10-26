@@ -96,4 +96,9 @@ public class BookingController {
         return ResponseEntity.ok(approvedBooking);
     }
 
+    @GetMapping("/student/{studentId}/past")
+    public ResponseEntity<RecentBookingResponse> getStudentPastSessions(@PathVariable String studentId) {
+        return ResponseEntity.ok(bookingService.getPastSessionsForStudent(studentId));
+    }
+
 }

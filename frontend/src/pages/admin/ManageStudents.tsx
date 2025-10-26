@@ -40,7 +40,7 @@ const ManageStudents = () => {
     student.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-   const handleViewStudent = (student: any | null = null) => {
+  const handleViewStudent = (student: any | null = null) => {
     navigate(`/admin/students/${student.id}`);
   };
 
@@ -97,7 +97,6 @@ const ManageStudents = () => {
     fetchStudents();
   }, []);
 
-
   return (
     <div>
       <Navbar />
@@ -137,13 +136,13 @@ const ManageStudents = () => {
                     <td className="px-4 py-2">{student.student?.studentNumber}</td>
                     <td className="px-4 py-2">{student.student?.gradeLevel}</td>
                     <td
-                      className={`px-4 py-2 ${student.status === "ACTIVE"
-                        ? "text-green-600"
-                        : student.status === "SUSPENDED"
+                      className={`px-4 py-2 ${
+                        student.status === "ACTIVE"
+                          ? "text-green-600"
+                          : student.status === "SUSPENDED"
                           ? "text-red-600"
                           : "text-gray-600"
-                        }`}
-                    >
+                      }`}>
                       {student.status}
                     </td>
                     <td className="px-4 py-2 space-x-2">
@@ -155,16 +154,23 @@ const ManageStudents = () => {
                       </button>
                       <div className="relative group inline-block">
                         <button
-                          onClick={() => currentPermissions.includes("SUSPEND_STUDENT") && handleSuspendModal(student)}
-                          disabled={!currentPermissions.includes("SUSPEND_STUDENT") || student.status === "DELETED"}
+                          onClick={() =>
+                            currentPermissions.includes("SUSPEND_STUDENT") &&
+                            handleSuspendModal(student)
+                          }
+                          disabled={
+                            !currentPermissions.includes("SUSPEND_STUDENT") ||
+                            student.status === "DELETED"
+                          }
                           className={`px-3 py-1 rounded-md backdrop-blur-sm transition inline-flex items-center space-x-1
-                          ${!currentPermissions.includes("SUSPEND_STUDENT") || student.status === "DELETED"
+                          ${
+                            !currentPermissions.includes("SUSPEND_STUDENT") ||
+                            student.status === "DELETED"
                               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                               : student.status === "SUSPENDED"
-                                ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                : "bg-orange-100 text-orange-700 hover:bg-orange-200"
-                            }`}
-                        >
+                              ? "bg-green-100 text-green-700 hover:bg-green-200"
+                              : "bg-orange-100 text-orange-700 hover:bg-orange-200"
+                          }`}>
                           {student.status === "SUSPENDED" ? (
                             <PlayCircleIcon className="h-4 w-4" />
                           ) : (
@@ -175,14 +181,16 @@ const ManageStudents = () => {
 
                         {/* Tooltip if no permission */}
                         {!currentPermissions.includes("SUSPEND_STUDENT") && (
-                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
+                          <div
+                            className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
                     bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
                     group-hover:opacity-100 transition">
                             You do not have permission to suspend students
                           </div>
                         )}
                         {student.status === "DELETED" && (
-                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
+                          <div
+                            className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
                     bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
                     group-hover:opacity-100 transition">
                             You cannot suspend a deleted student
@@ -192,29 +200,37 @@ const ManageStudents = () => {
 
                       <div className="relative group inline-block">
                         <button
-                          onClick={() => currentPermissions.includes("DELETE_STUDENT") && handleDelete(student.id)}
-                          disabled={!currentPermissions.includes("DELETE_STUDENT") || student.status !== "SUSPENDED"}
+                          onClick={() =>
+                            currentPermissions.includes("DELETE_STUDENT") &&
+                            handleDelete(student.id)
+                          }
+                          disabled={
+                            !currentPermissions.includes("DELETE_STUDENT") ||
+                            student.status !== "SUSPENDED"
+                          }
                           className={`px-3 py-1 rounded-md backdrop-blur-sm transition inline-flex items-center space-x-1
-                          ${!currentPermissions.includes("DELETE_STUDENT")
+                          ${
+                            !currentPermissions.includes("DELETE_STUDENT")
                               ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                               : student.status !== "SUSPENDED"
-                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                : "bg-red-100 text-red-700 hover:bg-red-200"
-                            }`}
-                        >
+                              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                              : "bg-red-100 text-red-700 hover:bg-red-200"
+                          }`}>
                           <TrashIcon className="h-4 w-4" />
                           <span>Delete</span>
                         </button>
 
                         {/* Tooltip */}
                         {!currentPermissions.includes("DELETE_STUDENT") ? (
-                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
+                          <div
+                            className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
                     bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
                     group-hover:opacity-100 transition">
                             You do not have permission to delete students
                           </div>
                         ) : student.status === "ACTIVE" ? (
-                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
+                          <div
+                            className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap 
                     bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 
                     group-hover:opacity-100 transition">
                             You cannot delete an active student

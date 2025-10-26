@@ -33,6 +33,9 @@ import Wallet from "./pages/student/Wallet";
 import WalletSuccessPage from "./pages/student/WalletSuccessPage";
 import WalletCancelPage from "./pages/student/WalletCancelPage";
 import TutorWalletPage from "./pages/tutor/TutorWalletPage";
+import PastSessionsPage from "./pages/student/PastSessionsPage";
+import Transaction from "./pages/admin/Transaction";
+import Reviews from "./pages/tutor/Reviews";
 
 function App() {
   // Redux
@@ -67,6 +70,7 @@ function App() {
             <Route path="/admin/students/:studentId" element={<AdminViewStudentDetails />} />
             <Route path="/admin/students" element={<ManageStudents />} />
             <Route path="/admin/admins" element={<ManageAdmins />} />
+            <Route path="/admin/transaction" element={<Transaction />} />
           </Route>
 
           {/* User Protected Route */}
@@ -78,6 +82,7 @@ function App() {
             <Route path="/tutor/dashboard" element={<TutorDashboard />} />
             <Route path="/tutor/profile" element={<ViewTutorProfile />} />
             <Route path="/tutor/wallet" element={<TutorWalletPage />} />
+            <Route path="/tutor/reviews" element={<Reviews />} />
           </Route>
 
           {/* Student Protected Route */}
@@ -89,6 +94,7 @@ function App() {
             <Route path="/student/wallet" element={<Wallet />} />
             <Route path="/wallet/success" element={<WalletSuccessPage />} />
             <Route path="/wallet/cancel" element={<WalletCancelPage />} />
+            <Route path="/student/past-sessions" element={<PastSessionsPage />} />
           </Route>
         </Routes>
       </Router>

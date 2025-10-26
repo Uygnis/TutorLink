@@ -6,6 +6,7 @@ import com.csy.springbootauthbe.common.utils.SanitizedLogger;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
 import com.csy.springbootauthbe.tutor.dto.TutorStagedProfileDTO;
 import com.csy.springbootauthbe.tutor.entity.QualificationFile;
+import com.csy.springbootauthbe.tutor.entity.Review;
 import com.csy.springbootauthbe.tutor.entity.Tutor;
 import com.csy.springbootauthbe.tutor.mapper.TutorMapper;
 import com.csy.springbootauthbe.tutor.repository.TutorRepository;
@@ -22,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -211,6 +213,58 @@ public class TutorServiceImpl implements TutorService {
                     .orElseThrow(() -> new UsernameNotFoundException("Tutor not found"));
         tutorRepository.delete(tutor);
     }
+
+    @Override
+    public TutorDTO addReview(String tutorId, String bookingId, String studentName, int rating, String comment) {
+        Tutor tutor = tutorRepository.findByUserId(tutorId)
+                .orElseThrow(() -> new RuntimeException("Tutor not found"));
+
+        // Initialize reviews if null
+        if (tutor.getReviews() == null) {
+            tutor.setReviews(new ArrayList<>());
+        }
+
+        // Prevent duplicate review per session
+        boolean alreadyReviewed = tutor.getReviews().stream()
+                .anyMatch(r -> r.getBookingId() != null && r.getBookingId().equals(bookingId));
+
+        if (alreadyReviewed) {
+            throw new RuntimeException("You have already reviewed this session.");
+        }
+
+        // Build new review
+        Review review = Review.builder()
+                .bookingId(bookingId)
+                .studentName(studentName)
+                .rating(rating)
+                .comment(comment)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        tutor.addReview(review);
+
+        Tutor saved = tutorRepository.save(tutor);
+        return tutorMapper.toDTO(saved);
+    }
+
+    @Override
+    public List<Review> getTutorReviewsByUserId(String userId) {
+        Tutor tutor = tutorRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Tutor not found"));
+
+        if (tutor.getReviews() == null || tutor.getReviews().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // Sort newest first
+        List<Review> reviews = new ArrayList<>(tutor.getReviews());
+        reviews.sort(Comparator.comparing(
+                com.csy.springbootauthbe.tutor.entity.Review::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder()))
+        );
+
+        return reviews;
+    }
+
 
     private TutorResponse createTutorResponse(Tutor tutor, User user) {
         return TutorResponse.builder()
