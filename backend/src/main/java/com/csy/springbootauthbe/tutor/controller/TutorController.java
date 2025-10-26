@@ -4,6 +4,7 @@ import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
 import com.csy.springbootauthbe.tutor.entity.Availability;
 import com.csy.springbootauthbe.tutor.entity.QualificationFile;
+import com.csy.springbootauthbe.tutor.entity.Review;
 import com.csy.springbootauthbe.tutor.service.TutorService;
 import com.csy.springbootauthbe.tutor.utils.TutorRequest;
 import com.csy.springbootauthbe.tutor.utils.TutorResponse;
@@ -89,6 +90,12 @@ public class TutorController {
         TutorDTO updatedTutor = tutorService.addReview(tutorId, bookingId, studentName, rating, comment);
         return ResponseEntity.ok(updatedTutor);
     }
+
+    @GetMapping("/{userId}/reviews")
+    public ResponseEntity<List<Review>> getTutorReviews(@PathVariable String userId) {
+        return ResponseEntity.ok(tutorService.getTutorReviewsByUserId(userId));
+    }
+
 
 
 

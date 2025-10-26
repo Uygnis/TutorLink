@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,17 +35,18 @@ public class Tutor {
     private TutorStagedProfileDTO stagedProfile;
     private AccountStatus previousStatus;
 
-    // 👇 prevent Lombok from generating the getter for reviews
-    @Getter(AccessLevel.NONE)
-    private List<Review> reviews;
+    private List<Review> reviews = new ArrayList<>();
 
-    // custom safe getter and setter
+    // Return unmodifiable view ONLY for external callers (optional)
     public List<Review> getReviews() {
-        return reviews == null ? Collections.emptyList() : Collections.unmodifiableList(reviews);
+        return Collections.unmodifiableList(reviews);
     }
 
-    public void setReviews(List<Review> reviews) {
-        this.reviews = reviews == null ? null : List.copyOf(reviews);
+    // Internal helper for adding reviews safely
+    public void addReview(Review review) {
+        if (this.reviews == null) {
+            this.reviews = new ArrayList<>();
+        }
+        this.reviews.add(review);
     }
-
 }

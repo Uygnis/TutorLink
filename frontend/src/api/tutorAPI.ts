@@ -61,3 +61,13 @@ export const AddTutorReview = async (
   const url = `${BASE_URL}/${tutorId}/review`;
   return await api.post(url, review);
 };
+
+/** Get all reviews for a specific tutor by userId */
+export const GetTutorReviewsByUserId = async (
+  token: string,
+  userId: string
+): Promise<AxiosResponse<any>> => {
+  const api = getApiInstance(token);
+  const url = `${BASE_URL}/${userId}/reviews`;
+  return await api.get(url);
+};

@@ -26,12 +26,12 @@ const Navbar = () => {
   useEffect(() => {
     if (!user?.id || !user?.token) return;
 
-    // 1️⃣ Fetch existing notifications
+    // 1 Fetch existing notifications
     fetchNotifications(user.id, user.token)
       .then((res) => setNotifications(res.data))
       .catch((err) => console.error("Failed to fetch notifications:", err));
 
-    // 2️⃣ SSE subscription
+    // 2 SSE subscription
     const eventSource = new EventSource(
       `http://localhost:8080/api/notifications/stream/${user.id}`
     );

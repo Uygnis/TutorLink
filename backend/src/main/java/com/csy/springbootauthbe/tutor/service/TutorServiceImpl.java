@@ -6,6 +6,7 @@ import com.csy.springbootauthbe.common.utils.SanitizedLogger;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
 import com.csy.springbootauthbe.tutor.dto.TutorStagedProfileDTO;
 import com.csy.springbootauthbe.tutor.entity.QualificationFile;
+import com.csy.springbootauthbe.tutor.entity.Review;
 import com.csy.springbootauthbe.tutor.entity.Tutor;
 import com.csy.springbootauthbe.tutor.mapper.TutorMapper;
 import com.csy.springbootauthbe.tutor.repository.TutorRepository;
@@ -22,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -231,19 +233,37 @@ public class TutorServiceImpl implements TutorService {
         }
 
         // Build new review
-        com.csy.springbootauthbe.tutor.entity.Review review = com.csy.springbootauthbe.tutor.entity.Review.builder()
+        Review review = Review.builder()
                 .bookingId(bookingId)
                 .studentName(studentName)
                 .rating(rating)
                 .comment(comment)
+                .createdAt(LocalDateTime.now())
                 .build();
 
-        tutor.getReviews().add(review);
+        tutor.addReview(review);
 
         Tutor saved = tutorRepository.save(tutor);
         return tutorMapper.toDTO(saved);
     }
 
+    @Override
+    public List<Review> getTutorReviewsByUserId(String userId) {
+        Tutor tutor = tutorRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Tutor not found"));
+
+        if (tutor.getReviews() == null || tutor.getReviews().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // Sort newest first
+        List<Review> reviews = new ArrayList<>(tutor.getReviews());
+        reviews.sort(Comparator.comparing(
+                com.csy.springbootauthbe.tutor.entity.Review::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder()))
+        );
+
+        return reviews;
+    }
 
 
     private TutorResponse createTutorResponse(Tutor tutor, User user) {
