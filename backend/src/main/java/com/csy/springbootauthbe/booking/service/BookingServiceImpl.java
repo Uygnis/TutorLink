@@ -10,10 +10,12 @@ import com.csy.springbootauthbe.common.utils.SanitizedLogger;
 import com.csy.springbootauthbe.notification.service.NotificationService;
 import com.csy.springbootauthbe.user.entity.User;
 import com.csy.springbootauthbe.user.repository.UserRepository;
+import com.csy.springbootauthbe.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -30,35 +32,39 @@ public class BookingServiceImpl implements BookingService {
     private final BookingMapper bookingMapper;
     private final NotificationService notificationService;
     private static final SanitizedLogger logger = SanitizedLogger.getLogger(BookingServiceImpl.class);
+    private final WalletService walletService;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     @Override
+    @Transactional
     public BookingDTO createBooking(BookingRequest dto) {
-        // Check for overlapping booking
+        // 1️⃣ Overlap check
         List<Booking> existing = bookingRepository.findByTutorIdAndDate(dto.getTutorId(), dto.getDate());
-        boolean overlap = existing.stream().filter(b -> b.getStatus().equals("pending") || b.getStatus().equals("confirmed") || b.getStatus().equals("on_hold"))
-                .anyMatch(b ->
-                (b.getStart().compareTo(dto.getEnd()) < 0) && (dto.getStart().compareTo(b.getEnd()) < 0)
-        );
+        boolean overlap = existing.stream()
+                .filter(b -> List.of("pending","confirmed","on_hold").contains(b.getStatus()))
+                .anyMatch(b -> b.getStart().compareTo(dto.getEnd()) < 0 && dto.getStart().compareTo(b.getEnd()) < 0);
+        if (overlap) throw new RuntimeException("Selected slot is already booked.");
 
-        if (overlap) {
-            throw new RuntimeException("Selected slot is already booked.");
+        // 2️⃣ Validate amount
+        if (dto.getAmount() == null || dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Invalid booking amount");
         }
 
-        // Create booking
+        // 3️⃣ Hold student credits
+        walletService.holdCredits(dto.getStudentId(), dto.getAmount(), "BOOKING-" + UUID.randomUUID());
+
+        // 4️⃣ Save booking
         Booking booking = bookingMapper.toEntity(dto);
         booking.setStatus("pending");
+        booking.setAmount(dto.getAmount());
         Booking saved = bookingRepository.save(booking);
 
-        // Notify the tutor
-        notificationService.createNotification(
-                dto.getTutorId(),                 // recipient is tutor
-                "booking_created",                // type
-                saved.getId(),                    // booking id
-                "A new booking for " + dto.getLessonType() + " has been created."
-        );
+        // 5️⃣ Notify tutor
+        notificationService.createNotification(dto.getTutorId(), "booking_created", saved.getId(),
+                "A new booking for " + dto.getLessonType() + " has been created.");
 
         return bookingMapper.toDto(saved);
     }
+
 
     @Override
     public RecentBookingResponse getRecentPastBookings(String tutorId) {
@@ -156,20 +162,73 @@ public class BookingServiceImpl implements BookingService {
 
 
     @Override
+    @Transactional
+    public BookingDTO acceptBooking(String bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        // Only allow acceptance of pending bookings
+        if (!"pending".equals(booking.getStatus())) {
+            throw new RuntimeException("Only pending bookings can be accepted.");
+        }
+
+        booking.setStatus("confirmed");
+        Booking savedBooking = bookingRepository.save(booking);
+
+        // ✅ Release funds from student to tutor
+        if (booking.getAmount() != null && booking.getAmount().compareTo(BigDecimal.ZERO) > 0) {
+            walletService.releaseToTutor(
+                    booking.getStudentId(),
+                    booking.getTutorId(),
+                    booking.getAmount(),
+                    booking.getId()
+            );
+        }
+
+        // ✅ Notify student
+        notificationService.createNotification(
+                booking.getStudentId(), // student receives notification
+                "booking_accepted",
+                booking.getId(),
+                "Your booking for " + booking.getLessonType() + " has been confirmed!"
+        );
+
+        return bookingMapper.toDto(savedBooking);
+    }
+
+
+
+    // Only Tutor can accept booking
+    @Override
+    @Transactional
     public BookingDTO cancelBooking(String bookingId, String currentUserId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
+        // Only allow cancel if not already confirmed or cancelled
+        if (List.of("cancelled", "completed").contains(booking.getStatus())) {
+            throw new RuntimeException("Booking is already " + booking.getStatus());
+        }
+
+        // Determine if refund is needed
+        boolean refundable = "pending".equals(booking.getStatus()) || "on_hold".equals(booking.getStatus());
+
         booking.setStatus("cancelled");
         Booking savedBooking = bookingRepository.save(booking);
 
-        // Determine recipient
-        String recipientId;
-        if (currentUserId.equals(booking.getStudentId())) {
-            recipientId = booking.getTutorId(); // student cancelled → notify tutor
-        } else {
-            recipientId = booking.getStudentId(); // tutor cancelled → notify student
+        // ✅ Refund student if booking not yet accepted
+        if (refundable && booking.getAmount() != null && booking.getAmount().compareTo(BigDecimal.ZERO) > 0) {
+            walletService.refundStudent(
+                    booking.getStudentId(),
+                    booking.getAmount(),
+                    booking.getId()
+            );
         }
+
+        // ✅ Notify the other user
+        String recipientId = currentUserId.equals(booking.getStudentId())
+                ? booking.getTutorId()
+                : booking.getStudentId();
 
         notificationService.createNotification(
                 recipientId,
@@ -181,26 +240,6 @@ public class BookingServiceImpl implements BookingService {
         return bookingMapper.toDto(savedBooking);
     }
 
-
-    // Only Tutor can accept booking
-    @Override
-    public BookingDTO acceptBooking(String bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
-
-        booking.setStatus("confirmed");
-        Booking savedBooking = bookingRepository.save(booking);
-
-        // Trigger notification
-        notificationService.createNotification(
-                booking.getStudentId(), // student receives notification
-                "booking_accepted",
-                booking.getId(),
-                "Your booking for " + booking.getLessonType() + " has been confirmed!"
-        );
-
-        return bookingMapper.toDto(savedBooking);
-    }
 
 
     @Override

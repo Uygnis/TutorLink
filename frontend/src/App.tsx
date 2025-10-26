@@ -29,6 +29,10 @@ import StudentRoute from "@/components/routes/StudentRoute";
 import AdminViewTutorDetails from "./pages/admin/AdminViewTutorDetails";
 import AdminViewAdminDetails from "./pages/admin/AdminViewAdminDetails";
 import AdminViewStudentDetails from "./pages/admin/AdminViewStudentDetails";
+import Wallet from "./pages/student/Wallet";
+import WalletSuccessPage from "./pages/student/WalletSuccessPage";
+import WalletCancelPage from "./pages/student/WalletCancelPage";
+import TutorWalletPage from "./pages/tutor/TutorWalletPage";
 
 function App() {
   // Redux
@@ -73,6 +77,7 @@ function App() {
           <Route element={<UserRoute />}>
             <Route path="/tutor/dashboard" element={<TutorDashboard />} />
             <Route path="/tutor/profile" element={<ViewTutorProfile />} />
+            <Route path="/tutor/wallet" element={<TutorWalletPage />} />
           </Route>
 
           {/* Student Protected Route */}
@@ -81,6 +86,9 @@ function App() {
             <Route path="/student/find-tutor" element={<FindTutor />} />
             <Route path="/student/view-tutor/:id" element={<ViewTutorDetails />} />
             <Route path="/student/profile" element={<StudentProfile />} />
+            <Route path="/student/wallet" element={<Wallet />} />
+            <Route path="/wallet/success" element={<WalletSuccessPage />} />
+            <Route path="/wallet/cancel" element={<WalletCancelPage />} />
           </Route>
         </Routes>
       </Router>
