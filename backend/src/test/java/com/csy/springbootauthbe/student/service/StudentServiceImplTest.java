@@ -15,11 +15,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.csy.springbootauthbe.common.sequence.SequenceGeneratorService;
+
 @ExtendWith(MockitoExtension.class)
 class StudentServiceImplTest {
 
     @Mock StudentRepository studentRepository;
     @Mock StudentMapper studentMapper;
+    @Mock SequenceGeneratorService sequenceGenerator;
 
     @InjectMocks StudentServiceImpl studentService;
 
@@ -29,13 +32,16 @@ class StudentServiceImplTest {
         Student mapped = new Student();
         Student saved = new Student();
         StudentDTO out = new StudentDTO();
-
+    
+        // ⭐ add this line
+        when(sequenceGenerator.getNextStudentId()).thenReturn("STU-1");
+    
         when(studentMapper.toEntity(inputDto)).thenReturn(mapped);
         when(studentRepository.save(mapped)).thenReturn(saved);
         when(studentMapper.toDTO(saved)).thenReturn(out);
-
+    
         StudentDTO result = studentService.createStudent(inputDto);
-
+    
         assertSame(out, result);
         verify(studentMapper).toEntity(inputDto);
         verify(studentRepository).save(mapped);
