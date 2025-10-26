@@ -28,6 +28,8 @@ jobs:
       - name: Check modified paths
         id: changes
         uses: dorny/paths-filter@v3
+        base: ${{ github.event.workflow_run.pull_requests[0].base.sha }}
+        ref: ${{ github.event.workflow_run.head_sha }}
         with:
           filters: |
             frontend:
