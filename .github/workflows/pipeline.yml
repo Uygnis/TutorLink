@@ -86,7 +86,7 @@ jobs:
         with:
           languages: javascript, java
           queries: security-extended,security-and-quality
-
+          paths-ignore: frontend/dist/**
       - name: Install frontend dependencies
         run: |
           cd frontend
@@ -104,11 +104,7 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-        with:
-          paths: |
-            frontend/src
-            backend/src
-
+        
   # ----------------- SECURITY SCAN -----------------
   asp-scan-frontend:
     name: OWASP Scan - Frontend
