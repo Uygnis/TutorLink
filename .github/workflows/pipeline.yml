@@ -64,9 +64,9 @@ jobs:
 
       - name: Run Tests
         env:
-          SENTRY_DSN: ''
-          SENTRY_TRACES_SAMPLE_RATE: '0'
-          SENTRY_PROFILES_SAMPLE_RATE: '0'
+          SENTRY_DSN: ""
+          SENTRY_TRACES_SAMPLE_RATE: "0"
+          SENTRY_PROFILES_SAMPLE_RATE: "0"
         run: mvn clean test
 
   sast:
@@ -86,7 +86,7 @@ jobs:
         with:
           languages: javascript, java
           queries: security-extended,security-and-quality
-          paths-ignore: frontend/dist/**
+          config-file: .github/configs/codeql-config.yml
       - name: Install frontend dependencies
         run: |
           cd frontend
@@ -104,7 +104,7 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-        
+
   # ----------------- SECURITY SCAN -----------------
   asp-scan-frontend:
     name: OWASP Scan - Frontend
@@ -201,7 +201,7 @@ jobs:
         with:
           distribution: "temurin"
           java-version: 17
-          cache: "maven" 
+          cache: "maven"
 
       - name: Create application.yml
         run: |
