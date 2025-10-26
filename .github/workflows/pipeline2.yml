@@ -51,44 +51,53 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
       - name: Download ZAP report artifacts
         uses: actions/download-artifact@v4
         with:
           name: zap-html-report
           path: ./reports
-
-      - name: Analyze ZAP Report with Gemini
+          
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install google-genai html2text
-
-          export GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
-          REPORT_FILE="./reports/zap-report.html"
-
-          if [ ! -f "$REPORT_FILE" ]; then
-            echo "ZAP report not found!"
-            exit 1
-          fi
-
-          REPORT_TEXT=$(python - <<END
-          import html2text
-          with open("$REPORT_FILE", "r", encoding="utf-8") as f:
-              html = f.read()
-          text = html2text.html2text(html)
-          print(text)
-          END
-          )
           
-                    SUMMARY=$(python - <<END
-          import os, google.genai
+      - name: Analyze ZAP Report with Gemini
+        run: |
+          python - <<END
+          import os
+          import html2text
+          import google.genai
+          
+          # Set Gemini API key
+          os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
+          
+          REPORT_FILE = "./reports/zap-report.html"
+          
+          # Ensure report exists
+          if not os.path.isfile(REPORT_FILE):
+              print("ZAP report not found!")
+              exit(1)
+          
+          # Convert HTML to plain text
+          with open(REPORT_FILE, "r", encoding="utf-8") as f:
+              html_content = f.read()
+          
+          report_text = html2text.html2text(html_content)
+          
+          # Initialize Gemini client
           client = google.genai.Client()
+          
+          # Generate AI summary
           response = client.models.generate_content(
               model="gemini-2.5-flash",
-              contents=f"Summarize the following ZAP scan report and highlight key warnings and potential risks:\n\n{REPORT_TEXT}",
-          )
-          print(response.text)
-          END
+              contents=f"Summarize the following ZAP scan report and highlight key warnings and potential risks:\n\n{report_text}",
           )
           
-                    echo "===== Gemini-Infused ZAP Analysis ====="
-                    echo "$SUMMARY"
+          # Print AI summary
+          print("===== Gemini-Infused ZAP Analysis =====")
+          print(response.text)
+          END
