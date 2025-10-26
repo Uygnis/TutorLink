@@ -7,6 +7,7 @@ import com.csy.springbootauthbe.admin.entity.Permissions;
 import com.csy.springbootauthbe.admin.mapper.AdminMapper;
 import com.csy.springbootauthbe.admin.repository.AdminRepository;
 import com.csy.springbootauthbe.admin.util.AdminResponse;
+import com.csy.springbootauthbe.common.utils.SanitizedLogger;
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.repository.StudentRepository;
 import com.csy.springbootauthbe.student.utils.StudentResponse;
@@ -20,7 +21,6 @@ import com.csy.springbootauthbe.user.entity.User;
 import com.csy.springbootauthbe.user.repository.UserRepository;
 import com.csy.springbootauthbe.user.utils.UserResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +30,6 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AdminServiceImpl implements AdminService {
 
     private final AdminMapper adminMapper;
@@ -38,6 +37,7 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
     private final TutorRepository tutorRepository;
+    private static final SanitizedLogger logger = SanitizedLogger.getLogger(AdminServiceImpl.class);
 
 
     // -------------------------------
@@ -47,6 +47,7 @@ public class AdminServiceImpl implements AdminService {
     public List<UserResponse> viewStudents(String adminUserId) {
         checkAdminWithPermission(adminUserId, new Permissions[]{Permissions.VIEW_STUDENTS});
         List<User> students = userRepository.findAllByRole(Role.STUDENT);
+        logger.info("Total students: {}", students.size());
         return students.stream()
             .map(user -> {
                 UserResponse.UserResponseBuilder builder = UserResponse.builder()

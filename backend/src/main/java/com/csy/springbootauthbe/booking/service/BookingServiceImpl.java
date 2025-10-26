@@ -11,8 +11,6 @@ import com.csy.springbootauthbe.notification.service.NotificationService;
 import com.csy.springbootauthbe.user.entity.User;
 import com.csy.springbootauthbe.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +29,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final BookingMapper bookingMapper;
     private final NotificationService notificationService;
-    private static final SanitizedLogger logger = SanitizedLogger.getLogger(BookingService.class);
+    private static final SanitizedLogger logger = SanitizedLogger.getLogger(BookingServiceImpl.class);
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     @Override
     public BookingDTO createBooking(BookingRequest dto) {

@@ -1,7 +1,7 @@
 package com.csy.springbootauthbe.common.aws;
 
+import com.csy.springbootauthbe.common.utils.SanitizedLogger;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,10 +16,9 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AwsService {
     private final S3Client s3Client;
-
+    private static final SanitizedLogger logger = SanitizedLogger.getLogger(AwsService.class);
     @Value("${aws.s3.bucket}")
     public String bucketName;
 
@@ -80,9 +79,9 @@ public class AwsService {
 
         try {
             s3Client.deleteObject(b -> b.bucket(bucketName).key(key));
-            log.info("Deleted S3 file: {}", key);
+            logger.info("Deleted S3 file: {}", key);
         } catch (Exception e) {
-            log.error("Failed to delete S3 file: {}", key, e);
+            logger.error("Failed to delete S3 file: {}", key, e);
             throw new RuntimeException("Failed to delete S3 file: " + key, e);
         }
     }
