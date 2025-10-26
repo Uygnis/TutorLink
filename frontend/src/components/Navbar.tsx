@@ -1,11 +1,96 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAppDispatch } from "@/redux/store";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { setUser } from "@/redux/userSlice";
+import { navConfig } from "@/components/NavLinks";
+import { useEffect, useState } from "react";
+import { GetAdminByUserId } from "@/api/adminAPI";
+import NotificationsModal from "./NotificationsModal";
+import { fetchNotifications, markNotificationAsRead } from "@/api/notificationAPI";
+import { NotificationType } from "@/types/NotificationType";
 
 const Navbar = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { user } = useAppSelector((state) => state.user);
+  const role = user?.role || "ADMIN";
+
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationType[]>([]);
+
+  // -------------------------
+  // Initial fetch + SSE
+  // -------------------------
+  useEffect(() => {
+    if (!user?.id || !user?.token) return;
+
+    // 1️⃣ Fetch existing notifications
+    fetchNotifications(user.id, user.token)
+      .then((res) => setNotifications(res.data))
+      .catch((err) => console.error("Failed to fetch notifications:", err));
+
+    // 2️⃣ SSE subscription
+    const eventSource = new EventSource(
+      `http://localhost:8080/api/notifications/stream/${user.id}`
+    );
+
+    eventSource.onmessage = (event) => {
+      const newNotification: NotificationType = JSON.parse(event.data);
+      setNotifications((prev) => [newNotification, ...prev]);
+    };
+
+    eventSource.onerror = (err) => {
+      console.error("SSE error:", err);
+      eventSource.close();
+    };
+
+    return () => eventSource.close();
+  }, [user?.id, user?.token]);
+
+  // -------------------------
+  // Mark notification as read
+  // -------------------------
+  const handleMarkAsRead = async (notificationId: string) => {
+    if (!user?.token) return;
+    try {
+      await markNotificationAsRead(notificationId, user.token);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+      );
+    } catch (err) {
+      console.error("Failed to mark notification as read", err);
+    }
+  };
+
+  // -------------------------
+  // Admin permissions
+  // -------------------------
+  useEffect(() => {
+    if (role !== "ADMIN" || !user?.id || !user?.token) return;
+    if (user.permissions && user.permissions.length > 0) return;
+
+    const fetchPermissions = async () => {
+      try {
+        const response = await GetAdminByUserId(user.id, user.token);
+        const perms = response.data.permissions || [];
+        const updatedUser = { ...user, permissions: perms };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        dispatch(setUser(updatedUser));
+      } catch (err) {
+        console.error("Failed to fetch admin permissions", err);
+      }
+    };
+
+    fetchPermissions();
+  }, [role, user, dispatch]);
+
+  const navLinks = (navConfig[role] || []).filter(
+    (link) =>
+      !link.requiredPermissions ||
+      link.requiredPermissions.length === 0 ||
+      link.requiredPermissions.some((perm: string) => user?.permissions?.includes(perm))
+  );
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -14,29 +99,25 @@ const Navbar = () => {
     navigate("/login");
   };
 
-  const navLinks = [
-    { name: "Home", path: "/admin/dashboard" },
-    { name: "Doctor", path: "/admin/doctors" },
-  ];
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="w-full bg-primary  h-16 flex items-stretch justify-between px-6">
-      {/* Left side */}
+    <div className="w-full bg-white h-16 flex items-stretch justify-between px-6 border-b border-gray-300 sticky top-0 z-50">
       <div className="flex items-stretch space-x-6">
-        <div className="text-2xl font-bold text-white flex items-center">🏥</div>
+        <div className="text-2xl font-bold text-primary flex items-center">TutorLink</div>
 
         {navLinks.map((link) => {
           const isActive =
-            location.pathname === link.path || location.pathname.startsWith(link.path + "/");
+            location.pathname === link.path || location.pathname.startsWith(link.path);
 
           return (
             <a
               key={link.path}
               href={link.path}
-              className={`flex items-center px-4 text-sm font-medium transition ${
+              className={`flex items-center px-4 text-medium transition ${
                 isActive
-                  ? "bg-white text-primary h-full"
-                  : "text-white hover:bg-white hover:text-primary"
+                  ? "text-white font-bold bg-primary my-4 rounded-lg"
+                  : "text-gray-600 hover:bg-gray-200 hover:text-primary"
               }`}>
               {link.name}
             </a>
@@ -44,14 +125,34 @@ const Navbar = () => {
         })}
       </div>
 
-      {/* Logout Button */}
-      <div className="flex items-center">
+      <div className="flex items-center gap-4">
+        {/* Notifications Button */}
+        <button
+          onClick={() => setIsNotifOpen(true)}
+          className="relative px-3 py-1 bg-primary text-white rounded-md hover:bg-primary/90 transition">
+          Notifications
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+              {unreadCount}
+            </span>
+          )}
+        </button>
+
         <button
           onClick={handleLogout}
-          className="rounded-lg bg-white text-primary px-4 py-2 transition duration-300 hover:bg-gray-200 hover:text-primary">
+          className="rounded-lg bg-primary text-white px-4 py-2 transition duration-300 hover:bg-gray-200 hover:text-primary">
           Logout
         </button>
       </div>
+
+      <NotificationsModal
+        isOpen={isNotifOpen}
+        onClose={() => setIsNotifOpen(false)}
+        notifications={notifications.map((n) => ({
+          ...n,
+          onClick: () => handleMarkAsRead(n.id),
+        }))}
+      />
     </div>
   );
 };

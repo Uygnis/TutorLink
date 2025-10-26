@@ -1,5 +1,8 @@
 package com.csy.springbootauthbe.user.service;
 
+import com.csy.springbootauthbe.admin.dto.AdminDTO;
+import com.csy.springbootauthbe.admin.service.AdminService;
+import com.csy.springbootauthbe.common.utils.SanitizedLogger;
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.service.StudentService;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
@@ -14,6 +17,8 @@ import com.csy.springbootauthbe.user.entity.Role;
 import com.csy.springbootauthbe.user.entity.User;
 import com.csy.springbootauthbe.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,16 +35,22 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final StudentService studentService;
     private final TutorService tutorService;
+    private final AdminService adminService;
+
+    private static final SanitizedLogger logger = SanitizedLogger.getLogger(AuthenticationService.class);
 
     public AuthenticationResponse register(RegisterRequest request) {
-
-        AccountStatus status = AccountStatus.ACTIVE;
+        logger.info("Register request received: email={}, role={}", request.getEmail(), request.getRole());
 
         if (repository.existsByEmail(request.getEmail())) {
+            logger.warn("Registration failed: Email already exists - {}", request.getEmail());
             throw new DataIntegrityViolationException("Email already exists");
         }
 
         Role userRole = getUserRole(request);
+
+        AccountStatus status = userRole == Role.TUTOR ?
+            AccountStatus.UNVERIFIED : AccountStatus.ACTIVE;
 
         var user = User.builder()
                 .firstname(request.getFirstname())
@@ -51,27 +62,40 @@ public class AuthenticationService {
                 .build();
 
         repository.save(user);
+        logger.info("User saved successfully: id={}, email={}", user.getId(), user.getEmail());
 
-        // If the user is a student, create Student entity
+        // Create student entity if role is STUDENT
         if (userRole == Role.STUDENT) {
             var studentDTO = StudentDTO.builder()
                     .userId(user.getId())
                     .studentNumber(request.getStudentNumber())
                     .gradeLevel(request.getGradeLevel())
                     .build();
-
             studentService.createStudent(studentDTO);
+            logger.info("Student entity created for userId={}", user.getId());
         }
 
-        // If the user is a tutor, create tutor entity
-        if (userRole == Role.TUTOR){
-            TutorDTO tutorDTO = TutorDTO.builder()
-                    .userId(user.getId()).build();
-
+        // Create tutor entity if role is TUTOR
+        if (userRole == Role.TUTOR) {
+            TutorDTO tutorDTO = TutorDTO.builder().userId(user.getId()).subject(request.getSubject()).build();
             tutorService.createTutor(tutorDTO);
+            logger.info("Tutor entity created for userId={}", user.getId());
         }
+
+        // Create admin entity if role is ADMIN
+        if (userRole == Role.ADMIN) {
+            AdminDTO adminDTO = AdminDTO.builder()
+                .userId(user.getId())
+                .permissions(request.getPermissions())
+                .build();
+            adminService.createAdmin(adminDTO);
+            logger.info("Admin entity created for userId={}", user.getId());
+        }
+
+
 
         var jwtToken = jwtService.generateToken(user);
+        logger.info("JWT generated for userId={}", user.getId());
 
         UserResponse userObj = UserResponse.builder()
                 .id(user.getId())
@@ -82,30 +106,54 @@ public class AuthenticationService {
                 .token(jwtToken)
                 .build();
 
+        logger.info("Registration successful for userId={}", user.getId());
+
         return AuthenticationResponse.builder()
                 .message("User Registered successfully.")
                 .user(userObj)
                 .build();
     }
 
-
     public AuthenticationResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        logger.info("Login request received: email={}", request.getEmail());
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+            logger.info("Authentication successful for email={}", request.getEmail());
+        } catch (Exception e) {
+            logger.error("Authentication failed for email={}. Error: {}", request.getEmail(), e.getMessage());
+            throw e;
+        }
 
         var user = repository.findByEmail(request.getEmail())
-                .orElseThrow();
+                .orElseThrow(() -> {
+                    logger.error("User not found for email={}", request.getEmail());
+                    return new IllegalArgumentException("User not found");
+                });
+
+        if (user.getStatus() == AccountStatus.SUSPENDED) {
+            logger.warn("Login blocked: User is suspended. userId={}", user.getId());
+            throw new RuntimeException("Your account has been suspended. Please contact administrator for support.");
+        }
+
+        if (user.getStatus() == AccountStatus.DELETED) {
+            logger.warn("Login blocked: User is deleted. userId={}", user.getId());
+            throw new RuntimeException("Your account has been deleted. Please contact administrator for support.");
+        }
 
         var jwtToken = jwtService.generateToken(user);
+        logger.info("JWT generated for login: userId={}", user.getId());
 
         UserResponse userObj = UserResponse.builder()
-                .id(user.getId()) // String ID
+                .id(user.getId())
                 .name(user.getFirstname() + " " + user.getLastname())
                 .email(user.getEmail())
                 .role(user.getRole())
                 .token(jwtToken)
                 .build();
+
+        logger.info("Login successful for userId={}", user.getId());
 
         return AuthenticationResponse.builder()
                 .message("User Login successfully.")

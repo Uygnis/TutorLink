@@ -1,8 +1,14 @@
 package com.csy.springbootauthbe.tutor.entity;
 
+import com.csy.springbootauthbe.tutor.dto.TutorDTO;
+import com.csy.springbootauthbe.tutor.dto.TutorStagedProfileDTO;
+import com.csy.springbootauthbe.user.entity.AccountStatus;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -13,9 +19,21 @@ public class Tutor {
 
     @Id
     private String id;
-
-    // Reference to User document for login credentials
+    private String subject;
+    // Reference to User document for login credentials, composite
     private String userId;
+    private Double hourlyRate;
 
+    // List of uploaded qualifications
+    private List<QualificationFile> qualifications;
+    private Map<String, Availability> availability;
+
+    private String profileImageUrl;
+    private List<String> lessonType;
+    private String description;
+    private String rejectedReason;
+
+    private TutorStagedProfileDTO stagedProfile;
+    private AccountStatus previousStatus;
 }
 

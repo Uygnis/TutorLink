@@ -46,6 +46,7 @@ public class UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         EnumSet<Role> roles = EnumSet.allOf(Role.class);
+
         if (!roles.contains(user.getRole())) {
             throw new AccessDeniedException("Only Users can access this endpoint.");
         }

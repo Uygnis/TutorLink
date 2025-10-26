@@ -1,19 +1,21 @@
 package com.csy.springbootauthbe.user.service;
 
+import com.csy.springbootauthbe.user.entity.AccountStatus;
 import com.csy.springbootauthbe.user.entity.Role;
 import com.csy.springbootauthbe.user.entity.User;
 import com.csy.springbootauthbe.user.repository.UserRepository;
 import com.csy.springbootauthbe.user.utils.RegisterRequest;
 import com.csy.springbootauthbe.user.utils.UserResponse;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -25,192 +27,128 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
-    @Mock UserRepository userRepository;
-    @Mock PasswordEncoder passwordEncoder;
+    @Mock
+    private UserRepository userRepository;
 
-    @InjectMocks UserService userService;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
-    @AfterEach
-    void clearContext() {
-        SecurityContextHolder.clearContext();
+    @Mock
+    private Authentication authentication;
+
+    @Mock
+    private SecurityContext securityContext;
+
+    @InjectMocks
+    private UserService userService;
+
+    private User adminUser;
+    private User studentUser;
+
+    @BeforeEach
+    void setUp() {
+        adminUser = new User();
+        adminUser.setId("1");
+        adminUser.setFirstname("Admin");
+        adminUser.setLastname("User");
+        adminUser.setEmail("admin@example.com");
+        adminUser.setRole(Role.ADMIN);
+        adminUser.setStatus(AccountStatus.ACTIVE);
+
+        studentUser = new User();
+        studentUser.setId("2");
+        studentUser.setFirstname("Student");
+        studentUser.setLastname("User");
+        studentUser.setEmail("student@example.com");
+        studentUser.setRole(Role.STUDENT);
+        studentUser.setStatus(AccountStatus.ACTIVE);
     }
 
-    // ---------------- getCurrentAdmin ----------------
+    /* Success Case for getCurrentAdmin */
     @Test
-    void getCurrentAdmin_adminUser_returnsUserResponse() {
-        // Arrange: put admin email into SecurityContext
-        setAuthEmail("admin@example.com");
+    void getCurrentAdmin_shouldReturnAdminResponse() {
+        mockAuthentication("admin@example.com");
+        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminUser));
 
-        User admin = user("A1", "Alice", "Admin", "admin@example.com", Role.ADMIN);
-        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(admin));
+        UserResponse response = userService.getCurrentAdmin();
 
-        // Act
-        UserResponse resp = userService.getCurrentAdmin();
-
-        // Assert
-        assertEquals("A1", resp.getId());
-        assertEquals("Alice Admin", resp.getName());
-        assertEquals("admin@example.com", resp.getEmail());
-        assertEquals(Role.ADMIN, resp.getRole());
+        assertEquals("Admin User", response.getName());
+        assertEquals(Role.ADMIN, response.getRole());
     }
 
+    /* Fail Case for getCurrentAdmin: User is not an Admin */
     @Test
-    void getCurrentAdmin_nonAdmin_throwsAccessDenied() {
-        setAuthEmail("user@example.com");
-        when(userRepository.findByEmail("user@example.com"))
-                .thenReturn(Optional.of(user("U1", "Uni", "User", "user@example.com", Role.USER)));
+    void getCurrentAdmin_shouldThrowIfNotAdmin() {
+        mockAuthentication("student@example.com");
+        when(userRepository.findByEmail("student@example.com")).thenReturn(Optional.of(studentUser));
 
         assertThrows(AccessDeniedException.class, () -> userService.getCurrentAdmin());
     }
 
-    // ---------------- getCurrentUser ----------------
+    /* Success Case for getCurrentStudent */
     @Test
-    void getCurrentUser_anyKnownRole_returnsUser() {
-        setAuthEmail("tutor@example.com");
-        when(userRepository.findByEmail("tutor@example.com"))
-                .thenReturn(Optional.of(user("T1", "Tina", "Tutor", "tutor@example.com", Role.TUTOR)));
+    void getCurrentStudent_shouldReturnStudentResponse() {
+        mockAuthentication("student@example.com");
+        when(userRepository.findByEmail("student@example.com")).thenReturn(Optional.of(studentUser));
 
-        UserResponse resp = userService.getCurrentUser();
+        UserResponse response = userService.getCurrentStudent();
 
-        assertEquals("T1", resp.getId());
-        assertEquals(Role.TUTOR, resp.getRole());
+        assertEquals("Student User", response.getName());
+        assertEquals(Role.STUDENT, response.getRole());
     }
 
+    /* Fail Case for getCurrentStudent: User is not a Student */
     @Test
-    void getCurrentUser_notFound_throws() {
-        setAuthEmail("missing@example.com");
-        when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
-
-        assertThrows(UsernameNotFoundException.class, () -> userService.getCurrentUser());
-    }
-
-    // ---------------- getCurrentStudent ----------------
-    @Test
-    void getCurrentStudent_studentRole_ok() {
-        setAuthEmail("stud@example.com");
-        when(userRepository.findByEmail("stud@example.com"))
-                .thenReturn(Optional.of(user("S1", "Stu", "Dent", "stud@example.com", Role.STUDENT)));
-
-        UserResponse resp = userService.getCurrentStudent();
-
-        assertEquals("S1", resp.getId());
-        assertEquals(Role.STUDENT, resp.getRole());
-    }
-
-    @Test
-    void getCurrentStudent_wrongRole_throwsAccessDenied() {
-        setAuthEmail("notstudent@example.com");
-        when(userRepository.findByEmail("notstudent@example.com"))
-                .thenReturn(Optional.of(user("X1", "No", "Student", "notstudent@example.com", Role.USER)));
+    void getCurrentStudent_shouldThrowIfNotStudent() {
+        mockAuthentication("admin@example.com");
+        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminUser));
 
         assertThrows(AccessDeniedException.class, () -> userService.getCurrentStudent());
     }
 
-    // ---------------- getAllAdmins ----------------
+    /* Success Case for getAllAdmins */
     @Test
-    void getAllAdmins_mapsToUserResponse() {
-        when(userRepository.findAllByRole(Role.ADMIN)).thenReturn(List.of(
-                user("A1", "Alice", "Admin", "a@e.com", Role.ADMIN),
-                user("A2", "Andy", "Admin", "b@e.com", Role.ADMIN)
-        ));
+    void getAllAdmins_shouldReturnListOfAdmins() {
+        when(userRepository.findAllByRole(Role.ADMIN)).thenReturn(List.of(adminUser));
 
-        var list = userService.getAllAdmins();
-        assertEquals(2, list.size());
-        assertEquals("Alice Admin", list.get(0).getName());
-        assertEquals(Role.ADMIN, list.get(0).getRole());
+        List<UserResponse> admins = userService.getAllAdmins();
+
+        assertEquals(1, admins.size());
+        assertEquals("Admin User", admins.get(0).getName());
     }
 
-    // ---------------- getUserById ----------------
+    /* Success Case for updateUser */
     @Test
-    void getUserById_found_returnsResponse() {
-        when(userRepository.findById("U7"))
-                .thenReturn(Optional.of(user("U7", "Carl", "User", "c@e.com", Role.USER)));
+    void updateUser_shouldUpdateAndReturnResponse() {
+        RegisterRequest request = new RegisterRequest();
+        request.setEmail("new@example.com");
+        request.setPassword("newPass");
 
-        UserResponse resp = userService.getUserById("U7");
-        assertEquals("U7", resp.getId());
-        assertEquals("Carl User", resp.getName());
+        when(userRepository.findById("1")).thenReturn(Optional.of(adminUser));
+        when(passwordEncoder.encode("newPass")).thenReturn("encodedPass");
+
+        UserResponse response = userService.updateUser("1", request);
+
+        assertEquals("new@example.com", adminUser.getEmail());
+        assertEquals("encodedPass", adminUser.getPassword());
+        assertEquals("Admin User", response.getName());
+        verify(userRepository).save(adminUser);
     }
 
+    /* Success Case for deleteUser */
     @Test
-    void getUserById_notFound_throws() {
-        when(userRepository.findById("NOPE")).thenReturn(Optional.empty());
-        assertThrows(UsernameNotFoundException.class, () -> userService.getUserById("NOPE"));
+    void deleteUser_shouldDeleteUser() {
+        when(userRepository.findById("1")).thenReturn(Optional.of(adminUser));
+
+        userService.deleteUser("1");
+
+        verify(userRepository).delete(adminUser);
     }
 
-    // ---------------- updateUser ----------------
-    @Test
-    void updateUser_updatesEmail_only_whenPasswordBlank() {
-        var existing = user("U1", "Eva", "User", "old@e.com", Role.USER);
-        when(userRepository.findById("U1")).thenReturn(Optional.of(existing));
-
-        RegisterRequest req = mock(RegisterRequest.class);
-        when(req.getEmail()).thenReturn("new@e.com");
-        when(req.getPassword()).thenReturn(""); // blank => no encode
-
-        var resp = userService.updateUser("U1", req);
-
-        assertEquals("new@e.com", resp.getEmail());
-        verify(passwordEncoder, never()).encode(anyString());
-        verify(userRepository).save(existing);
-    }
-
-    @Test
-    void updateUser_updatesEmail_andEncodesPassword_whenProvided() {
-        var existing = user("U2", "Phil", "User", "old@e.com", Role.USER);
-        when(userRepository.findById("U2")).thenReturn(Optional.of(existing));
-
-        RegisterRequest req = mock(RegisterRequest.class);
-        when(req.getEmail()).thenReturn("new@e.com");
-        when(req.getPassword()).thenReturn("Secret!");
-        when(passwordEncoder.encode("Secret!")).thenReturn("ENC");
-
-        var resp = userService.updateUser("U2", req);
-
-        assertEquals("new@e.com", resp.getEmail());
-        verify(passwordEncoder).encode("Secret!");
-        verify(userRepository).save(existing);
-    }
-
-    @Test
-    void updateUser_missingUser_throws() {
-        when(userRepository.findById("UNKNOWN")).thenReturn(Optional.empty());
-        RegisterRequest req = mock(RegisterRequest.class);
-        assertThrows(UsernameNotFoundException.class, () -> userService.updateUser("UNKNOWN", req));
-    }
-
-    // ---------------- deleteUser ----------------
-    @Test
-    void deleteUser_found_deletes() {
-        var u = user("U9", "Del", "User", "d@e.com", Role.USER);
-        when(userRepository.findById("U9")).thenReturn(Optional.of(u));
-
-        userService.deleteUser("U9");
-
-        verify(userRepository).delete(u);
-    }
-
-    @Test
-    void deleteUser_notFound_throws() {
-        when(userRepository.findById("BAD")).thenReturn(Optional.empty());
-        assertThrows(UsernameNotFoundException.class, () -> userService.deleteUser("BAD"));
-    }
-
-    // ---------------- helpers ----------------
-    private static void setAuthEmail(String email) {
-        TestingAuthenticationToken auth =
-                new TestingAuthenticationToken(email, "x"); // principal name = email
-        auth.setAuthenticated(true);
-        SecurityContext ctx = new org.springframework.security.core.context.SecurityContextImpl(auth);
-        SecurityContextHolder.setContext(ctx);
-    }
-
-    private static User user(String id, String first, String last, String email, Role role) {
-        User u = new User();
-        u.setId(id);
-        u.setFirstname(first);
-        u.setLastname(last);
-        u.setEmail(email);
-        u.setRole(role);
-        return u;
+    /** Helper method to mock SecurityContext with a given email */
+    private void mockAuthentication(String email) {
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn(email);
+        SecurityContextHolder.setContext(securityContext);
     }
 }

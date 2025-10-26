@@ -12,8 +12,10 @@ export const RegisterUser = async (userData: {
   email: string;
   password: string;
   role: string;
-  studentNumber?: string;
-  gradeLevel?: string;
+  studentNumber?: string; // optional
+  gradeLevel?: string; // optional
+  subject?: string; // optional for tutors
+  permissions?: string[]; // optional for admins
 }): Promise<AxiosResponse<any>> => {
   const url: string = `${import.meta.env.VITE_APP_API}/auth/register`;
   return await axios.post(url, userData);
