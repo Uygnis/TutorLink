@@ -129,6 +129,7 @@ public class BookingServiceImpl implements BookingService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public List<BookingDTO> getBookingsForTutorBetweenDates(String tutorId, String startDate, String endDate) {
         logger.info("Fetching bookings for tutorId={} between {} and {}", tutorId, startDate, endDate);
 
@@ -267,6 +268,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Transactional
+    @Override
     public BookingDTO requestReschedule(String bookingId, BookingRequest newSlotRequest) {
         logger.info("Requesting reschedule for bookingId={} with payload: {}", bookingId, newSlotRequest);
 
@@ -324,6 +326,7 @@ public class BookingServiceImpl implements BookingService {
 
 
     @Transactional
+    @Override
     public BookingDTO approveReschedule(String newBookingId) {
         // 1. Fetch new booking
         Booking newBooking = bookingRepository.findById(newBookingId)
