@@ -17,6 +17,8 @@ import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.csy.springbootauthbe.booking.repository.BookingRepository;
+
 
 @SpringBootTest(
    classes = SpringbootAuthBeApplication.class,
@@ -59,6 +61,9 @@ class SpringbootAuthBeApplicationTests {
 
    @MockBean
    private GridFsTemplate gridFsTemplate;
+
+   @MockBean
+   private BookingRepository bookingRepository;
 
    @Test
    void contextLoads() {
