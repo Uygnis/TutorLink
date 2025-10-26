@@ -2,10 +2,10 @@ name: DAST Scan
 
 on:
   workflow_dispatch: # manual trigger
-  # workflow_run:
-  #   workflows: ["Deploy Pipeline"]
-  #   types:
-  #     - completed
+  workflow_run:
+    workflows: ["Deploy Pipeline"]
+    types:
+      - completed
 
 jobs:
   dast:
@@ -36,8 +36,6 @@ jobs:
             zap-baseline.py \
             -t "${{ secrets.STAGING_URL }}" \
             -r zap-report.html \
-            -j zap-report.json \
-            -J zap-report.json \
             -d || true
 
       - name: Upload HTML report artifact
@@ -45,9 +43,3 @@ jobs:
         with:
           name: zap-html-report
           path: zap-report.html
-
-      - name: Upload JSON report artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-json-report
-          path: zap-report.json
