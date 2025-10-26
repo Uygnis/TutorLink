@@ -31,18 +31,18 @@ jobs:
         with:
           target: ${{ secrets.STAGING_URL }}
           cmd_options: >
-            -r $GITHUB_WORKSPACE/zap-report.html
-            -j $GITHUB_WORKSPACE/zap-report.json
+            -r zap-report.html
+            -j zap-report.json
             -d
 
       - name: Upload HTML report artifact
         uses: actions/upload-artifact@v4
         with:
           name: zap-html-report
-          path: $GITHUB_WORKSPACE/zap-report.html
+          path: zap-report.html
 
       - name: Upload JSON report artifact
         uses: actions/upload-artifact@v4
         with:
           name: zap-json-report
-          path: $GITHUB_WORKSPACE/zap-report.json
+          path: zap-report.json
