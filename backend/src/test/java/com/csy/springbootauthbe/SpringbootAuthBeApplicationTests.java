@@ -8,43 +8,41 @@ import com.csy.springbootauthbe.tutor.repository.TutorRepository;
 import com.csy.springbootauthbe.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
-import org.springframework.test.context.TestPropertySource;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(
-        classes = SpringbootAuthBeApplicationTests.TestConfig.class,
-        webEnvironment = SpringBootTest.WebEnvironment.NONE
+        classes = SpringbootAuthBeApplicationTests.EmptyConfig.class,
+        webEnvironment = SpringBootTest.WebEnvironment.NONE,
+        properties = {
+                // hard-disable Mongo auto-config & repo scanning
+                "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration,org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration",
+                "spring.data.mongodb.repositories.enabled=false",
+
+                // any app props required by your beans
+                "aws.s3.access-key=dummy",
+                "aws.s3.secret-key=dummy",
+                "aws.s3.region=us-east-1",
+                "aws.s3.bucket=test-bucket",
+                "jwt.secret.key=dummy",
+
+                // keep it non-web
+                "spring.main.web-application-type=none"
+        }
 )
-@EnableAutoConfiguration(exclude = {
-        MongoAutoConfiguration.class,
-        MongoDataAutoConfiguration.class
-})
-@TestPropertySource(properties = {
-        "aws.s3.access-key=dummy",
-        "aws.s3.secret-key=dummy",
-        "aws.s3.region=us-east-1",
-        "aws.s3.bucket=test-bucket",
-        "jwt.secret.key=dummy",
-        "spring.main.web-application-type=none"
-})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SpringbootAuthBeApplicationTests {
 
-    @EnableAutoConfiguration(exclude = {
-            MongoAutoConfiguration.class,
-            MongoDataAutoConfiguration.class
-    })
-    static class TestConfig {}
+    /** Minimal, no component scan. */
+    @SpringBootConfiguration
+    static class EmptyConfig { }
 
-    // --- Mock all repositories your services depend on ---
+    // Mock any repositories/services your code might touch during context startup
     @MockBean private AdminRepository adminRepository;
     @MockBean private UserRepository userRepository;
     @MockBean private TutorRepository tutorRepository;
@@ -52,7 +50,7 @@ class SpringbootAuthBeApplicationTests {
     @MockBean private DoctorRepository doctorRepository;
     @MockBean private BookingRepository bookingRepository;
 
-    // --- Mock infrastructure beans that use Mongo directly ---
+    // Mock Mongo infrastructure if anything tries to inject it
     @MockBean private MongoTemplate mongoTemplate;
     @MockBean private GridFsTemplate gridFsTemplate;
 
