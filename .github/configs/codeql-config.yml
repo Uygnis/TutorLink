@@ -8,4 +8,4 @@ paths-ignore:
   - frontend/dist/**
   - backend/target/**
   - node_modules/**
-  - **/test/** 
+  - backend/src/test/** 
