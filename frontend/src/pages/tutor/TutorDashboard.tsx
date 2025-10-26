@@ -7,7 +7,9 @@ import { GetTutorProfile } from "@/api/tutorAPI";
 import ProfilePicModal from "@/components/ProfilePicModal";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
 import { Tutor } from "@/types/TutorType";
-import AvailabilityCalendar, { TimeSlot } from "@/components/AvailabilityCalendar";
+import AvailabilityCalendar, {
+  TimeSlot,
+} from "@/components/AvailabilityCalendar";
 import { useMemo } from "react";
 import {
   AcceptBooking,
@@ -42,7 +44,8 @@ const TutorDashboard = () => {
       start: string;
     }[]
   >([]);
-  const [recentBookedSlotsCount, setRecentBookedSlotsCount] = useState<number>(0);
+  const [recentBookedSlotsCount, setRecentBookedSlotsCount] =
+    useState<number>(0);
   const [recentBookedSlots, setRecentBookedSlots] = useState<
     {
       date: string;
@@ -89,7 +92,10 @@ const TutorDashboard = () => {
       const response = await GetTutorProfile(user.token, id);
       if (response.data) {
         console.log("Tutor Profile Data:", response.data);
-        if (response.data.status === "PENDING_APPROVAL" && response.data.stagedProfile) {
+        if (
+          response.data.status === "PENDING_APPROVAL" &&
+          response.data.stagedProfile
+        ) {
           const stagedProfile = {
             ...response.data.stagedProfile,
             status: "PENDING_APPROVAL",
@@ -166,7 +172,12 @@ const TutorDashboard = () => {
     ).padStart(2, "0")}`;
 
     try {
-      const res = await GetBookingsForTutorRange(user.id, firstDay, lastDay, user.token!);
+      const res = await GetBookingsForTutorRange(
+        user.id,
+        firstDay,
+        lastDay,
+        user.token!
+      );
       setBookedSlots(
         res.data.map((b: any) => ({
           date: b.date,
@@ -197,7 +208,9 @@ const TutorDashboard = () => {
 
   const modal = (data: { date: Date; slot: TimeSlot }) => {
     const booking = bookedSlots.find(
-      (item) => item.date === data.date.toLocaleDateString("en-CA") && item.status !== "cancelled"
+      (item) =>
+        item.date === data.date.toLocaleDateString("en-CA") &&
+        item.status !== "cancelled"
     );
 
     if (!booking) return null;
@@ -257,10 +270,14 @@ const TutorDashboard = () => {
     try {
       await CancelBooking(bookingId, user.id, user.token);
       setBookedSlots((prev) =>
-        prev.map((b) => (b.id === bookingId ? { ...b, status: "cancelled" } : b))
+        prev.map((b) =>
+          b.id === bookingId ? { ...b, status: "cancelled" } : b
+        )
       );
       setRecentBookedSlots((prev) =>
-        prev.map((b) => (b.id === bookingId ? { ...b, status: "cancelled" } : b))
+        prev.map((b) =>
+          b.id === bookingId ? { ...b, status: "cancelled" } : b
+        )
       );
       alert(
         `✅ Booking rejected on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
@@ -285,10 +302,14 @@ const TutorDashboard = () => {
     try {
       await AcceptBooking(bookingId, user.token);
       setBookedSlots((prev) =>
-        prev.map((b) => (b.id === bookingId ? { ...b, status: "confirmed" } : b))
+        prev.map((b) =>
+          b.id === bookingId ? { ...b, status: "confirmed" } : b
+        )
       );
       setRecentBookedSlots((prev) =>
-        prev.map((b) => (b.id === bookingId ? { ...b, status: "confirmed" } : b))
+        prev.map((b) =>
+          b.id === bookingId ? { ...b, status: "confirmed" } : b
+        )
       );
       alert(
         `✅ Booking accepted on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
@@ -308,9 +329,9 @@ const TutorDashboard = () => {
     try {
       await ApproveReschedule(bookingId, user.token);
       alert(
-        `✅ Reschedule approved on ${selectedSlot.date.toLocaleDateString("en-CA")} | ${
-          selectedSlot.slot.start
-        } - ${selectedSlot.slot.end}`
+        `✅ Reschedule approved on ${selectedSlot.date.toLocaleDateString(
+          "en-CA"
+        )} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
       );
 
       // Refresh booked slots for the month to immediately update AvailabilityCalendar
@@ -346,6 +367,7 @@ const TutorDashboard = () => {
         toast.error("Failed to load tutor data.");
       }
     });
+    console.log(`Recent booked slot count: ${recentBookedSlotsCount}`);
   }, [user, monthStart, navigate]);
 
   return (
@@ -359,7 +381,8 @@ const TutorDashboard = () => {
 
           <button
             onClick={() => navigate("/tutor/wallet")}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+          >
             Go to Wallet
           </button>
         </div>
@@ -389,7 +412,8 @@ const TutorDashboard = () => {
 
               {/* List of upcoming sessions */}
               <div className="mb-4">
-                {recentBookedSlots.filter((b) => b.status !== "cancelled").length > 0 ? (
+                {recentBookedSlots.filter((b) => b.status !== "cancelled")
+                  .length > 0 ? (
                   <ul className="divide-y divide-gray-200">
                     {recentBookedSlots
                       .filter(
@@ -398,9 +422,16 @@ const TutorDashboard = () => {
                           b.status === "pending" ||
                           b.status === "on_hold"
                       )
-                      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                      .sort(
+                        (a, b) =>
+                          new Date(a.date).getTime() -
+                          new Date(b.date).getTime()
+                      )
                       .map((b) => (
-                        <li key={b.id} className="py-3 flex justify-between items-center">
+                        <li
+                          key={b.id}
+                          className="py-3 flex justify-between items-center"
+                        >
                           <div>
                             <p className="font-medium text-gray-900">
                               {new Date(b.date).toLocaleDateString("en-GB", {
@@ -419,7 +450,8 @@ const TutorDashboard = () => {
                                     : b.status === "pending"
                                     ? "text-yellow-600"
                                     : "text-gray-400"
-                                }`}>
+                                }`}
+                              >
                                 {b.status}
                               </span>
                             </p>
@@ -432,14 +464,17 @@ const TutorDashboard = () => {
                                 end: "",
                               })
                             }
-                            className="text-blue-600 hover:underline">
+                            className="text-blue-600 hover:underline"
+                          >
                             View
                           </button>
                         </li>
                       ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-400 text-center">No upcoming sessions yet.</p>
+                  <p className="text-gray-400 text-center">
+                    No upcoming sessions yet.
+                  </p>
                 )}
               </div>
 
@@ -468,15 +503,24 @@ const TutorDashboard = () => {
                 </span>
               </h2>
 
-              {pastBookedSlots.filter((b) => new Date(b.date) < new Date()).length > 0 ? (
+              {pastBookedSlots.filter((b) => new Date(b.date) < new Date())
+                .length > 0 ? (
                 <ul className="space-y-3 mt-3">
                   {pastBookedSlots
-                    .filter((b) => b.status === "confirmed" && new Date(b.date) < new Date())
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .filter(
+                      (b) =>
+                        b.status === "confirmed" &&
+                        new Date(b.date) < new Date()
+                    )
+                    .sort(
+                      (a, b) =>
+                        new Date(b.date).getTime() - new Date(a.date).getTime()
+                    )
                     .map((b) => (
                       <li
                         key={b.id}
-                        className="p-3 bg-gray-50 rounded-md shadow-sm flex justify-between items-center">
+                        className="p-3 bg-gray-50 rounded-md shadow-sm flex justify-between items-center"
+                      >
                         <div>
                           <p className="font-medium text-gray-800">
                             {new Date(b.date).toLocaleDateString(undefined, {
@@ -487,8 +531,12 @@ const TutorDashboard = () => {
                             })}{" "}
                             | {b.start}
                           </p>
-                          <p className="text-gray-600 text-sm">{b.lessonType}</p>
-                          <p className="text-gray-500 text-sm">Student: {b.studentId}</p>
+                          <p className="text-gray-600 text-sm">
+                            {b.lessonType}
+                          </p>
+                          <p className="text-gray-500 text-sm">
+                            Student: {b.studentId}
+                          </p>
                         </div>
                         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                           {b.status.charAt(0).toUpperCase() + b.status.slice(1)}
@@ -497,7 +545,9 @@ const TutorDashboard = () => {
                     ))}
                 </ul>
               ) : (
-                <p className="text-gray-400 text-center mt-3">No past sessions yet.</p>
+                <p className="text-gray-400 text-center mt-3">
+                  No past sessions yet.
+                </p>
               )}
             </div>
           </div>
@@ -549,35 +599,43 @@ const TutorDashboard = () => {
                       <button
                         onClick={() => handleEdit()} // define handleEdit function
                         disabled={
-                          tutorDetails?.status === "PENDING_APPROVAL" || hasConfirmedBookings
+                          tutorDetails?.status === "PENDING_APPROVAL" ||
+                          hasConfirmedBookings
                         }
                         className={`px-4 py-2 rounded-md text-white transition
                         ${
-                          tutorDetails?.status === "PENDING_APPROVAL" || hasConfirmedBookings
+                          tutorDetails?.status === "PENDING_APPROVAL" ||
+                          hasConfirmedBookings
                             ? "bg-gray-400 cursor-not-allowed"
                             : "bg-blue-600 hover:bg-blue-700"
-                        }`}>
+                        }`}
+                      >
                         Update Profile
                       </button>
                       {tutorDetails?.status === "PENDING_APPROVAL" && (
                         <div
                           className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap
       bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0
-      group-hover:opacity-100 transition-opacity duration-200 z-10">
-                          Your profile is under review. You cannot update it at this time.
+      group-hover:opacity-100 transition-opacity duration-200 z-10"
+                        >
+                          Your profile is under review. You cannot update it at
+                          this time.
                         </div>
                       )}
                       {hasConfirmedBookings && (
                         <div
                           className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap
       bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0
-      group-hover:opacity-100 transition-opacity duration-200 z-10">
-                          You have confirmed bookings. You cannot update it at this time.
+      group-hover:opacity-100 transition-opacity duration-200 z-10"
+                        >
+                          You have confirmed bookings. You cannot update it at
+                          this time.
                         </div>
                       )}
                       <button
                         onClick={() => setIsModalOpen(true)}
-                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                      >
                         Change Profile Pic
                       </button>
                     </div>
@@ -598,7 +656,9 @@ const TutorDashboard = () => {
               <h2 className="font-bold text-lg mb-3">Lesson Types </h2>
               <ul className="list-disc list-inside text-gray-700">
                 {tutorDetails && tutorDetails.lessonType?.length > 0 ? (
-                  tutorDetails.lessonType.map((type, index) => <li key={index}>{type}</li>)
+                  tutorDetails.lessonType.map((type, index) => (
+                    <li key={index}>{type}</li>
+                  ))
                 ) : (
                   <p>No lesson types specified.</p>
                 )}
@@ -607,18 +667,21 @@ const TutorDashboard = () => {
             <div className="grid grid-cols-1 gap-4">
               <div className="bg-white rounded-lg shadow-md p-6 max-h-[320px] overflow-y-auto">
                 <h2 className="text-xl font-semibold mb-3">Qualifications</h2>
-                {tutorDetails?.qualifications && tutorDetails.qualifications.length > 0 ? (
+                {tutorDetails?.qualifications &&
+                tutorDetails.qualifications.length > 0 ? (
                   <ul className="space-y-3">
                     {tutorDetails.qualifications.map((q: any, idx: number) => (
                       <li
                         key={idx}
-                        className="border rounded-lg p-3 flex justify-between items-center">
+                        className="border rounded-lg p-3 flex justify-between items-center"
+                      >
                         <div>
                           <p className="font-semibold">{q.name}</p>
                           <p className="text-gray-500 text-sm">{q.type}</p>
                           {q.uploadedAt && (
                             <p className="text-xs text-gray-400">
-                              Uploaded: {new Date(q.uploadedAt).toLocaleDateString()}
+                              Uploaded:{" "}
+                              {new Date(q.uploadedAt).toLocaleDateString()}
                             </p>
                           )}
                         </div>
@@ -626,7 +689,8 @@ const TutorDashboard = () => {
                           href={q.path}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline text-sm">
+                          className="text-blue-600 hover:underline text-sm"
+                        >
                           View
                         </a>
                       </li>
