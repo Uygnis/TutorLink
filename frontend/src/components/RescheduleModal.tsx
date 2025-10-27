@@ -100,6 +100,8 @@ const RescheduleModal = ({ bookingId, tutorId, onClose, onRescheduleConfirmed }:
         {
           tutorId,
           studentId: user.id,
+          tutorName: "", // Not needed for reschedule
+          studentName: "", // Not needed for reschedule
           date: formatLocalDate(selectedSlot.date), // ✅ use local date
           start: selectedSlot.slot.start,
           end: selectedSlot.slot.end,

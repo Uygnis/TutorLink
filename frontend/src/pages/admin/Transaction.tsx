@@ -52,7 +52,7 @@ const Transaction = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Earnings</h1>
           <button
-            onClick={() => navigate("/tutor/dashboard")}
+            onClick={() => navigate("/admin/dashboard")}
             className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 transition">
             ← Back to Dashboard
           </button>

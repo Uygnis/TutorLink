@@ -29,7 +29,7 @@ const UserRoute = () => {
 
   useEffect(() => {
     if (!loading && !isUser) {
-      toast.error("PPlease login as user to continue");
+      toast.error("Please login as user to continue");
       navigate("/login", { replace: true });
     }
   }, [loading, isUser, navigate]);

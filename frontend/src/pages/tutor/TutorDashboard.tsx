@@ -42,6 +42,7 @@ const TutorDashboard = () => {
       studentId: string;
       lessonType: string;
       start: string;
+      end: string;
     }[]
   >([]);
   const [recentBookedSlotsCount, setRecentBookedSlotsCount] =
@@ -55,6 +56,7 @@ const TutorDashboard = () => {
       studentId: string;
       lessonType: string;
       start: string;
+      end: string;
     }[]
   >([]);
   const [bookedSlots, setBookedSlots] = useState<
@@ -63,9 +65,12 @@ const TutorDashboard = () => {
       status: string;
       id: string;
       tutorId: string;
+      tutorName: string;
       studentId: string;
+      studentName: string;
       lessonType: string;
       start: string;
+      end: string;
     }[]
   >([]);
   const [monthStart, setMonthStart] = useState<Date>(() => {
@@ -76,10 +81,17 @@ const TutorDashboard = () => {
   const { user } = useAppSelector((state) => state.user);
   const navigate = useNavigate();
 
-  const hasConfirmedBookings = useMemo(
-    () => bookedSlots.some((b) => b.status === "confirmed"),
-    [bookedSlots]
-  );
+  const hasConfirmedBookings = useMemo(() => {
+    const now = new Date();
+  
+    return bookedSlots.some((b) => {
+      if (b.status !== "confirmed" && b.status !== "pending") return false;
+  
+      const bookingDate = new Date(b.date);
+      // Keep only bookings that are today or in the future
+      return bookingDate >= new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    });
+  }, [bookedSlots]);
 
   const fetchTutorDetails = async (id: string): Promise<Tutor | null> => {
     try {
@@ -99,6 +111,7 @@ const TutorDashboard = () => {
           const stagedProfile = {
             ...response.data.stagedProfile,
             status: "PENDING_APPROVAL",
+            id: response.data.id,
           };
           setTutorDetails(stagedProfile);
           return stagedProfile;
@@ -128,6 +141,7 @@ const TutorDashboard = () => {
           studentId: b.studentId,
           tutorId: b.tutorId,
           start: b.start,
+          end: b.end,
         }))
       );
       setRecentBookedSlotsCount(res.data.totalCount);
@@ -150,6 +164,7 @@ const TutorDashboard = () => {
           studentId: b.studentId,
           tutorId: b.tutorId,
           start: b.start,
+          end: b.end,
         }))
       );
       setPastBookedSlotsCount(res.data.totalCount);
@@ -185,8 +200,11 @@ const TutorDashboard = () => {
           lessonType: b.lessonType,
           id: b.id,
           studentId: b.studentId,
+          studentName: b.studentName,
           tutorId: b.tutorId,
+          tutorName: b.tutorName,
           start: b.start,
+          end: b.end,
         }))
       );
       console.log("dates", res.data);
@@ -202,7 +220,6 @@ const TutorDashboard = () => {
   };
   const handleSlotClick = (date: Date, slot: TimeSlot) => {
     setSelectedSlot({ date, slot });
-    console.log({ date, slot });
     setShowModal(true);
   };
 
@@ -219,7 +236,7 @@ const TutorDashboard = () => {
       return (
         <BookingModalAccept
           booking={{
-            studentName: booking.studentId,
+            studentName: booking.studentName,
             date: data.date,
             slot: data.slot,
             lessonType: booking.lessonType,
@@ -233,7 +250,7 @@ const TutorDashboard = () => {
       return (
         <BookingModalAccept
           booking={{
-            studentName: booking.studentId,
+            studentName: booking.studentName,
             date: data.date,
             slot: data.slot,
             lessonType: booking.lessonType,
@@ -247,8 +264,8 @@ const TutorDashboard = () => {
       return (
         <BookingModalView
           booking={{
-            studentName: booking.studentId,
-            tutorName: booking.tutorId,
+            studentName: booking.studentName,
+            tutorName: booking.tutorName,
             date: data.date,
             slot: data.slot,
             lessonType: booking.lessonType,
@@ -411,7 +428,7 @@ const TutorDashboard = () => {
               <h2 className="font-bold text-lg mb-3">Upcoming Sessions</h2>
 
               {/* List of upcoming sessions */}
-              <div className="mb-4">
+              <div className="mb-4 shadow-md p-5">
                 {recentBookedSlots.filter((b) => b.status !== "cancelled")
                   .length > 0 ? (
                   <ul className="divide-y divide-gray-200">
@@ -460,11 +477,11 @@ const TutorDashboard = () => {
                             onClick={() =>
                               handleSlotClick(new Date(b.date), {
                                 enabled: false,
-                                start: "",
-                                end: "",
+                                start: b.start,
+                                end: b.end,
                               })
                             }
-                            className="text-blue-600 hover:underline"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
                           >
                             View
                           </button>
@@ -665,7 +682,7 @@ const TutorDashboard = () => {
               </ul>
             </div>
             <div className="grid grid-cols-1 gap-4">
-              <div className="bg-white rounded-lg shadow-md p-6 max-h-[320px] overflow-y-auto">
+              <div className="bg-white rounded-lg shadow-md p-6 max-h-[265px] overflow-y-auto">
                 <h2 className="text-xl font-semibold mb-3">Qualifications</h2>
                 {tutorDetails?.qualifications &&
                 tutorDetails.qualifications.length > 0 ? (

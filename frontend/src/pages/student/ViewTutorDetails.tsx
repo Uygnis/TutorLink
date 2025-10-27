@@ -126,6 +126,8 @@ const ViewTutorDetails = () => {
     const bookingReq = {
       tutorId: tutor.userId,
       studentId: user.id,
+      tutorName: `${tutor.firstName} ${tutor.lastName}`,
+      studentName: user.name,
       date: dateStr,
       start: selectedSlot.slot.start,
       end: selectedSlot.slot.end,
