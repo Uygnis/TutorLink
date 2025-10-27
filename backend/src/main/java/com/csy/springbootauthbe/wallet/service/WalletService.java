@@ -5,12 +5,15 @@ import com.csy.springbootauthbe.wallet.entity.WalletTransaction;
 import com.csy.springbootauthbe.wallet.repository.WalletRepository;
 import com.csy.springbootauthbe.wallet.repository.WalletTransactionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,12 +21,43 @@ public class WalletService {
 
     private final WalletRepository walletRepo;
     private final WalletTransactionRepository txnRepo;
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
+    // ----------------------------------------------------------------------
+    // Core wallet retrieval
+    // ----------------------------------------------------------------------
     public Wallet getWallet(String userId) {
         return walletRepo.findByStudentId(userId)
-                .orElseGet(() -> walletRepo.save(new Wallet(null, userId, BigDecimal.ZERO, "SGD", LocalDateTime.now())));
+                .orElseGet(() -> walletRepo.save(
+                        new Wallet(null, userId, BigDecimal.ZERO, "SGD", null, false, LocalDateTime.now())
+                ));
     }
 
+    // ----------------------------------------------------------------------
+    // PIN management
+    // ----------------------------------------------------------------------
+
+    /** Set a new wallet PIN (hashed with BCrypt). */
+    public void setWalletPin(String studentId, String rawPin) {
+        Wallet wallet = getWallet(studentId);
+        wallet.setWalletPin(encoder.encode(rawPin));
+        wallet.setPinSet(true);
+        wallet.setUpdatedAt(LocalDateTime.now());
+        walletRepo.save(wallet);
+    }
+
+    /** Verify wallet PIN against hashed value. */
+    public boolean verifyWalletPin(String studentId, String rawPin) {
+        Wallet wallet = getWallet(studentId);
+        if (wallet.getWalletPin() == null) return false;
+        return encoder.matches(rawPin, wallet.getWalletPin());
+    }
+
+    // ----------------------------------------------------------------------
+    // Credit / debit operations
+    // ----------------------------------------------------------------------
+
+    /** Add credits to wallet (Stripe top-up success). */
     @Transactional
     public Wallet addCredits(String userId, BigDecimal amount, String refId) {
         Wallet wallet = getWallet(userId);
@@ -31,10 +65,14 @@ public class WalletService {
         wallet.setUpdatedAt(LocalDateTime.now());
         walletRepo.save(wallet);
 
-        txnRepo.save(new WalletTransaction(null, userId, "PURCHASE", amount, "Top-up credits", refId, LocalDateTime.now()));
+        txnRepo.save(new WalletTransaction(
+                null, userId, "PURCHASE", amount,
+                "Top-up credits", refId, LocalDateTime.now()
+        ));
         return wallet;
     }
 
+    /** Deduct credits for confirmed booking. */
     @Transactional
     public Wallet deductCredits(String userId, BigDecimal amount, String bookingId) {
         Wallet wallet = getWallet(userId);
@@ -46,11 +84,14 @@ public class WalletService {
         wallet.setUpdatedAt(LocalDateTime.now());
         walletRepo.save(wallet);
 
-        txnRepo.save(new WalletTransaction(null, userId, "BOOKING_DEDUCT", amount.negate(), "Booking charge", bookingId, LocalDateTime.now()));
+        txnRepo.save(new WalletTransaction(
+                null, userId, "BOOKING_DEDUCT", amount.negate(),
+                "Booking charge", bookingId, LocalDateTime.now()
+        ));
         return wallet;
     }
 
-    // Temporarily hold credits when booking created
+    /** Temporarily hold credits when booking created. */
     @Transactional
     public Wallet holdCredits(String studentId, BigDecimal amount, String bookingId) {
         Wallet wallet = getWallet(studentId);
@@ -62,70 +103,50 @@ public class WalletService {
         wallet.setUpdatedAt(LocalDateTime.now());
         walletRepo.save(wallet);
 
-        txnRepo.save(new WalletTransaction(null, studentId, "BOOKING_HOLD", amount.negate(),
-                "Hold for booking ID: " + bookingId, bookingId, LocalDateTime.now()));
+        txnRepo.save(new WalletTransaction(
+                null, studentId, "BOOKING_HOLD", amount.negate(),
+                "Hold for booking ID: " + bookingId, bookingId, LocalDateTime.now()
+        ));
         return wallet;
     }
 
-    // Release funds to tutor on acceptance
-    /**
-     * Release funds to tutor on acceptance.
-     * - Tutor receives 95% of the booking amount.
-     * - 5% commission is credited to the COMPANY wallet.
-     */
+    /** Release funds to tutor (95%) and company wallet (5% commission). */
     @Transactional
     public void releaseToTutor(String studentId, String tutorId, BigDecimal amount, String bookingId) {
         BigDecimal commissionRate = new BigDecimal("0.05");
         BigDecimal commission = amount.multiply(commissionRate);
         BigDecimal tutorAmount = amount.subtract(commission);
 
-        // Get wallets
+        // 1️⃣ Credit tutor 95%
         Wallet tutorWallet = getWallet(tutorId);
-        Wallet companyWallet = getWallet("COMPANY_WALLET");
-
-        // 1 Credit tutor 95%
         tutorWallet.setBalance(tutorWallet.getBalance().add(tutorAmount));
         tutorWallet.setUpdatedAt(LocalDateTime.now());
         walletRepo.save(tutorWallet);
 
         txnRepo.save(new WalletTransaction(
-                null,
-                tutorId,
-                "BOOKING_PAYMENT_TUTOR",
-                tutorAmount,
-                "Payment (95%) for booking ID: " + bookingId,
-                bookingId,
-                LocalDateTime.now()
+                null, tutorId, "BOOKING_PAYMENT_TUTOR", tutorAmount,
+                "Payment (95%) for booking ID: " + bookingId, bookingId, LocalDateTime.now()
         ));
 
-        // 2 Credit 5% to company wallet
+        // 2️⃣ Credit 5% to company wallet
+        Wallet companyWallet = getWallet("COMPANY_WALLET");
         companyWallet.setBalance(companyWallet.getBalance().add(commission));
         companyWallet.setUpdatedAt(LocalDateTime.now());
         walletRepo.save(companyWallet);
 
         txnRepo.save(new WalletTransaction(
-                null,
-                "COMPANY_WALLET",
-                "BOOKING_COMMISSION",
-                commission,
-                "5% commission from booking ID: " + bookingId,
-                bookingId,
-                LocalDateTime.now()
+                null, "COMPANY_WALLET", "BOOKING_COMMISSION", commission,
+                "5% commission from booking ID: " + bookingId, bookingId, LocalDateTime.now()
         ));
 
-        // 3️⃣ Record final debit for student (for trace)
+        // 3️⃣ Record final debit for student
         txnRepo.save(new WalletTransaction(
-                null,
-                studentId,
-                "BOOKING_CONFIRMED",
-                amount.negate(),
-                "Booking confirmed - funds split to tutor and company",
-                bookingId,
-                LocalDateTime.now()
+                null, studentId, "BOOKING_CONFIRMED", amount.negate(),
+                "Booking confirmed - funds split to tutor and company", bookingId, LocalDateTime.now()
         ));
     }
 
-    // Refund if cancelled or rejected
+    /** Refund credits to student (e.g. cancelled booking). */
     @Transactional
     public void refundStudent(String studentId, BigDecimal amount, String bookingId) {
         Wallet wallet = getWallet(studentId);
@@ -133,10 +154,47 @@ public class WalletService {
         wallet.setUpdatedAt(LocalDateTime.now());
         walletRepo.save(wallet);
 
-        txnRepo.save(new WalletTransaction(null, studentId, "BOOKING_REFUND", amount,
-                "Refund for cancelled booking ID: " + bookingId, bookingId, LocalDateTime.now()));
+        txnRepo.save(new WalletTransaction(
+                null, studentId, "BOOKING_REFUND", amount,
+                "Refund for cancelled booking ID: " + bookingId, bookingId, LocalDateTime.now()
+        ));
     }
 
+    // ----------------------------------------------------------------------
+    // Withdrawal (simulated)
+    // ----------------------------------------------------------------------
+
+    /** Simulate withdrawal of all funds (no real Stripe movement). */
+    @Transactional
+    public Map<String, Object> simulateWithdrawal(String studentId) {
+        Wallet wallet = getWallet(studentId);
+        BigDecimal balance = wallet.getBalance();
+
+        if (balance.compareTo(BigDecimal.ZERO) <= 0) {
+            return Map.of("message", "No funds available to withdraw", "balance", balance);
+        }
+
+        // Record withdrawal
+        txnRepo.save(new WalletTransaction(
+                null, studentId, "WITHDRAWAL", balance.negate(),
+                "Withdrawal of all funds", "MOCK-" + UUID.randomUUID(), LocalDateTime.now()
+        ));
+
+        // Zero out wallet
+        wallet.setBalance(BigDecimal.ZERO);
+        wallet.setUpdatedAt(LocalDateTime.now());
+        walletRepo.save(wallet);
+
+        return Map.of(
+                "message", "Withdrawal successful",
+                "withdrawnAmount", balance,
+                "newBalance", wallet.getBalance()
+        );
+    }
+
+    // ----------------------------------------------------------------------
+    // Transaction retrieval
+    // ----------------------------------------------------------------------
     public List<WalletTransaction> getTransactions(String userId) {
         return txnRepo.findByStudentIdOrderByCreatedAtDesc(userId);
     }
