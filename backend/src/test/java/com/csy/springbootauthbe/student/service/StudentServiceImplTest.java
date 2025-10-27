@@ -1,5 +1,6 @@
 package com.csy.springbootauthbe.student.service;
 
+import com.csy.springbootauthbe.common.sequence.SequenceGeneratorService;
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.entity.Student;
 import com.csy.springbootauthbe.student.mapper.StudentMapper;
@@ -12,62 +13,73 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-
-import com.csy.springbootauthbe.common.sequence.SequenceGeneratorService;
 
 @ExtendWith(MockitoExtension.class)
 class StudentServiceImplTest {
 
-    @Mock StudentRepository studentRepository;
-    @Mock StudentMapper studentMapper;
-    @Mock SequenceGeneratorService sequenceGenerator;
+    @Mock StudentRepository repo;
+    @Mock StudentMapper mapper;
+    @Mock SequenceGeneratorService sequence;
 
-    @InjectMocks StudentServiceImpl studentService;
+    @InjectMocks StudentServiceImpl service;
 
     @Test
-    void createStudent_mapsSavesAndReturnsDto() {
-        StudentDTO inputDto = new StudentDTO();
+    void createStudent_happyPath_assignsId_and_maps_and_saves() {
+        StudentDTO in = new StudentDTO();
+        in.setUserId("U1");
+
         Student mapped = new Student();
         Student saved = new Student();
         StudentDTO out = new StudentDTO();
-    
-        // ⭐ add this line
-        when(sequenceGenerator.getNextStudentId()).thenReturn("STU-1");
-    
-        when(studentMapper.toEntity(inputDto)).thenReturn(mapped);
-        when(studentRepository.save(mapped)).thenReturn(saved);
-        when(studentMapper.toDTO(saved)).thenReturn(out);
-    
-        StudentDTO result = studentService.createStudent(inputDto);
-    
-        assertSame(out, result);
-        verify(studentMapper).toEntity(inputDto);
-        verify(studentRepository).save(mapped);
-        verify(studentMapper).toDTO(saved);
+
+        when(sequence.getNextStudentId()).thenReturn("S100");
+        when(mapper.toEntity(in)).thenAnswer(inv -> {
+            // emulate mapper behavior that uses generated id
+            mapped.setId("S100");
+            mapped.setUserId("U1");
+            return mapped;
+        });
+        when(repo.save(mapped)).thenReturn(saved);
+        when(mapper.toDTO(saved)).thenAnswer(inv -> {
+            out.setId("S100");
+            out.setUserId("U1");
+            return out;
+        });
+
+        StudentDTO result = service.createStudent(in);
+
+        assertEquals("S100", result.getId());
+        assertEquals("U1", result.getUserId());
+        verify(sequence).getNextStudentId();
+        verify(mapper).toEntity(in);
+        verify(repo).save(mapped);
+        verify(mapper).toDTO(saved);
     }
 
     @Test
     void getStudentByUserId_found_returnsDto() {
         Student entity = new Student();
+        entity.setUserId("U1");
         StudentDTO dto = new StudentDTO();
-        when(studentRepository.findByUserId("U1")).thenReturn(Optional.of(entity));
-        when(studentMapper.toDTO(entity)).thenReturn(dto);
+        dto.setUserId("U1");
 
-        Optional<StudentDTO> result = studentService.getStudentByUserId("U1");
+        when(repo.findByUserId("U1")).thenReturn(Optional.of(entity));
+        when(mapper.toDTO(entity)).thenReturn(dto);
+
+        var result = service.getStudentByUserId("U1");
 
         assertTrue(result.isPresent());
-        assertSame(dto, result.get());
+        assertEquals("U1", result.get().getUserId());
     }
 
     @Test
     void getStudentByUserId_notFound_returnsEmpty() {
-        when(studentRepository.findByUserId("NONE")).thenReturn(Optional.empty());
+        when(repo.findByUserId("MISSING")).thenReturn(Optional.empty());
 
-        Optional<StudentDTO> result = studentService.getStudentByUserId("NONE");
+        var result = service.getStudentByUserId("MISSING");
 
         assertTrue(result.isEmpty());
-        verify(studentMapper, never()).toDTO(any());
+        verify(mapper, never()).toDTO(any());
     }
 }
