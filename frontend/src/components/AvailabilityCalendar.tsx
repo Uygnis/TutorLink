@@ -178,7 +178,6 @@ const AvailabilityCalendar = ({
                 if (isPastDate(date)) return;
                 if (!slot?.enabled) return;
                 if (
-                  role === "student" &&
                   bookingStatus !== "booked" &&
                   bookingStatus !== "reschedule_requested"
                 ) {

@@ -38,6 +38,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDTO createBooking(BookingRequest dto) {
+        logger.info("Creating booking with payload: {}", dto);
         // 1️⃣ Overlap check (same tutor)
         List<Booking> existing = bookingRepository.findByTutorIdAndDate(dto.getTutorId(), dto.getDate());
         boolean overlap = existing.stream()
@@ -66,6 +67,8 @@ public class BookingServiceImpl implements BookingService {
 
         // 5️⃣ Save booking
         Booking booking = bookingMapper.toEntity(dto);
+        booking.setTutorName(dto.getTutorName());
+        booking.setStudentName(dto.getStudentName());
         booking.setStatus("pending");
         booking.setAmount(dto.getAmount());
         Booking saved = bookingRepository.save(booking);
@@ -75,7 +78,18 @@ public class BookingServiceImpl implements BookingService {
                 dto.getTutorId(),
                 "booking_created",
                 saved.getId(),
-                "A new booking for " + dto.getLessonType() + " has been created."
+                booking.getStudentName() + " has requested a new booking for " + dto.getLessonType() +
+                    " on " + booking.getDate() + " from " + booking.getStart() + " to " + booking.getEnd() + "."
+        );
+
+        // Notify student
+        notificationService.createNotification(
+            dto.getStudentId(),
+            "booking_created",
+            saved.getId(),
+            "Your booking request for " + dto.getLessonType() + " with " + dto.getTutorName() +
+                " on " + booking.getDate() + " from " + booking.getStart() + " to " + booking.getEnd() +
+                " has been created and is pending tutor approval."
         );
 
         return bookingMapper.toDto(saved);
@@ -208,7 +222,23 @@ public class BookingServiceImpl implements BookingService {
                 booking.getStudentId(), // student receives notification
                 "booking_accepted",
                 booking.getId(),
-                "Your booking for " + booking.getLessonType() + " has been confirmed!"
+                "Your booking for " + booking.getLessonType() + " from " + booking.getTutorName() + " has been confirmed!"
+        );
+
+        notificationService.createNotification(
+            booking.getStudentId(), // student receives notification
+            "credit_deducted",
+            booking.getId(),
+            "An amount of $" + booking.getAmount() + " has been deducted for booking " + booking.getTutorName() + "."
+        );
+
+        // ✅ Notify tutor
+        notificationService.createNotification(
+                booking.getTutorId(),
+                "credit_released",
+                booking.getId(),
+                "An amount of $" + booking.getAmount() + " has been released to your wallet for booking " +
+                    booking.getLessonType() + " for " + booking.getStudentName() + "."
         );
 
         return bookingMapper.toDto(savedBooking);
@@ -254,6 +284,14 @@ public class BookingServiceImpl implements BookingService {
                 booking.getId(),
                 "Booking for " + booking.getLessonType() + " has been cancelled."
         );
+
+        notificationService.createNotification(
+            booking.getStudentId(), // student receives notification
+            "credit_refunded",
+            booking.getId(),
+            "An amount of $" + booking.getAmount() + " has been refunded for booking " + booking.getTutorName() + "."
+        );
+
 
         return bookingMapper.toDto(savedBooking);
     }
