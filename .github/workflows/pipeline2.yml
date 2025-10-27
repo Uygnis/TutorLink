@@ -12,6 +12,7 @@ jobs:
     name: DAST Scan - OWASP ZAP
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    environment: development
     permissions:
       contents: write
     steps:
@@ -48,6 +49,7 @@ jobs:
   ai-implementation:
     name: AI Implementation
     runs-on: ubuntu-latest
+    environment: development
     needs: dast
     permissions:
       contents: read
