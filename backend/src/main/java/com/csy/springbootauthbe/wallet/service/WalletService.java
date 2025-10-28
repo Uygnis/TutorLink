@@ -1,5 +1,7 @@
 package com.csy.springbootauthbe.wallet.service;
 
+import com.csy.springbootauthbe.admin.dto.AdminDashboardDTO;
+import com.csy.springbootauthbe.wallet.dto.MonthlyEarningDTO;
 import com.csy.springbootauthbe.wallet.entity.Wallet;
 import com.csy.springbootauthbe.wallet.entity.WalletTransaction;
 import com.csy.springbootauthbe.wallet.repository.WalletRepository;
@@ -11,8 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -197,5 +201,36 @@ public class WalletService {
     // ----------------------------------------------------------------------
     public List<WalletTransaction> getTransactions(String userId) {
         return txnRepo.findByStudentIdOrderByCreatedAtDesc(userId);
+    }
+
+    public AdminDashboardDTO.TransactionMetrics getTransactionMetrics() {
+        Double totalEarnings = Optional.ofNullable(txnRepo.getTotalEarnings()).orElse(0.0);
+        Double commissionCollected = Optional.ofNullable(txnRepo.getTotalCommission()).orElse(0.0);
+
+        WalletTransaction highestTxnEntity = txnRepo.getHighestTransaction();
+        AdminDashboardDTO.TransactionSummary highestTransaction = highestTxnEntity != null
+                ? AdminDashboardDTO.TransactionSummary.builder()
+                .description(highestTxnEntity.getDescription())
+                .amount(highestTxnEntity.getAmount().doubleValue())
+                .build()
+                : null;
+
+        List<MonthlyEarningDTO> rawMonthly =
+                txnRepo.getMonthlyEarnings();
+
+        List<AdminDashboardDTO.MonthlyEarnings> monthlyEarnings = rawMonthly.stream()
+                .filter(m -> m.get_id() != null) // <--- skip null months
+                .map(m -> AdminDashboardDTO.MonthlyEarnings.builder()
+                        .month(Month.of(m.get_id()).name())
+                        .total(m.getTotal())
+                        .build())
+                .toList();
+
+        return AdminDashboardDTO.TransactionMetrics.builder()
+                .totalEarnings(totalEarnings)
+                .commissionCollected(commissionCollected)
+                .highestTransaction(highestTransaction)
+                .monthlyEarnings(monthlyEarnings)
+                .build();
     }
 }

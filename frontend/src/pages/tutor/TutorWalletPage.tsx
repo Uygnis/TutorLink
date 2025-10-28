@@ -126,7 +126,7 @@ const TutorWalletPage = () => {
             <div className="bg-white p-6 rounded-xl shadow-md mb-6 flex justify-between items-center">
               <div>
                 <h2 className="text-lg font-semibold text-gray-600">Current Balance</h2>
-                <p className="text-3xl font-bold text-blue-600 mt-1">{balance} SGD</p>
+                <p className="text-3xl font-bold text-blue-600 mt-1">{balance.toFixed(2)} SGD</p>
               </div>
               <div className="flex flex-col items-end text-right gap-3">
                 <div className="text-gray-500 text-sm">
