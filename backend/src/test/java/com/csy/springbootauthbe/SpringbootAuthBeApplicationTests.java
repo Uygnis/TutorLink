@@ -3,8 +3,6 @@ package com.csy.springbootauthbe;
 import com.csy.springbootauthbe.admin.repository.AdminRepository;
 import com.csy.springbootauthbe.booking.repository.BookingRepository;
 import com.csy.springbootauthbe.doctor.repository.DoctorRepository;
-import com.csy.springbootauthbe.event.repository.EventRepository;
-import com.csy.springbootauthbe.event.service.EventService;
 import com.csy.springbootauthbe.notification.repository.NotificationRepository;
 import com.csy.springbootauthbe.notification.service.NotificationService;
 import com.csy.springbootauthbe.student.repository.StudentRepository;
