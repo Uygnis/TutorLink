@@ -8,6 +8,7 @@ import { setLoading } from "@/redux/loaderSlice";
 import { Tutor } from "@/types/TutorType";
 import { AdminDashboardType } from "@/types/AdminDashboardType";
 import RingChart from "@/components/RingChart";
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 const AdminDashboard = () => {
   const [adminDetails, setAdminDetails] = useState<AdminDetails | null>(null);
@@ -197,13 +198,72 @@ const AdminDashboard = () => {
                 )}
               </div>
             </div>
-            
+
           </div>
-          
-           <div className="bg-white rounded-md shadow-md p-5 mt-6 flex-1 flex flex-col overflow-hidden">
-                <h2 className="font-bold text-lg mb-3">Pending test</h2>
-                <h3 className="font-bold text-md mb-3">Payment history</h3>
+
+          {/* Earnings Overview */}
+          <div className="bg-white rounded-md shadow-md p-5 mt-6 flex-1 flex flex-col overflow-hidden">
+            <h2 className="font-bold text-lg mb-3">Earnings Overview</h2>
+            {metrics?.transactionMetrics?.totalEarnings ? (
+              <div className="grid grid-cols-3 gap-6 text-center">
+                <div>
+                  <p className="text-sm text-gray-500">Total Earnings This Month</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {metrics.transactionMetrics?.totalEarnings.toFixed(2)} SGD
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Tutor + commission's earnings this month
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Net Commission Collected</p>
+                  <p className="text-2xl font-bold text-orange-500">
+                    {metrics.transactionMetrics?.commissionCollected?.toFixed(2)} SGD
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Amount commissioned from tutor's earnings this month
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Highest Transaction</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {metrics.transactionMetrics?.highestTransaction?.amount?.toFixed(2)} SGD
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {metrics.transactionMetrics?.highestTransaction?.description}
+                  </p>
+                </div>
               </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-gray-400">
+                No earnings data available.
+              </div>
+            )}
+          </div>
+
+          {metrics?.transactionMetrics?.monthlyEarnings && metrics.transactionMetrics?.monthlyEarnings.length > 0 && (
+            <div className="bg-white rounded-md shadow-md p-5 mt-6">
+              <h2 className="font-bold text-lg mb-3">Monthly Commission Earned</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={metrics.transactionMetrics?.monthlyEarnings}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis
+                    tickFormatter={(value) => `$${value.toFixed(2)}`}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => `SGD ${value.toFixed(2)}`}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="total"
+                    stroke="#22c55e"
+                    strokeWidth={3}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
 
         </div>
       </div>

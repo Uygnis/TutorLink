@@ -66,7 +66,7 @@ const Transaction = () => {
             <div className="bg-white p-6 rounded-xl shadow-md mb-6 flex justify-between items-center">
               <div>
                 <h2 className="text-lg font-semibold text-gray-600">Current Balance</h2>
-                <p className="text-3xl font-bold text-blue-600 mt-1">{balance} SGD</p>
+                <p className="text-3xl font-bold text-blue-600 mt-1">{balance.toFixed(2)} SGD</p>
               </div>
               <div className="text-right text-gray-500 text-sm">
                 <p>Funds reflect session payouts and platform adjustments.</p>

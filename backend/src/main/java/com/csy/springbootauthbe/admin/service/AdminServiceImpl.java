@@ -20,6 +20,7 @@ import com.csy.springbootauthbe.user.entity.Role;
 import com.csy.springbootauthbe.user.entity.User;
 import com.csy.springbootauthbe.user.repository.UserRepository;
 import com.csy.springbootauthbe.user.utils.UserResponse;
+import com.csy.springbootauthbe.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
     private final TutorRepository tutorRepository;
+    private final WalletService walletService;
     private static final SanitizedLogger logger = SanitizedLogger.getLogger(AdminServiceImpl.class);
 
 
@@ -413,9 +415,11 @@ public class AdminServiceImpl implements AdminService {
                 .filter(user -> Objects.equals(user.getStatus(), AccountStatus.PENDING_APPROVAL.toString()))
                 .toList();
 
+
+
         return new AdminDashboardDTO(totalUsers, activeUsers, suspendedUsers,
                 totalTutors, activeTutors, suspendedTutors, unverifiedTutors, totalStudents, activeStudents,
-                suspendedStudents, totalAdmins, activeAdmins, suspendedAdmins, pendingTutors);
+                suspendedStudents, totalAdmins, activeAdmins, suspendedAdmins, pendingTutors, walletService.getTransactionMetrics());
     }
 
     // -------------------------------
