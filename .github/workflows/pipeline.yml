@@ -105,7 +105,7 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
-  # ----------------- SECURITY SCAN -----------------
+  # security scan
   asp-scan-frontend:
     name: OWASP Scan - Frontend
     runs-on: ubuntu-latest
@@ -148,7 +148,7 @@ jobs:
           name: dependency-check-report-backend
           path: reports/backend
 
-  # ----------------- FRONTEND -----------------
+  # frontend
   frontend-build:
     name: Frontend - Build
     needs: [sast, asp-scan-frontend]
@@ -183,7 +183,7 @@ jobs:
       - name: Build project
         run: npm run build
 
-  # ----------------- BACKEND -----------------
+  # backend
   backend-build:
     name: Backend - Build
     needs: [sast, asp-scan-backend]

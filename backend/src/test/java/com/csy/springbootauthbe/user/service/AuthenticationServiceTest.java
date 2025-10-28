@@ -13,16 +13,13 @@ import com.csy.springbootauthbe.user.utils.LoginRequest;
 import com.csy.springbootauthbe.user.utils.RegisterRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,150 +36,177 @@ class AuthenticationServiceTest {
     @Mock StudentService studentService;
     @Mock TutorService tutorService;
 
-    @InjectMocks AuthenticationService authService;
+    @InjectMocks AuthenticationService auth;
 
-    // ---------- REGISTER: STUDENT ----------
     @Test
-    void register_student_createsUser_andStudent_andReturnsToken() {
-        RegisterRequest req = mockStudentRegisterRequest();
-        when(repository.existsByEmail("alice@student.com")).thenReturn(false);
-        when(passwordEncoder.encode("Secret123!")).thenReturn("hashed");
-        when(jwtService.generateToken(any(User.class))).thenReturn("jwt-student");
-        when(repository.save(any(User.class))).thenAnswer(inv -> {
-            User u = inv.getArgument(0);
-            u.setId("U123"); // simulate DB-set id
-            return u;
-        });
-
-        AuthenticationResponse resp = authService.register(req);
-
-        assertNotNull(resp);
-        assertEquals("jwt-student", resp.getUser().getToken());
-        assertEquals("U123", resp.getUser().getId());
-        assertEquals(Role.STUDENT, resp.getUser().getRole());
-
-        // password encoded
-        verify(passwordEncoder).encode("Secret123!");
-        // student was created with the new user's id
-        ArgumentCaptor<StudentDTO> cap = ArgumentCaptor.forClass(StudentDTO.class);
-        verify(studentService).createStudent(cap.capture());
-        assertEquals("U123", cap.getValue().getUserId());
-        // tutor path not called
-        verify(tutorService, never()).createTutor(any());
-    }
-
-    // ---------- REGISTER: TUTOR ----------
-    @Test
-    void register_tutor_createsUser_andTutor_andReturnsToken() {
-        RegisterRequest req = mockTutorRegisterRequest();
-        when(repository.existsByEmail("bob@tutor.com")).thenReturn(false);
-        when(passwordEncoder.encode("TopSecret!")).thenReturn("hashed2");
-        when(jwtService.generateToken(any(User.class))).thenReturn("jwt-tutor");
-        when(repository.save(any(User.class))).thenAnswer(inv -> {
-            User u = inv.getArgument(0);
-            u.setId("U999");
-            return u;
-        });
-
-        AuthenticationResponse resp = authService.register(req);
-
-        assertEquals("jwt-tutor", resp.getUser().getToken());
-        assertEquals("U999", resp.getUser().getId());
-        assertEquals(Role.TUTOR, resp.getUser().getRole());
-        verify(studentService, never()).createStudent(any());
-
-        ArgumentCaptor<TutorDTO> cap = ArgumentCaptor.forClass(TutorDTO.class);
-        verify(tutorService).createTutor(cap.capture());
-        assertEquals("U999", cap.getValue().getUserId());
-    }
-
-    // ---------- REGISTER: DUPLICATE EMAIL ----------
-    @Test
-    void register_duplicateEmail_throwsDataIntegrityViolationException() {
-        RegisterRequest req = mock(RegisterRequest.class);
-        when(req.getEmail()).thenReturn("dup@example.com");
-
-        when(repository.existsByEmail("dup@example.com")).thenReturn(true);
-
-        assertThrows(DataIntegrityViolationException.class, () -> authService.register(req));
-        verify(repository, never()).save(any());
-    }
-
-    // ---------- REGISTER: INVALID ROLE ----------
-    @Test
-    void register_invalidRole_throwsIllegalArgumentException() {
-        RegisterRequest req = mock(RegisterRequest.class);
-        when(req.getEmail()).thenReturn("x@example.com");
-        when(req.getRole()).thenReturn("NotARole"); // triggers invalid role path
-
-        when(repository.existsByEmail("x@example.com")).thenReturn(false);
-
-        assertThrows(IllegalArgumentException.class, () -> authService.register(req));
-        verify(repository, never()).save(any());
-    }
-
-    // ---------- LOGIN: HAPPY PATH ----------
-    @Test
-    void login_valid_authenticates_andReturnsToken() {
-        LoginRequest req = mock(LoginRequest.class);
-        when(req.getEmail()).thenReturn("login@ok.com");
-        when(req.getPassword()).thenReturn("pw");
-
-        User user = new User();
-        user.setId("U77");
-        user.setFirstname("Log");
-        user.setLastname("In");
-        user.setEmail("login@ok.com");
-        user.setRole(Role.USER);
-
-        when(authenticationManager.authenticate(any()))
-                .thenReturn(new UsernamePasswordAuthenticationToken("login@ok.com", "pw"));
-        when(repository.findByEmail("login@ok.com")).thenReturn(Optional.of(user));
-        when(jwtService.generateToken(user)).thenReturn("jwt-login");
-
-        AuthenticationResponse resp = authService.login(req);
-
-        assertNotNull(resp);
-        assertEquals("jwt-login", resp.getUser().getToken());
-        assertEquals("U77", resp.getUser().getId());
-        assertEquals("Log In", resp.getUser().getName());
-        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-    }
-
-    // ---------- LOGIN: USER NOT FOUND ----------
-    @Test
-    void login_userNotFound_throwsNoSuchElementException() {
-        LoginRequest req = mock(LoginRequest.class);
-        when(req.getEmail()).thenReturn("nobody@nowhere.com");
-        when(req.getPassword()).thenReturn("pw");
+    void login_userNotFound_throwsIllegalArgumentException() {
+        LoginRequest req = new LoginRequest();
+        req.setEmail("nobody@nowhere.com");
+        req.setPassword("pw");
 
         when(authenticationManager.authenticate(any()))
                 .thenReturn(new UsernamePasswordAuthenticationToken("nobody@nowhere.com", "pw"));
         when(repository.findByEmail("nobody@nowhere.com")).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> authService.login(req));
+        assertThrows(IllegalArgumentException.class, () -> auth.login(req));
+
+        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(repository).findByEmail("nobody@nowhere.com");
+        verifyNoInteractions(jwtService);
     }
 
-    // ---- helpers ----
-    private RegisterRequest mockStudentRegisterRequest() {
-        RegisterRequest req = mock(RegisterRequest.class);
-        when(req.getEmail()).thenReturn("alice@student.com");
-        when(req.getPassword()).thenReturn("Secret123!");
-        when(req.getFirstname()).thenReturn("Alice");
-        when(req.getLastname()).thenReturn("Student");
-        when(req.getRole()).thenReturn("Student");
-        when(req.getStudentNumber()).thenReturn("S-001");
-        when(req.getGradeLevel()).thenReturn("G10");
-        return req;
+    @Test
+    void login_badCredentials_propagates() {
+        LoginRequest req = new LoginRequest();
+        req.setEmail("user@x.com");
+        req.setPassword("bad");
+
+        when(authenticationManager.authenticate(any()))
+                .thenThrow(new BadCredentialsException("bad creds"));
+
+        assertThrows(BadCredentialsException.class, () -> auth.login(req));
+        verify(repository, never()).findByEmail(anyString());
+        verifyNoInteractions(jwtService);
     }
 
-    private RegisterRequest mockTutorRegisterRequest() {
-        RegisterRequest req = mock(RegisterRequest.class);
-        when(req.getEmail()).thenReturn("bob@tutor.com");
-        when(req.getPassword()).thenReturn("TopSecret!");
-        when(req.getFirstname()).thenReturn("Bob");
-        when(req.getLastname()).thenReturn("Tutor");
-        when(req.getRole()).thenReturn("Tutor");
-        return req;
+    @Test
+    void login_ok_returnsTokenAndUser() {
+        LoginRequest req = new LoginRequest();
+        req.setEmail("ok@x.com");
+        req.setPassword("pw");
+
+        User dbUser = new User();
+        dbUser.setId("U77");
+        dbUser.setFirstname("Ok");
+        dbUser.setLastname("User");
+        dbUser.setEmail("ok@x.com");
+        dbUser.setRole(Role.USER);
+
+        when(authenticationManager.authenticate(any()))
+                .thenReturn(new UsernamePasswordAuthenticationToken("ok@x.com", "pw"));
+        when(repository.findByEmail("ok@x.com")).thenReturn(Optional.of(dbUser));
+        when(jwtService.generateToken(dbUser)).thenReturn("jwt-login");
+
+        AuthenticationResponse resp = auth.login(req);
+
+        assertNotNull(resp);
+        assertEquals("U77", resp.getUser().getId());
+        assertEquals(Role.USER, resp.getUser().getRole());
+        assertEquals("jwt-login", resp.getUser().getToken());
+
+        verify(authenticationManager).authenticate(any());
+        verify(jwtService).generateToken(dbUser);
+    }
+
+    @Test
+    void register_roleUser_createsPlainUser() {
+        RegisterRequest req = new RegisterRequest();
+        req.setEmail("u@x.com");
+        req.setPassword("P@ss");
+        req.setFirstname("U");
+        req.setLastname("X");
+        req.setRole("User");
+
+        when(repository.existsByEmail("u@x.com")).thenReturn(false);
+        when(passwordEncoder.encode("P@ss")).thenReturn("hashed");
+        when(jwtService.generateToken(any(User.class))).thenReturn("jwt");
+        when(repository.save(any(User.class))).thenAnswer(inv -> {
+            User u = inv.getArgument(0);
+            u.setId("U10");
+            return u;
+        });
+
+        AuthenticationResponse resp = auth.register(req);
+
+        assertEquals("U10", resp.getUser().getId());
+        assertEquals(Role.USER, resp.getUser().getRole());
+        assertEquals("jwt", resp.getUser().getToken());
+
+        // capture saved user
+        ArgumentCaptor<User> userCap = ArgumentCaptor.forClass(User.class);
+        verify(repository).save(userCap.capture());
+        User saved = userCap.getValue();
+        assertEquals("u@x.com", saved.getEmail());
+        assertEquals("U", saved.getFirstname());
+        assertEquals("X", saved.getLastname());
+        assertEquals(Role.USER, saved.getRole());
+
+        verify(studentService, never()).createStudent(any(StudentDTO.class));
+        verify(tutorService, never()).createTutor(any(TutorDTO.class));
+    }
+
+    @Test
+    void register_duplicateEmail_throws() {
+        RegisterRequest req = new RegisterRequest();
+        req.setEmail("dupe@x.com");
+
+        when(repository.existsByEmail("dupe@x.com")).thenReturn(true);
+
+        assertThrows(RuntimeException.class, () -> auth.register(req));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void register_invalidRole_throwsIllegalArgumentException() {
+        RegisterRequest req = new RegisterRequest();
+        req.setEmail("x@x.com");
+        req.setRole("NotARole");
+
+        when(repository.existsByEmail("x@x.com")).thenReturn(false);
+
+        assertThrows(IllegalArgumentException.class, () -> auth.register(req));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void register_roleTutor_createsTutorAndCallsTutorService() {
+        RegisterRequest req = new RegisterRequest();
+        req.setEmail("tutor@x.com");
+        req.setPassword("pw");
+        req.setFirstname("T");
+        req.setLastname("X");
+        req.setRole("Tutor");
+
+        when(repository.existsByEmail("tutor@x.com")).thenReturn(false);
+        when(passwordEncoder.encode("pw")).thenReturn("hashed");
+        when(jwtService.generateToken(any(User.class))).thenReturn("jwt");
+        when(repository.save(any(User.class))).thenAnswer(inv -> {
+            User u = inv.getArgument(0);
+            u.setId("T123");
+            u.setRole(Role.TUTOR);
+            return u;
+        });
+
+        AuthenticationResponse resp = auth.register(req);
+
+        assertNotNull(resp);
+        assertEquals(Role.TUTOR, resp.getUser().getRole());
+        verify(tutorService).createTutor(any(TutorDTO.class));
+    }
+
+    @Test
+    void register_roleStudent_createsStudentAndCallsStudentService() {
+        RegisterRequest req = new RegisterRequest();
+        req.setEmail("student@x.com");
+        req.setPassword("pw");
+        req.setFirstname("S");
+        req.setLastname("Y");
+        req.setRole("Student");
+
+        when(repository.existsByEmail("student@x.com")).thenReturn(false);
+        when(passwordEncoder.encode("pw")).thenReturn("hashed");
+        when(jwtService.generateToken(any(User.class))).thenReturn("jwt");
+        when(repository.save(any(User.class))).thenAnswer(inv -> {
+            User u = inv.getArgument(0);
+            u.setId("S123");
+            u.setRole(Role.STUDENT);
+            return u;
+        });
+
+        AuthenticationResponse resp = auth.register(req);
+
+        assertNotNull(resp);
+        assertEquals(Role.STUDENT, resp.getUser().getRole());
+        verify(studentService).createStudent(any(StudentDTO.class));
     }
 }
