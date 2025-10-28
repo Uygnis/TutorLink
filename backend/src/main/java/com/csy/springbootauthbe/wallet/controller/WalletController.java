@@ -84,4 +84,34 @@ public class WalletController {
 
         return ResponseEntity.ok(Map.of("url", session.getUrl()));
     }
+
+    @PostMapping("/set-pin")
+    public ResponseEntity<?> setWalletPin(@RequestBody Map<String, Object> req) {
+        String studentId = (String) req.get("studentId");
+        String pin = (String) req.get("pin");
+        walletService.setWalletPin(studentId, pin);
+        return ResponseEntity.ok(Map.of("message", "Wallet PIN set successfully"));
+    }
+
+    @PostMapping("/verify-pin")
+    public ResponseEntity<?> verifyWalletPin(@RequestBody Map<String, Object> req) {
+        String studentId = (String) req.get("studentId");
+        String pin = (String) req.get("pin");
+        boolean verified = walletService.verifyWalletPin(studentId, pin);
+        return ResponseEntity.ok(Map.of("verified", verified));
+    }
+
+    @PostMapping("/withdraw")
+    public ResponseEntity<?> withdraw(@RequestBody Map<String, Object> req) {
+        String studentId = (String) req.get("studentId");
+        String pin = (String) req.get("pin");
+
+        if (!walletService.verifyWalletPin(studentId, pin)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid wallet PIN"));
+        }
+
+        Map<String, Object> result = walletService.simulateWithdrawal(studentId);
+        return ResponseEntity.ok(result);
+    }
+
 }
