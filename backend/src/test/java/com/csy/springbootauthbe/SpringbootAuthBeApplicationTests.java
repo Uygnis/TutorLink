@@ -58,11 +58,9 @@ class SpringbootAuthBeApplicationTests {
     @MockBean private StudentRepository studentRepository;
     @MockBean private DoctorRepository doctorRepository;
     @MockBean private BookingRepository bookingRepository;
-    @MockBean private EventRepository eventRepository;
 
     // --- Services that depend on repositories ---
     @MockBean private WalletService walletService;
-    @MockBean private EventService eventService;
     @MockBean private NotificationService notificationService;
 
     // --- Supporting infra that would otherwise trigger Mongo beans ---
