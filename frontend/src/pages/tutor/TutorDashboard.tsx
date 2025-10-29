@@ -39,7 +39,9 @@ const TutorDashboard = () => {
       status: string;
       id: string;
       tutorId: string;
+      tutorName: string;
       studentId: string;
+      studentName: string;
       lessonType: string;
       start: string;
       end: string;
@@ -53,7 +55,9 @@ const TutorDashboard = () => {
       status: string;
       id: string;
       tutorId: string;
+      tutorName: string;
       studentId: string;
+      studentName: string;
       lessonType: string;
       start: string;
       end: string;
@@ -83,15 +87,32 @@ const TutorDashboard = () => {
 
   const hasConfirmedBookings = useMemo(() => {
     const now = new Date();
-  
-    return bookedSlots.some((b) => {
+
+    const hascurrentBookings = bookedSlots.some((b) => {
       if (b.status !== "confirmed" && b.status !== "pending") return false;
-  
+
       const bookingDate = new Date(b.date);
       // Keep only bookings that are today or in the future
       return bookingDate >= new Date(now.getFullYear(), now.getMonth(), now.getDate());
     });
-  }, [bookedSlots]);
+
+    const hasPastConfirmedBookings = pastBookedSlots.some((b) => {
+      if (b.status !== "confirmed") return false;
+
+      const bookingDate = new Date(b.date);
+      // Keep only bookings that are in the past
+      return bookingDate < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    });
+    const hasRecentConfirmedBookings = recentBookedSlots.some((b) => {
+      if (b.status !== "confirmed") return false;
+
+      const bookingDate = new Date(b.date);
+      // Keep only bookings that are today or in the future
+      return bookingDate >= new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    });
+
+    return hascurrentBookings || hasPastConfirmedBookings || hasRecentConfirmedBookings;
+  }, [bookedSlots, pastBookedSlots, recentBookedSlots]);
 
   const fetchTutorDetails = async (id: string): Promise<Tutor | null> => {
     try {
@@ -139,7 +160,9 @@ const TutorDashboard = () => {
           lessonType: b.lessonType,
           id: b.id,
           studentId: b.studentId,
+          studentName: b.studentName,
           tutorId: b.tutorId,
+          tutorName: b.tutorName,
           start: b.start,
           end: b.end,
         }))
@@ -162,7 +185,9 @@ const TutorDashboard = () => {
           lessonType: b.lessonType,
           id: b.id,
           studentId: b.studentId,
+          studentName: b.studentName,
           tutorId: b.tutorId,
+          tutorName: b.tutorName,
           start: b.start,
           end: b.end,
         }))
@@ -224,11 +249,22 @@ const TutorDashboard = () => {
   };
 
   const modal = (data: { date: Date; slot: TimeSlot }) => {
-    const booking = bookedSlots.find(
-      (item) =>
-        item.date === data.date.toLocaleDateString("en-CA") &&
-        item.status !== "cancelled"
-    );
+    const booking =
+      bookedSlots.find(
+        (item) =>
+          item.date === data.date.toLocaleDateString("en-CA") &&
+          item.status !== "cancelled"
+      ) ||
+      recentBookedSlots.find(
+        (item) =>
+          item.date === data.date.toLocaleDateString("en-CA") &&
+          item.status !== "cancelled"
+      ) ||
+      pastBookedSlots.find(
+        (item) =>
+          item.date === data.date.toLocaleDateString("en-CA") &&
+          item.status !== "cancelled"
+      );
 
     if (!booking) return null;
 
@@ -461,15 +497,14 @@ const TutorDashboard = () => {
                             <p className="text-sm text-gray-500">
                               {b.start} | Status:{" "}
                               <span
-                                className={`font-semibold ${
-                                  b.status === "confirmed"
-                                    ? "text-green-600"
+                                className={`px-2 py-1 text-xs font-semibold rounded-full ${b.status === "confirmed"
+                                    ? "bg-green-100 text-green-600"
                                     : b.status === "pending"
-                                    ? "text-yellow-600"
-                                    : "text-gray-400"
-                                }`}
+                                      ? "bg-yellow-100 text-yellow-600"
+                                      : "bg-gray-100 text-gray-400"
+                                  }`}
                               >
-                                {b.status}
+                                {b.status.charAt(0).toUpperCase() + b.status.slice(1)}
                               </span>
                             </p>
                           </div>
@@ -546,13 +581,13 @@ const TutorDashboard = () => {
                               month: "short",
                               year: "numeric",
                             })}{" "}
-                            | {b.start}
+                            | {b.start} - {b.end} 
                           </p>
                           <p className="text-gray-600 text-sm">
                             {b.lessonType}
                           </p>
                           <p className="text-gray-500 text-sm">
-                            Student: {b.studentId}
+                            Student: {b.studentName}
                           </p>
                         </div>
                         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
@@ -620,12 +655,11 @@ const TutorDashboard = () => {
                           hasConfirmedBookings
                         }
                         className={`px-4 py-2 rounded-md text-white transition
-                        ${
-                          tutorDetails?.status === "PENDING_APPROVAL" ||
-                          hasConfirmedBookings
+                        ${tutorDetails?.status === "PENDING_APPROVAL" ||
+                            hasConfirmedBookings
                             ? "bg-gray-400 cursor-not-allowed"
                             : "bg-blue-600 hover:bg-blue-700"
-                        }`}
+                          }`}
                       >
                         Update Profile
                       </button>
@@ -685,7 +719,7 @@ const TutorDashboard = () => {
               <div className="bg-white rounded-lg shadow-md p-6 max-h-[265px] overflow-y-auto">
                 <h2 className="text-xl font-semibold mb-3">Qualifications</h2>
                 {tutorDetails?.qualifications &&
-                tutorDetails.qualifications.length > 0 ? (
+                  tutorDetails.qualifications.length > 0 ? (
                   <ul className="space-y-3">
                     {tutorDetails.qualifications.map((q: any, idx: number) => (
                       <li

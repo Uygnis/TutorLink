@@ -6,6 +6,7 @@ import com.csy.springbootauthbe.wallet.service.WalletService;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +21,9 @@ import java.util.UUID;
 public class WalletController {
 
     private final WalletService walletService;
+
+    @Value("${EC2_HOST:http://localhost:5173}")
+    private String frontendBaseUrl;
 
     //  Get current wallet balance
     @GetMapping("/{studentId}")
@@ -60,8 +64,8 @@ public class WalletController {
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl("http://localhost:5173/wallet/success?studentId=" + studentId + "&amount=" + amount)
-                .setCancelUrl("http://localhost:5173/wallet/cancel")
+                .setSuccessUrl(frontendBaseUrl + "/wallet/success?studentId=" + studentId + "&amount=" + amount)
+                .setCancelUrl(frontendBaseUrl + "/wallet/cancel")
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
                                 .setQuantity(1L)
