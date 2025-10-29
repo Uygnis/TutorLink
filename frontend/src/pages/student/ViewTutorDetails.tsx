@@ -114,10 +114,16 @@ const ViewTutorDetails = () => {
     const dateStr = selectedSlot.date.toLocaleDateString("en-CA");
     const [sh, sm] = selectedSlot.slot.start.split(":").map(Number);
     const [eh, em] = selectedSlot.slot.end.split(":").map(Number);
-    const hours = eh + em / 60 - (sh + sm / 60);
+    let hours = (eh + em / 60) - (sh + sm / 60);
+
+    // Handle overnight case (e.g. 09:00 → 00:00 or 23:00 → 01:00)
+    if (hours < 0) {
+      hours += 24;
+    }
+
     const totalCost = tutor.hourlyRate * hours;
 
-    if (totalCost <= 0) {
+    if (totalCost <= 0 || isNaN(totalCost)) {
       toast.error("Invalid duration or hourly rate");
       return;
     }
@@ -262,9 +268,7 @@ const ViewTutorDetails = () => {
         <AvailabilityCalendar
           role="student"
           availability={tutor.availability}
-          bookedSlots={bookedSlots.map((slot) =>
-            slot.status === "pending" ? { ...slot, status: "confirmed" } : slot
-          )}
+          bookedSlots={bookedSlots}
           initialMonth={monthStart}
           onSlotClick={handleSlotClick}
           onMonthChange={(newMonth) => setMonthStart(newMonth)}
