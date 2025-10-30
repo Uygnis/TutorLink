@@ -42,7 +42,7 @@ public class AuthenticationService {
     public AuthenticationResponse register(RegisterRequest request) {
         logger.info("Register request received: email={}, role={}", request.getEmail(), request.getRole());
 
-        if (repository.existsByEmail(request.getEmail())) {
+        if (repository.existsByEmailAndStatusNot(request.getEmail(), AccountStatus.DELETED)) {
             logger.warn("Registration failed: Email already exists - {}", request.getEmail());
             throw new DataIntegrityViolationException("Email already exists");
         }
@@ -126,7 +126,7 @@ public class AuthenticationService {
             throw e;
         }
 
-        var user = repository.findByEmail(request.getEmail())
+        var user = repository.findByEmailAndStatusNot(request.getEmail(), AccountStatus.DELETED)
                 .orElseThrow(() -> {
                     logger.error("User not found for email={}", request.getEmail());
                     return new IllegalArgumentException("User not found");

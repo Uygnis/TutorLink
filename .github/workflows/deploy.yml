@@ -20,22 +20,55 @@ jobs:
     environment: development
 
     steps:
-      # 1. Checkout repository
+      # Checkout repository
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      # Figure out which SHAs to compare
+      - name: Determine base and head commits
+        id: sha
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.workflow_run.pull_requests[0].base.sha }}" ]; then
+            echo "Detected PR trigger ✅"
+            echo "base_sha=${{ github.event.workflow_run.pull_requests[0].base.sha }}" >> $GITHUB_OUTPUT
+          else
+            echo "Detected Push trigger 🚀"
+            # For push: use previous commit on same branch
+            git fetch origin ${{ github.event.workflow_run.head_branch }} --depth=2
+            BASE_SHA=$(git rev-list ${{ github.event.workflow_run.head_sha }}^ -n 1)
+            echo "base_sha=$BASE_SHA" >> $GITHUB_OUTPUT
+          fi
 
-      # --- Check if changes are in frontend or backend ---
+          echo "head_sha=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+
+      # Fetch the head commit if needed
+      - name: Fetch head commit
+        run: |
+          git fetch origin ${{ steps.sha.outputs.head_sha }} --depth=1    
+
+      # Check if changes are in frontend or backend
       - name: Check modified paths
         id: changes
         uses: dorny/paths-filter@v3
         with:
-          base: ${{ github.event.workflow_run.pull_requests[0].base.sha }}
-          ref: ${{ github.event.workflow_run.head_sha }}
+          base: ${{ steps.sha.outputs.base_sha }}
+          ref: ${{ steps.sha.outputs.head_sha }}
           filters: |
             frontend:
               - 'frontend/**'
             backend:
               - 'backend/**'
+
+      # Debug info 
+      - name: Show detected changes
+        run: |
+          echo "Base SHA: ${{ steps.sha.outputs.base_sha }}"
+          echo "Head SHA: ${{ steps.sha.outputs.head_sha }}"
+          echo "Frontend changed: ${{ steps.changes.outputs.frontend }}"
+          echo "Backend changed: ${{ steps.changes.outputs.backend }}"
 
       # --- Stop if no relevant changes ---
       - name: Stop if not frontend/backend
