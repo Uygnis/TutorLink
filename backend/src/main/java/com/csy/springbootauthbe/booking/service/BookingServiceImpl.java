@@ -138,7 +138,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDTO> getBookingsForTutor(String tutorId, String date) {
-        logger.info("Fetching bookings for a tutor: {}", tutorId);
+        logger.info("Fetching bookings for a tutor : {}", tutorId);
         return bookingRepository.findByTutorIdAndDate(tutorId, date)
                 .stream().map(bookingMapper::toDto)
                 .collect(Collectors.toList());
