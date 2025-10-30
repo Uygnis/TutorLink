@@ -189,9 +189,11 @@ jobs:
       - name: Export Gemini summary
         shell: bash
         run: |
-          echo "GEMINI_SUMMARY<<EOF" >> $GITHUB_ENV
-          cat gemini_summary.txt >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          {
+            echo 'GEMINI_SUMMARY<<EOF'
+            cat gemini_summary.txt
+            echo 'EOF'
+          } >> $GITHUB_ENV
 
       - name: Post Gemini summary as commit comment
         uses: actions/github-script@v7
