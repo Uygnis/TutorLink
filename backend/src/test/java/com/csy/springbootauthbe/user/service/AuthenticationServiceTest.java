@@ -108,7 +108,7 @@ class AuthenticationServiceTest {
         req.setLastname("X");
         req.setRole("User");
 
-        when(repository.existsByEmail("u@x.com")).thenReturn(false);
+        when(repository.existsByEmailAndStatusNot("u@x.com", AccountStatus.DELETED)).thenReturn(false);
         when(passwordEncoder.encode("P@ss")).thenReturn("hashed");
         when(jwtService.generateToken(any(User.class))).thenReturn("jwt");
         when(repository.save(any(User.class))).thenAnswer(inv -> {
@@ -141,7 +141,7 @@ class AuthenticationServiceTest {
         RegisterRequest req = new RegisterRequest();
         req.setEmail("dupe@x.com");
 
-        when(repository.existsByEmail("dupe@x.com")).thenReturn(true);
+        when(repository.existsByEmailAndStatusNot("dupe@x.com", AccountStatus.DELETED)).thenReturn(true);
 
         assertThrows(RuntimeException.class, () -> auth.register(req));
         verify(repository, never()).save(any());
@@ -153,7 +153,7 @@ class AuthenticationServiceTest {
         req.setEmail("x@x.com");
         req.setRole("NotARole");
 
-        when(repository.existsByEmail("x@x.com")).thenReturn(false);
+        when(repository.existsByEmailAndStatusNot("x@x.com", AccountStatus.DELETED)).thenReturn(false);
 
         assertThrows(IllegalArgumentException.class, () -> auth.register(req));
         verify(repository, never()).save(any());
@@ -168,7 +168,7 @@ class AuthenticationServiceTest {
         req.setLastname("X");
         req.setRole("Tutor");
 
-        when(repository.existsByEmail("tutor@x.com")).thenReturn(false);
+        when(repository.existsByEmailAndStatusNot("tutor@x.com", AccountStatus.DELETED)).thenReturn(false);
         when(passwordEncoder.encode("pw")).thenReturn("hashed");
         when(jwtService.generateToken(any(User.class))).thenReturn("jwt");
         when(repository.save(any(User.class))).thenAnswer(inv -> {
@@ -194,7 +194,7 @@ class AuthenticationServiceTest {
         req.setLastname("Y");
         req.setRole("Student");
 
-        when(repository.existsByEmail("student@x.com")).thenReturn(false);
+        when(repository.existsByEmailAndStatusNot("student@x.com", AccountStatus.DELETED)).thenReturn(false);
         when(passwordEncoder.encode("pw")).thenReturn("hashed");
         when(jwtService.generateToken(any(User.class))).thenReturn("jwt");
         when(repository.save(any(User.class))).thenAnswer(inv -> {
