@@ -1,5 +1,6 @@
 package com.csy.springbootauthbe.user.repository;
 
+import com.csy.springbootauthbe.user.entity.AccountStatus;
 import com.csy.springbootauthbe.user.entity.Role;
 import com.csy.springbootauthbe.user.entity.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -16,7 +17,11 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByEmailAndStatusNot(String email, AccountStatus status);
+
     boolean existsByEmail(String email);
+
+    boolean existsByEmailAndStatusNot(String email, AccountStatus status);
 
     List<User> findAllByRole(Role role);
 
