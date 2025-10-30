@@ -66,7 +66,7 @@ class AuthenticationServiceTest {
                 .thenThrow(new BadCredentialsException("bad creds"));
 
         assertThrows(BadCredentialsException.class, () -> auth.login(req));
-        verify(repository, never()).findByEmailAndStatusNot(anyString(), AccountStatus.DELETED);
+        verify(repository, never()).findByEmailAndStatusNot(anyString(), any());
         verifyNoInteractions(jwtService);
     }
 
