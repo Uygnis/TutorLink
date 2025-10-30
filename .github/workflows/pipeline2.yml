@@ -69,7 +69,9 @@ jobs:
 
       - name: Run all JMeter Test Plans
         run: |
-          mkdir -p jmeter-results
+          mkdir -p jmeter-results jmeter-report
+          chmod -R 777 jmeter-results jmeter-report
+          
           for test in jmeter/tests/*.jmx; do
             name=$(basename "$test" .jmx)
             echo "🚀 Running JMeter test: $name"
