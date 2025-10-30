@@ -37,7 +37,7 @@ const WalletPage = () => {
   const fetchWallet = async () => {
     if (!user?.id || !user?.token) {
       toast.error("User not logged in");
-      navigate("/login");
+      navigate("/");
       return;
     }
 
@@ -65,7 +65,7 @@ const WalletPage = () => {
     if (!pendingAmount) return;
     if (!user?.id || !user?.token) {
       toast.error("User not logged in");
-      navigate("/login");
+      navigate("/");
       return;
     }
 
@@ -91,7 +91,7 @@ const WalletPage = () => {
   const handleWithdrawClick = () => {
     if (!user?.id || !user?.token) {
       toast.error("User not logged in");
-      navigate("/login");
+      navigate("/");
       return;
     }
     setShowPinModal(true);
@@ -108,7 +108,7 @@ const WalletPage = () => {
 
     if (!user?.id || !user?.token) {
       toast.error("User not logged in");
-      navigate("/login");
+      navigate("/");
       return;
     }
 

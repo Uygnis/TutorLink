@@ -306,15 +306,6 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public void createAdminByAdmin(String adminUserId, AdminDTO adminDTO) {
-        checkAdminWithPermission(adminUserId, new Permissions[]{Permissions.CREATE_ADMIN});
-        Admin newAdmin = adminMapper.toEntity(adminDTO);
-        Admin savedAdmin = adminRepository.save(newAdmin);
-        adminMapper.toDTO(savedAdmin);
-    }
-
-
-    @Override
     public void editAdminRoles(String adminUserId, String targetAdminId, List<Permissions> newPermissions) {
         checkAdminWithPermission(adminUserId, new Permissions[]{Permissions.EDIT_ADMIN_ROLES});
         Admin targetAdmin = adminRepository.findByUserId(targetAdminId)

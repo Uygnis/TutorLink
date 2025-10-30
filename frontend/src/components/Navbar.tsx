@@ -94,10 +94,13 @@ const Navbar = () => {
   );
 
   const handleLogout = () => {
+    let route = "/";
+    if (role === "ADMIN") 
+      route = "/admin/login";
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     dispatch(setUser(null));
-    navigate("/login");
+    navigate(route);
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
