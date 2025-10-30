@@ -117,7 +117,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install google-genai html2text
 
-            - name: Analyze ZAP Report with Gemini
+      - name: Analyze ZAP Report with Gemini
         id: gemini_summary
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
