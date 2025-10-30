@@ -41,6 +41,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
     confirmed: "bg-green-100 text-green-800",
     pending: "bg-yellow-100 text-yellow-800",
     cancelled: "bg-red-100 text-red-800",
+    on_hold: "bg-orange-100 text-orange-800",
   } as const;
 
   const handleCancelClick = (e: React.MouseEvent) => {
@@ -50,7 +51,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
 
   // Disable hover overlays for past sessions
   const showCancelOverlay = !isPastSession && status === "pending" && isHovered;
-  const showRescheduleOverlay = !isPastSession && status === "confirmed" && isHovered;
+  const showRescheduleOverlay = false;
 
   const month = new Date(date).toLocaleString("default", { month: "short" });
   const day = new Date(date).getDate();
@@ -64,9 +65,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
       onClick={() => onClick && onClick(id)}
       onMouseEnter={() => !isPastSession && setIsHovered(true)}
       onMouseLeave={() => !isPastSession && setIsHovered(false)}
-      className={`relative flex flex-col border rounded-md p-4 shadow-sm transition ${
-        showCancelOverlay ? "bg-red-100" : "bg-white hover:shadow-md"
-      } cursor-pointer`}>
+      className={`relative flex flex-col border rounded-md p-4 shadow-sm transition ${showCancelOverlay ? "bg-red-100" : "bg-white hover:shadow-md"
+        } cursor-pointer`}>
       <div className="flex items-center justify-between">
         {/* Left: Date */}
         <div className="text-center pr-4 border-r">
@@ -79,7 +79,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
         <div className="flex-1 px-4">
           <p className="font-semibold text-base">{lessonType}</p>
           <p className="text-sm text-gray-600">
-            {start} - {end} SG
+            {start} - {end} 
           </p>
           <p className="text-sm text-gray-600">{tutorName}</p>
         </div>
@@ -101,8 +101,13 @@ const BookingCard: React.FC<BookingCardProps> = ({
                 <span className="text-sm text-gray-400 mt-2">N/A</span>
               )
             ) : (
-              <span className={`px-2 py-1 rounded-md text-sm font-semibold ${statusColor[status]}`}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
+              <span
+                className={`px-2 py-1 rounded-md text-sm font-semibold ${statusColor[status]}`}
+              >
+                {status
+                  .split('_') 
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1)) 
+                  .join(' ')} 
               </span>
             )}
           </div>
