@@ -50,6 +50,7 @@ jobs:
   # ----------------- JMETER -----------------
   jmeter:
     name: Load Test - Apache JMeter
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: development
     permissions:
@@ -117,52 +118,73 @@ jobs:
           python -m pip install --upgrade pip
           pip install google-genai html2text
 
-      - name: Analyze ZAP Report with Gemini
+      - name: Analyze Security and Performance Reports with Gemini
         id: gemini_summary
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           python - <<'END'
-          import os
-          import html2text
-          import google.genai
-          from google.genai.errors import ServerError
-          import time
+          import os, html2text, google.genai, csv
 
           os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
-          REPORT_FILE = "./reports/zap-report.html"
-
-          if not os.path.isfile(REPORT_FILE):
-              print("ZAP report not found!")
-              exit(1)
-
-          with open(REPORT_FILE, "r", encoding="utf-8") as f:
-              html_content = f.read()
-
-          report_text = html2text.html2text(html_content)
           client = google.genai.Client()
 
-          # retry logic for 503 errors
-          for attempt in range(5):
-              try:
-                  response = client.models.generate_content(
-                      model="gemini-2.0-flash",
-                      contents=f"Summarize the following ZAP scan report and key load test insights:\n\n{report_text}",
-                  )
-                  break
-              except ServerError as e:
-                  if e.status_code == 503:
-                      print(f"Gemini model overloaded, retrying in {5*(attempt+1)}s...")
-                      time.sleep(5*(attempt+1))
-                  else:
-                      raise
-          else:
-              print("Failed to get response after retries.")
-              response = type("R", (), {"text": "Gemini API unavailable."})()
+          zap_file = "./reports/zap-report.html"
+          jmeter_file = "./reports/jmeter-results.csv"
 
+          # --- Convert ZAP HTML to text ---
+          zap_summary = ""
+          if os.path.isfile(zap_file):
+              with open(zap_file, "r", encoding="utf-8") as f:
+                  zap_summary = html2text.html2text(f.read())
+          else:
+              zap_summary = "No ZAP report found."
+
+          # --- Parse JMeter CSV for basic metrics ---
+          jmeter_summary = ""
+          if os.path.isfile(jmeter_file):
+              with open(jmeter_file, newline='', encoding='utf-8') as csvfile:
+                  reader = csv.DictReader(csvfile)
+                  count, total_time, errors = 0, 0, 0
+                  for row in reader:
+                      count += 1
+                      total_time += float(row.get('elapsed', 0))
+                      if row.get('success', '').lower() == 'false':
+                          errors += 1
+                  if count > 0:
+                      avg_time = total_time / count
+                      error_rate = (errors / count) * 100
+                      jmeter_summary = f"Average response: {avg_time:.2f} ms, Error rate: {error_rate:.2f}%"
+                  else:
+                      jmeter_summary = "No samples found."
+          else:
+              jmeter_summary = "No JMeter results found."
+
+          # --- Ask Gemini for concise analysis ---
+          prompt = f"""
+          You are an application security and performance auditor.
+          Based on the data below:
+          1. Summarize the number of vulnerabilities and classify them as high, medium, or low severity.
+          2. Summarize key JMeter performance metrics (latency, throughput, error rate).
+          3. Give a 1-sentence risk summary.
+
+          === ZAP Security Report ===
+          {zap_summary}
+
+          === JMeter Performance Summary ===
+          {jmeter_summary}
+          """
+
+          response = client.models.generate_content(
+              model="gemini-2.5-flash",
+              contents=prompt
+          )
+
+          print(response.text)
           with open("gemini_summary.txt", "w", encoding="utf-8") as f:
               f.write(response.text)
           END
+
 
       - name: Export Gemini summary
         shell: bash
@@ -194,7 +216,7 @@ jobs:
 
             </details>
 
-            📊 [View ZAP & JMeter Artifacts](../../actions/runs/${runId})
+            📊 [View ZAP & JMeter Artifacts](../../TutorLink/actions/runs/${runId})
             `
             if (!commitSha) {
               console.log("⚠️ No commit SHA found — skipping comment.")
