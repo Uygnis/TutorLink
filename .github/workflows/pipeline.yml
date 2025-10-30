@@ -7,10 +7,22 @@ on:
     branches: [main]
   workflow_dispatch: # manual trigger allowed
 
+env:
+  RUN_CONDITION: >
+    ${{
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == github.repository
+      )
+    }}
+
 jobs:
   # run frontend test
   frontend-test:
     name: Frontend - Test
+    if: ${{ env.RUN_CONDITION }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -41,6 +53,7 @@ jobs:
   # run backend test
   backend-test:
     name: Backend - Test
+    if: ${{ env.RUN_CONDITION }}
     runs-on: ubuntu-latest
     environment: development
     defaults:
@@ -71,6 +84,7 @@ jobs:
 
   sast:
     name: SAST - CodeQL Scan
+    if: ${{ env.RUN_CONDITION }}
     needs: [frontend-test, backend-test]
     runs-on: ubuntu-latest
     permissions:
@@ -108,6 +122,7 @@ jobs:
   # security scan
   asp-scan-frontend:
     name: OWASP Scan - Frontend
+    if: ${{ env.RUN_CONDITION }}
     runs-on: ubuntu-latest
     needs: frontend-test
     steps:
@@ -129,6 +144,7 @@ jobs:
 
   asp-scan-backend:
     name: OWASP Scan - Backend
+    if: ${{ env.RUN_CONDITION }}
     runs-on: ubuntu-latest
     needs: backend-test
     steps:
@@ -151,6 +167,7 @@ jobs:
   # frontend
   frontend-build:
     name: Frontend - Build
+    if: ${{ env.RUN_CONDITION }}
     needs: [sast, asp-scan-frontend]
     runs-on: ubuntu-latest
     environment: development
@@ -186,6 +203,7 @@ jobs:
   # backend
   backend-build:
     name: Backend - Build
+    if: ${{ env.RUN_CONDITION }}
     needs: [sast, asp-scan-backend]
     runs-on: ubuntu-latest
     environment: development
