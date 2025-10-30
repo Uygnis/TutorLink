@@ -146,7 +146,7 @@ jobs:
           for attempt in range(5):
               try:
                   response = client.models.generate_content(
-                      model="gemini-2.5-flash",
+                      model="gemini-2.0-flash",
                       contents=f"Summarize the following ZAP scan report and key load test insights:\n\n{report_text}",
                   )
                   break
