@@ -117,45 +117,72 @@ jobs:
           python -m pip install --upgrade pip
           pip install google-genai html2text
 
-      - name: Analyze ZAP Report with Gemini
+            - name: Analyze ZAP Report with Gemini
         id: gemini_summary
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          python - <<END
+          python - <<'END'
           import os
           import html2text
           import google.genai
+          from google.genai.errors import ServerError
+          import time
 
           os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
           REPORT_FILE = "./reports/zap-report.html"
+
           if not os.path.isfile(REPORT_FILE):
               print("ZAP report not found!")
               exit(1)
+
           with open(REPORT_FILE, "r", encoding="utf-8") as f:
               html_content = f.read()
+
           report_text = html2text.html2text(html_content)
           client = google.genai.Client()
-          response = client.models.generate_content(
-              model="gemini-2.5-flash",
-              contents=f"Summarize the following ZAP scan report and key load test insights:\n\n{report_text}",
-          )
+
+          # retry logic for 503 errors
+          for attempt in range(5):
+              try:
+                  response = client.models.generate_content(
+                      model="gemini-2.5-flash",
+                      contents=f"Summarize the following ZAP scan report and key load test insights:\n\n{report_text}",
+                  )
+                  break
+              except ServerError as e:
+                  if e.status_code == 503:
+                      print(f"Gemini model overloaded, retrying in {5*(attempt+1)}s...")
+                      time.sleep(5*(attempt+1))
+                  else:
+                      raise
+          else:
+              print("Failed to get response after retries.")
+              response = type("R", (), {"text": "Gemini API unavailable."})()
+
           with open("gemini_summary.txt", "w", encoding="utf-8") as f:
               f.write(response.text)
           END
 
-      - name: Export Gemini summary
-        run: echo "GEMINI_SUMMARY=$(cat gemini_summary.txt)" >> $GITHUB_ENV
+      - name: Export Gemini summary (safe for multiline)
+        run: |
+          {
+            echo 'GEMINI_SUMMARY<<EOF'
+            cat gemini_summary.txt
+            echo 'EOF'
+          } >> $GITHUB_ENV
 
       - name: Post Gemini summary as commit comment
         uses: actions/github-script@v7
         env:
           COMMIT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const commitSha = process.env.COMMIT_SHA
             const summary = process.env.GEMINI_SUMMARY || "No AI summary available."
+            const runId = process.env.GITHUB_RUN_ID
             const commentBody = `
             ### 🤖 Gemini AI ZAP + JMeter Analysis (Commit)
 
@@ -168,8 +195,7 @@ jobs:
 
             </details>
 
-            📊 [Download ZAP Report Artifact](../../actions/runs/${process.env.GITHUB_RUN_ID})  
-            💨 [Download JMeter Report Artifact](../../actions/runs/${process.env.GITHUB_RUN_ID})
+            📊 [View ZAP & JMeter Artifacts](../../actions/runs/${runId})
             `
             if (!commitSha) {
               console.log("⚠️ No commit SHA found — skipping comment.")
@@ -182,3 +208,4 @@ jobs:
               body: commentBody
             })
             console.log(`✅ Gemini summary posted to commit ${commitSha}`)
+
