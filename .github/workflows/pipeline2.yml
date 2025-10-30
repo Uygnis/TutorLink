@@ -8,6 +8,7 @@ on:
       - completed
 
 jobs:
+  # ----------------- DAST -----------------
   dast:
     name: DAST Scan - OWASP ZAP
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
@@ -46,11 +47,51 @@ jobs:
           name: zap-html-report
           path: zap-report.html
 
+  # ----------------- JMETER -----------------
+  jmeter:
+    name: Load Test - Apache JMeter
+    runs-on: ubuntu-latest
+    environment: development
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install JMeter
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y openjdk-17-jre-headless
+          wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+          tar -xzf apache-jmeter-5.6.3.tgz
+          mv apache-jmeter-5.6.3 /opt/jmeter
+          export PATH=$PATH:/opt/jmeter/bin
+
+      - name: Run all JMeter Test Plans
+        run: |
+          mkdir -p jmeter-results
+          for test in tests/*.jmx; do
+            name=$(basename "$test" .jmx)
+            echo "🚀 Running JMeter test: $name"
+            /opt/jmeter/bin/jmeter -n \
+              -t "$test" \
+              -Jtarget_host=${{ secrets.STAGING_URL }} \
+              -l "jmeter-results/${name}.jtl" \
+              -e -o "jmeter-report/${name}" || true
+          done
+
+      - name: Upload JMeter Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: jmeter-reports
+          path: jmeter-report/
+
+  # ----------------- AI SUMMARY -----------------
   ai-implementation:
     name: AI Implementation
     runs-on: ubuntu-latest
     environment: development
-    needs: dast
+    needs: [dast, jmeter]
     permissions:
       contents: write
     steps:
@@ -63,48 +104,46 @@ jobs:
           name: zap-html-report
           path: ./reports
 
+      - name: Download JMeter report artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: jmeter-report
+          path: ./jmeter-report
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install google-genai html2text
 
       - name: Analyze ZAP Report with Gemini
-        id: gemini
+        id: gemini_summary
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          python - <<'END'
-          import os, html2text, google.genai
+          python - <<END
+          import os
+          import html2text
+          import google.genai
 
-          # Set Gemini API key
           os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
-
           REPORT_FILE = "./reports/zap-report.html"
-
           if not os.path.isfile(REPORT_FILE):
               print("ZAP report not found!")
               exit(1)
-
-          html_content = open(REPORT_FILE, encoding="utf-8").read()
+          with open(REPORT_FILE, "r", encoding="utf-8") as f:
+              html_content = f.read()
           report_text = html2text.html2text(html_content)
-
           client = google.genai.Client()
           response = client.models.generate_content(
               model="gemini-2.5-flash",
-              contents=f"Summarize the following ZAP scan report and highlight key warnings and potential risks:\n\n{report_text}",
+              contents=f"Summarize the following ZAP scan report and key load test insights:\n\n{report_text}",
           )
-
-          summary = response.text.strip()
-          print("===== Gemini-Infused ZAP Analysis =====")
-          print(summary)
-
-          # Save summary for later steps
           with open("gemini_summary.txt", "w", encoding="utf-8") as f:
-              f.write(summary)
+              f.write(response.text)
           END
 
       - name: Export Gemini summary
-        run: echo "GEMINI_SUMMARY<<EOF" >> $GITHUB_ENV && cat gemini_summary.txt >> $GITHUB_ENV && echo "EOF" >> $GITHUB_ENV
+        run: echo "GEMINI_SUMMARY=$(cat gemini_summary.txt)" >> $GITHUB_ENV
 
       - name: Post Gemini summary as commit comment
         uses: actions/github-script@v7
@@ -115,9 +154,8 @@ jobs:
           script: |
             const commitSha = process.env.COMMIT_SHA
             const summary = process.env.GEMINI_SUMMARY || "No AI summary available."
-
             const commentBody = `
-            ### 🤖 Gemini AI ZAP Analysis Summary (Commit)
+            ### 🤖 Gemini AI ZAP + JMeter Analysis (Commit)
 
             <details>
             <summary>Click to expand AI-generated summary</summary>
@@ -127,18 +165,18 @@ jobs:
             \`\`\`
 
             </details>
-            `
 
+            📊 [Download ZAP Report Artifact](../../actions/runs/${process.env.GITHUB_RUN_ID})  
+            💨 [Download JMeter Report Artifact](../../actions/runs/${process.env.GITHUB_RUN_ID})
+            `
             if (!commitSha) {
               console.log("⚠️ No commit SHA found — skipping comment.")
               return
             }
-
             await github.rest.repos.createCommitComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               commit_sha: commitSha,
               body: commentBody
             })
-
             console.log(`✅ Gemini summary posted to commit ${commitSha}`)
