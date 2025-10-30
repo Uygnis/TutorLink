@@ -49,7 +49,7 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public Optional<TutorDTO> getTutorByUserId(String userId) {
-        logger.info("Getting tutor profile: {}", userId);
+        logger.info("Getting tutor a profile: {}", userId);
         User user = userRepository.findById(userId).orElse(null);
         Optional<TutorDTO> tutor = tutorRepository.findByUserId(userId).map(tutorMapper::toDTO);
         tutor.map(t -> {
