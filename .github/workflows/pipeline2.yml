@@ -71,7 +71,7 @@ jobs:
         run: |
           mkdir -p jmeter-results jmeter-report
           chmod -R 777 jmeter-results jmeter-report
-          
+
           for test in jmeter/tests/*.jmx; do
             name=$(basename "$test" .jmx)
             echo "🚀 Running JMeter test: $name"
@@ -109,7 +109,7 @@ jobs:
       - name: Download JMeter report artifacts
         uses: actions/download-artifact@v4
         with:
-          name: jmeter-report
+          name: jmeter-reports
           path: ./jmeter-report
 
       - name: Install Python dependencies

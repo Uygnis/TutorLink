@@ -61,6 +61,7 @@ public class TutorServiceImpl implements TutorService {
     @Override
     public TutorResponse updateTutor(String userId, TutorRequest updatedData)
         throws NoSuchAlgorithmException, IOException {
+        logger.info("Updating tutor profile: {}", updatedData.toString());
 
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UsernameNotFoundException("User not found"));
