@@ -19,7 +19,7 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     Optional<User> findByEmailAndStatusNot(String email, AccountStatus status);
 
-    boolean existsByEmail(String email);
+//    boolean existsByEmail(String email);
 
     boolean existsByEmailAndStatusNot(String email, AccountStatus status);
 
