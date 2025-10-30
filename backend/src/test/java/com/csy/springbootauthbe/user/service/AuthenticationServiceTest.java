@@ -5,6 +5,7 @@ import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.service.StudentService;
 import com.csy.springbootauthbe.tutor.dto.TutorDTO;
 import com.csy.springbootauthbe.tutor.service.TutorService;
+import com.csy.springbootauthbe.user.entity.AccountStatus;
 import com.csy.springbootauthbe.user.entity.Role;
 import com.csy.springbootauthbe.user.entity.User;
 import com.csy.springbootauthbe.user.repository.UserRepository;
@@ -46,12 +47,12 @@ class AuthenticationServiceTest {
 
         when(authenticationManager.authenticate(any()))
                 .thenReturn(new UsernamePasswordAuthenticationToken("nobody@nowhere.com", "pw"));
-        when(repository.findByEmail("nobody@nowhere.com")).thenReturn(Optional.empty());
+        when(repository.findByEmailAndStatusNot("nobody@nowhere.com", AccountStatus.DELETED)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () -> auth.login(req));
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(repository).findByEmail("nobody@nowhere.com");
+        verify(repository).findByEmailAndStatusNot("nobody@nowhere.com",  AccountStatus.DELETED);
         verifyNoInteractions(jwtService);
     }
 
@@ -65,7 +66,7 @@ class AuthenticationServiceTest {
                 .thenThrow(new BadCredentialsException("bad creds"));
 
         assertThrows(BadCredentialsException.class, () -> auth.login(req));
-        verify(repository, never()).findByEmail(anyString());
+        verify(repository, never()).findByEmailAndStatusNot(anyString(), AccountStatus.DELETED);
         verifyNoInteractions(jwtService);
     }
 
@@ -84,7 +85,7 @@ class AuthenticationServiceTest {
 
         when(authenticationManager.authenticate(any()))
                 .thenReturn(new UsernamePasswordAuthenticationToken("ok@x.com", "pw"));
-        when(repository.findByEmail("ok@x.com")).thenReturn(Optional.of(dbUser));
+        when(repository.findByEmailAndStatusNot("ok@x.com", AccountStatus.DELETED)).thenReturn(Optional.of(dbUser));
         when(jwtService.generateToken(dbUser)).thenReturn("jwt-login");
 
         AuthenticationResponse resp = auth.login(req);
