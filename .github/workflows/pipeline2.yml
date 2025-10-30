@@ -70,7 +70,7 @@ jobs:
       - name: Run all JMeter Test Plans
         run: |
           mkdir -p jmeter-results
-          for test in tests/*.jmx; do
+          for test in jmeter/tests/*.jmx; do
             name=$(basename "$test" .jmx)
             echo "🚀 Running JMeter test: $name"
             /opt/jmeter/bin/jmeter -n \
