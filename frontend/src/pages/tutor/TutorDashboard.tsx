@@ -118,7 +118,7 @@ const TutorDashboard = () => {
     try {
       if (!user?.token) {
         toast.error("No token found. Please login again.");
-        navigate("/login");
+        navigate("/");
         return null;
       }
 
@@ -403,12 +403,12 @@ const TutorDashboard = () => {
   useEffect(() => {
     console.log(user);
     if (!user) {
-      navigate("/login");
+      navigate("/");
       return;
     }
     if (!user.id) {
       toast.error("User ID missing. Please login again.");
-      navigate("/login");
+      navigate("/");
       return;
     }
     fetchTutorDetails(user.id).then((data) => {
