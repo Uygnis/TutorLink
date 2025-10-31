@@ -94,6 +94,12 @@ jobs:
           name: jmeter-reports
           path: jmeter-report/
 
+      - name: Upload JMeter Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: jmeter-results
+          path: jmeter-results/
+
   # ----------------- AI SUMMARY -----------------
   ai-implementation:
     name: AI Implementation
@@ -160,6 +166,17 @@ jobs:
 
           counts = Counter(levels)
           print("ZAP Risk Counts:", counts)
+
+
+
+
+
+
+
+
+
+
+
 
           report_text = html2text.html2text(html_content)
           client = google.genai.Client()
@@ -232,9 +249,7 @@ jobs:
             <details>
             <summary>Click to expand AI-generated summary</summary>
 
-            \`\`\`
             ${summary}
-            \`\`\`
 
             </details>
 
