@@ -70,6 +70,8 @@ jobs:
         run: |
           echo "Listing JaCoCo reports..."
           ls -R ./target/site/jacoco || echo "❌ jacoco.xml not found!"  
+      - name: Validate Codecov YAML
+        run: curl --data-binary @.codecov.yml https://codecov.io/validate  
       - name: Upload Backend Coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
