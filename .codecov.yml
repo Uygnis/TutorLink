@@ -1,0 +1,29 @@
+# Ignore irrelevant files/folders if needed
+ignore:
+  - "tests/*"
+  - "docs/*"
+
+# Control coverage reporting behavior
+coverage:
+  status:
+    project:
+      # Show coverage for all files, not just changed ones
+      target: auto #default
+      threshold: 0%
+      base: auto
+      only_changed_files: false
+
+# Comment configuration on PRs
+comment:
+  layout: "diff, flags, files"        # Shows coverage diff in the comment
+  require_changes: false
+
+# Flags to separate frontend/backend coverage reports
+flags:
+  backend:
+    paths:
+      - "backend/**"
+
+  frontend:
+    paths:
+      - "frontend/**"
