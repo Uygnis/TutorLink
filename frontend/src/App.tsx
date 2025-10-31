@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { setUser } from "@/redux/userSlice";
 
-// Pages    
+// Pages
 import Register from "@/pages/UserRegister";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import UserDashboard from "@/pages/user/UserDashboard";
@@ -17,7 +17,6 @@ import ManageStudents from "@/pages/admin/ManageStudents";
 import ViewTutorProfile from "@/pages/tutor/TutorProfile";
 import ManageAdmins from "@/pages/admin/ManageAdmins";
 import ViewTutorDetails from "@/pages/student/ViewTutorDetails";
-import StudentProfile from "@/pages/student/StudentProfile";
 import AdminViewTutorDetails from "@/pages/admin/AdminViewTutorDetails";
 import AdminViewAdminDetails from "@/pages/admin/AdminViewAdminDetails";
 import AdminViewStudentDetails from "@/pages/admin/AdminViewStudentDetails";
@@ -57,7 +56,7 @@ function App() {
       <Router>
         <Routes>
           {/* ✅ Default route: Student/Tutor login */}
-          <Route path="/" element={<LoginUserPage />} /> 
+          <Route path="/" element={<LoginUserPage />} />
 
           {/* ✅ Admin login route */}
           <Route path="/admin/login" element={<LoginAdminPage />} />
@@ -95,7 +94,6 @@ function App() {
             <Route path="/student/dashboard" element={<StudentDashboard />} />
             <Route path="/student/find-tutor" element={<FindTutor />} />
             <Route path="/student/view-tutor/:id" element={<ViewTutorDetails />} />
-            <Route path="/student/profile" element={<StudentProfile />} />
             <Route path="/student/wallet" element={<Wallet />} />
             <Route path="/wallet/success" element={<WalletSuccessPage />} />
             <Route path="/wallet/cancel" element={<WalletCancelPage />} />
