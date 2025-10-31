@@ -7,6 +7,8 @@ import com.csy.springbootauthbe.admin.entity.Permissions;
 import com.csy.springbootauthbe.admin.mapper.AdminMapper;
 import com.csy.springbootauthbe.admin.repository.AdminRepository;
 import com.csy.springbootauthbe.admin.util.AdminResponse;
+import com.csy.springbootauthbe.booking.dto.BookingDTO;
+import com.csy.springbootauthbe.booking.service.BookingServiceImpl;
 import com.csy.springbootauthbe.common.utils.SanitizedLogger;
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.repository.StudentRepository;
@@ -39,6 +41,7 @@ public class AdminServiceImpl implements AdminService {
     private final StudentRepository studentRepository;
     private final TutorRepository tutorRepository;
     private final WalletService walletService;
+    private final BookingServiceImpl bookingService;
     private static final SanitizedLogger logger = SanitizedLogger.getLogger(AdminServiceImpl.class);
 
 
@@ -411,6 +414,16 @@ public class AdminServiceImpl implements AdminService {
         return new AdminDashboardDTO(totalUsers, activeUsers, suspendedUsers,
                 totalTutors, activeTutors, suspendedTutors, unverifiedTutors, totalStudents, activeStudents,
                 suspendedStudents, totalAdmins, activeAdmins, suspendedAdmins, pendingTutors, walletService.getTransactionMetrics());
+    }
+
+    // -------------------------------
+    //  Booking Management
+    // -------------------------------
+    // Testing purpose
+    @Override
+    public BookingDTO deleteBooking(String adminUserId, String bookingId) {
+        checkAdminWithPermission(adminUserId, new Permissions[]{Permissions.DELETE_BOOKING});
+        return bookingService.deleteBooking(bookingId);
     }
 
     // -------------------------------

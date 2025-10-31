@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
@@ -449,9 +450,14 @@ public class BookingServiceImpl implements BookingService {
         return response;
     }
 
-
-
-
+    @Override
+    public BookingDTO deleteBooking(String bookingId) {
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new RuntimeException("Booking not found"));
+        booking.setStatus("cancelled");
+        booking.setUpdatedAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+        return bookingMapper.toDto(booking);
+    }
 
 
 }
