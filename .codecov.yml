@@ -3,17 +3,27 @@ ignore:
   - 'tests/*'
   - 'docs/*'
 
-# Adjust base directory if coverage reports have nested paths
-# If your jacoco.xml paths start with 'backend/', set this base path:
+# Base path to correctly resolve coverage report file paths
 base_path: backend
 
-# Comment configuration (optional)
-comment:
-  layout: "diff"
-  behavior: default  # or 'update' to update the existing comment
+# Control coverage reporting behavior
+coverage:
+  status:
+    project:
+      # Show coverage for all files, not just changed ones
+      only_changed_files: false
 
-# Flags to separate frontend/backend coverage
+# Comment configuration on PRs
+comment:
+  layout: "diff"         # Shows coverage diff in the comment
+  behavior: update      # Updates the existing comment instead of posting new ones
+
+# Flags to separate frontend/backend coverage reports
 flags:
   backend:
     paths:
       - backend/**
+
+  frontend:
+    paths:
+      - frontend/**
