@@ -89,10 +89,8 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: backend
-          comment: true
-          update-comment: true   # updates the previous comment instead of posting new
+          name: backend-coverage
           fail_ci_if_error: true
-          commit: ${{ github.sha }}
 
   sast:
     name: SAST - CodeQL Scan
