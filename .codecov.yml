@@ -15,7 +15,8 @@ coverage:
 
 # Comment configuration on PRs
 comment:
-  layout: "diff"        # Shows coverage diff in the comment
+  layout: "diff, flags, files"        # Shows coverage diff in the comment
+  require_changes: false
 
 # Flags to separate frontend/backend coverage reports
 flags:
