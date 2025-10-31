@@ -166,6 +166,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDTO> getBookingsForStudent(String studentId) {
+        logger.info("Get booking with payload student: {}", studentId);
         List<Booking> bookings = bookingRepository.findByStudentId(studentId);
 
         // Sort by date ascending, then start time ascending
