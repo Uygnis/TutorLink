@@ -202,6 +202,9 @@ jobs:
               response = type("R", (), {"text": "Gemini API unavailable."})()
 
           with open("gemini_summary.txt", "w", encoding="utf-8") as f:
+              f.write("ZAP Risk Counts:\n")
+              for level in ["Critical", "High", "Medium", "Low", "Informational"]:
+                  f.write(f"{level}: {counts.get(level, 0)}\n")
               f.write(response.text)
           END
 
