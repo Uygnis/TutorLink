@@ -1,22 +1,17 @@
 name: Post-Deployment Pipeline
 
-# on:
-#   workflow_dispatch: # manual trigger
-#   workflow_run:
-#     workflows: ["Deploy Pipeline"]
-#     types:
-#       - completed
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch: # manual trigger
+  workflow_run:
+    workflows: ["Deploy Pipeline"]
+    types:
+      - completed
 
 jobs:
   # ----------------- DAST -----------------
   dast:
     name: DAST Scan - OWASP ZAP
-    # if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: development
     permissions:
@@ -55,7 +50,7 @@ jobs:
   # ----------------- JMETER -----------------
   jmeter:
     name: Load Test - Apache JMeter
-    # if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: development
     permissions:
@@ -249,15 +244,15 @@ jobs:
               response = type("R", (), {"text": "Gemini API unavailable."})()
 
           with open("gemini_summary.txt", "w", encoding="utf-8") as f:
-              f.write("**ZAP Risk Counts:\n")
+              f.write("**ZAP Risk Counts:**\n")
               for level in ["Critical", "High", "Medium", "Low", "Informational"]:
                   f.write(f"{level}: {counts.get(level, 0)}\n")
               
               f.write("\n")
 
-              f.write("**JMeter Metrics:\n")
+              f.write("**JMeter Metrics:**\n")
               f.write(jmeter_summary)
-              f.write("\n")
+              f.write("\n\n")
 
               f.write(response.text)
           END
