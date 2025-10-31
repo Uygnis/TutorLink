@@ -117,6 +117,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public RecentBookingResponse getUpcomingBookings(String tutorId) {
+        logger.info("Getting upcoming 5 bookings for a tutor : {}", tutorId);
         String todayStr = LocalDate.now().format(formatter);
         List<String> statuses = List.of("confirmed", "pending","on_hold");
 
