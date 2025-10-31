@@ -1,0 +1,19 @@
+# Ignore irrelevant files/folders if needed
+ignore:
+  - 'tests/*'
+  - 'docs/*'
+
+# Adjust base directory if coverage reports have nested paths
+# If your jacoco.xml paths start with 'backend/', set this base path:
+base_path: backend
+
+# Comment configuration (optional)
+comment:
+  layout: "diff"
+  behavior: default  # or 'update' to update the existing comment
+
+# Flags to separate frontend/backend coverage
+flags:
+  backend:
+    paths:
+      - backend/**
