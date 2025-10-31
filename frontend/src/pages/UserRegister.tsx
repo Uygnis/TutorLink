@@ -34,7 +34,6 @@ const Register = () => {
       password,
       role,
       gradeLevel,
-      permissions,
       subject,
     } = getValues();
 

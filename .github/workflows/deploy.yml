@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch: # manual trigger allowed
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   # ----------------- DEPLOY -----------------
   deploy:

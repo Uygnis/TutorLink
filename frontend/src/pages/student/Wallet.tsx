@@ -8,7 +8,6 @@ import {
   GetWalletTransactions,
   CreateCheckoutSession,
   SetWalletPin,
-  VerifyWalletPin,
   WithdrawAllFunds,
 } from "@/api/walletAPI";
 
