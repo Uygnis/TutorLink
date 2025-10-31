@@ -68,8 +68,9 @@ jobs:
         run: mvn clean test jacoco:report
 
       - name: Upload Backend Coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./backend/target/site/jacoco/jacoco.xml
           flags: backend
           name: backend-coverage
