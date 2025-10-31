@@ -30,7 +30,7 @@ const TutorWalletPage = () => {
   const fetchWallet = async () => {
     if (!user?.id || !user?.token) {
       toast.error("User not logged in");
-      navigate("/login");
+      navigate("/");
       return;
     }
 
@@ -57,7 +57,7 @@ const TutorWalletPage = () => {
   const handleWithdrawClick = () => {
     if (!user?.id || !user?.token) {
       toast.error("User not logged in");
-      navigate("/login");
+      navigate("/");
       return;
     }
     setShowPinModal(true);
@@ -70,7 +70,7 @@ const TutorWalletPage = () => {
     }
     if (!user?.id || !user?.token) {
       toast.error("User not logged in");
-      navigate("/login");
+      navigate("/");
       return;
     }
 

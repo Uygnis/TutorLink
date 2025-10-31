@@ -99,6 +99,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public RecentBookingResponse getRecentPastBookings(String tutorId) {
+        logger.info("Get Recenting booking with tutor: {}", tutorId);
         String todayStr = LocalDate.now().format(formatter);
         String status = "confirmed";
         long totalCompleted = bookingRepository

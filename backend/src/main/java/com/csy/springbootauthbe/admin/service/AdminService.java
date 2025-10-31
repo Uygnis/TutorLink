@@ -53,8 +53,6 @@ public interface AdminService {
 
     void createAdmin(AdminDTO adminDTO);
 
-    void createAdminByAdmin(String adminUserId, AdminDTO adminDTO);
-
     void editAdminRoles(String adminUserId, String targetAdminId, List<Permissions> newPermissions);
 
     String suspendAdmin(String adminUserId, String targetAdminId);
