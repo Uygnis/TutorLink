@@ -123,6 +123,12 @@ jobs:
         with:
           name: jmeter-reports
           path: ./jmeter-report
+      
+      - name: Download JMeter results artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: jmeter-results
+          path: ./jmeter-results
 
       - name: Install Python dependencies
         run: |
@@ -136,12 +142,13 @@ jobs:
         run: |
           python - <<'END'
           import os
+          import glob
           import html2text
           import google.genai
           from google.genai.errors import ServerError
           import time
           from bs4 import BeautifulSoup
-          from collections import Counter
+          from collections import Counter, defaultdict
 
           os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
           REPORT_FILE = "./reports/zap-report.html"
@@ -167,16 +174,36 @@ jobs:
           counts = Counter(levels)
           print("ZAP Risk Counts:", counts)
 
+          JMETER_RESULTS_DIR = "./jmeter-results"
+          all_jtl_files = glob.glob(os.path.join(JMETER_RESULTS_DIR, "*.jtl"))
+          jmeter_metrics = defaultdict(float)
+          total_response_times = []
 
+          for jtl_file in all_jtl_files:
+            with open(jtl_file, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    jmeter_metrics["Total Requests"] += 1
+                    if row.get("success", "").lower() != "true":
+                        jmeter_metrics["Failed Requests"] += 1
+                    try:
+                        total_response_times.append(float(row.get("elapsed", 0)))
+                    except:
+                        pass
 
+          if total_response_times:
+              jmeter_metrics["Average Response Time (ms)"] = sum(total_response_times)/len(total_response_times)
+              jmeter_metrics["Max Response Time (ms)"] = max(total_response_times)
+              jmeter_metrics["Min Response Time (ms)"] = min(total_response_times)
+          else:
+              jmeter_metrics["Average Response Time (ms)"] = 0
+              jmeter_metrics["Max Response Time (ms)"] = 0
+              jmeter_metrics["Min Response Time (ms)"] = 0
 
-
-
-
-
-
-
-
+          jmeter_summary = "\n".join(
+              f"{k}: {v:.2f}" if isinstance(v, float) else f"{k}: {v}"
+              for k, v in jmeter_metrics.items()
+          )
 
           report_text = html2text.html2text(html_content)
           client = google.genai.Client()
@@ -191,6 +218,8 @@ jobs:
           Low: {counts.get('Low', 0)}
           Informational: {counts.get('Informational', 0)}
 
+          JMeter Metrics:{jmeter_summary}
+          
           Provide:
           - A short overall risk summary
           - Top recurring issues
@@ -222,6 +251,11 @@ jobs:
               f.write("ZAP Risk Counts:\n")
               for level in ["Critical", "High", "Medium", "Low", "Informational"]:
                   f.write(f"{level}: {counts.get(level, 0)}\n")
+              
+              f.write("JMeter Metrics:\n")
+              f.write(jmeter_summary)
+              f.write("\n")
+              
               f.write(response.text)
           END
 
