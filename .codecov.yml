@@ -7,11 +7,11 @@ ignore:
 coverage:
   status:
     project:
-      # Show coverage for all files, not just changed ones
-      target: auto #default
-      threshold: 0%
-      base: auto
-      only_changed_files: false
+      default:
+        # basic
+        target: auto #default
+        threshold: 0%
+        base: auto 
 
 # Comment configuration on PRs
 comment:
