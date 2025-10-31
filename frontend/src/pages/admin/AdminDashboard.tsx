@@ -76,7 +76,7 @@ const AdminDashboard = () => {
               <div className="flex flex-col w-[70%] space-y-6 overflow-y-auto pr-2">
                 <div className="bg-white rounded-md shadow-md p-5 flex-1">
                   <h2 className="font-bold text-lg mb-3">Active Users Summary</h2>
-                  {metrics ? (
+                  {metrics != null ? (
                     <div className="grid grid-cols-2 gap-4">
                       <RingChart
                         title="All Users"
@@ -118,7 +118,7 @@ const AdminDashboard = () => {
                 <div className="bg-white rounded-md shadow-md p-5">
                   <div className="text-left">
                     <h2 className="font-bold text-lg">Admin Profile</h2>
-                    {adminDetails ? (
+                    {adminDetails != null ? (
                       <div className="mt-4 text-left">
                         <p>
                           <strong>Full Name:</strong> {user?.name}
