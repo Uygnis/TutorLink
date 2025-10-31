@@ -222,9 +222,9 @@ jobs:
           JMeter Metrics:{jmeter_summary}
           
           Provide:
-          - A short overall risk summary
+          - A short overall security and performance summary
           - Top recurring issues
-          - Any recommendations to improve security posture
+          - Any recommendations to improve security posture and performance
 
           Report content:
           {report_text}
@@ -249,11 +249,13 @@ jobs:
               response = type("R", (), {"text": "Gemini API unavailable."})()
 
           with open("gemini_summary.txt", "w", encoding="utf-8") as f:
-              f.write("ZAP Risk Counts:\n")
+              f.write("**ZAP Risk Counts:\n")
               for level in ["Critical", "High", "Medium", "Low", "Informational"]:
                   f.write(f"{level}: {counts.get(level, 0)}\n")
               
-              f.write("JMeter Metrics:\n")
+              f.write("\n")
+
+              f.write("**JMeter Metrics:\n")
               f.write(jmeter_summary)
               f.write("\n")
 
