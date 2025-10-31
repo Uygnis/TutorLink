@@ -66,6 +66,12 @@ jobs:
           SENTRY_TRACES_SAMPLE_RATE: "0"
           SENTRY_PROFILES_SAMPLE_RATE: "0"
         run: mvn clean test jacoco:report
+        
+      - name: Debug JaCoCo output
+        run: |
+          echo "Listing JaCoCo reports..."
+          ls -R target/site || echo "❌ target/site missing"
+          find target -name jacoco.xml || echo "❌ jacoco.xml not found!"
 
       - name: Upload Backend Coverage to Codecov
         uses: codecov/codecov-action@v5
