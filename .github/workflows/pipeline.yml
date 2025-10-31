@@ -80,9 +80,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: |
-            ./backend/target/site/jacoco.xml
-            ./backend/target/site/jacoco/jacoco.xml
+          files: ./backend/target/site/jacoco/jacoco.xml
           flags: backend
           name: backend-coverage
           fail_ci_if_error: true
@@ -99,11 +97,6 @@ jobs:
   #       run: curl --data-binary @.codecov.yml https://codecov.io/validate  
   #     - name: Post Coverage Comment
   #       uses: codecov/codecov-action@v5
-  #       with:
-  #         token: ${{ secrets.CODECOV_TOKEN }}
-  #         flags: backend
-  #         name: backend-coverage
-  #         fail_ci_if_error: true
 
   sast:
     name: SAST - CodeQL Scan
