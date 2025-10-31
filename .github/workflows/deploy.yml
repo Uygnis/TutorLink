@@ -1,11 +1,9 @@
 name: Deploy Pipeline
 
 on:
-  workflow_dispatch: # manual trigger
-  workflow_run:
-    workflows: ["CI/CD Pipeline"]
-    types:
-      - completed
+  push:
+    branches: [main]
+  workflow_dispatch: # manual trigger allowed
 
 jobs:
   # ----------------- DEPLOY -----------------
