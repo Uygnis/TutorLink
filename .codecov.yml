@@ -1,10 +1,10 @@
 # Ignore irrelevant files/folders if needed
 ignore:
-  - 'tests/*'
-  - 'docs/*'
+  - "tests/*"
+  - "docs/*"
 
 # Base path to correctly resolve coverage report file paths
-base_path: backend
+base_path: "backend"
 
 # Control coverage reporting behavior
 coverage:
@@ -15,15 +15,15 @@ coverage:
 
 # Comment configuration on PRs
 comment:
-  layout: "diff"         # Shows coverage diff in the comment
-  behavior: update      # Updates the existing comment instead of posting new ones
+  layout: "diff"        # Shows coverage diff in the comment
+  behavior: "update"    # Updates the existing comment instead of posting new ones
 
 # Flags to separate frontend/backend coverage reports
 flags:
   backend:
     paths:
-      - backend/**
+      - "backend/**"
 
   frontend:
     paths:
-      - frontend/**
+      - "frontend/**"
