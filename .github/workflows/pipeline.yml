@@ -87,23 +87,23 @@ jobs:
           name: backend-coverage
           fail_ci_if_error: true
 
-  # Post Coverage Comment on PR
-  codecov-comment:
-    name: Codecov PR Comment
-    needs: [backend-test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Validate Codecov YAML
-        run: curl --data-binary @.codecov.yml https://codecov.io/validate  
-      - name: Post Coverage Comment
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: backend
-          name: backend-coverage
-          fail_ci_if_error: true
+  # # Post Coverage Comment on PR
+  # codecov-comment:
+  #   name: Codecov PR Comment
+  #   needs: [backend-test]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #     - name: Validate Codecov YAML
+  #       run: curl --data-binary @.codecov.yml https://codecov.io/validate  
+  #     - name: Post Coverage Comment
+  #       uses: codecov/codecov-action@v5
+  #       with:
+  #         token: ${{ secrets.CODECOV_TOKEN }}
+  #         flags: backend
+  #         name: backend-coverage
+  #         fail_ci_if_error: true
 
   sast:
     name: SAST - CodeQL Scan
