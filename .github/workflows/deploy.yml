@@ -1,22 +1,13 @@
 name: Deploy Pipeline
 
 on:
-  workflow_dispatch: # manual trigger
-  workflow_run:
-    workflows: ["CI/CD Pipeline"]
-    types:
-      - completed
+  push:
+    branches: [main]
+  workflow_dispatch: # manual trigger allowed
 
 jobs:
   # ----------------- DEPLOY -----------------
   deploy:
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (
-        github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.event == 'push' &&
-        github.event.workflow_run.head_branch == 'main'
-      )
     runs-on: ubuntu-latest
     environment: development
 
