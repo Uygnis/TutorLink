@@ -65,7 +65,33 @@ jobs:
           SENTRY_DSN: ""
           SENTRY_TRACES_SAMPLE_RATE: "0"
           SENTRY_PROFILES_SAMPLE_RATE: "0"
-        run: mvn clean test
+        run: mvn clean test jacoco:report
+
+      - name: Upload Backend Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./backend/target/site/jacoco/jacoco.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: true
+
+  # Post Coverage Comment on PR
+  codecov-comment:
+    name: Codecov PR Comment
+    needs: [backend-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Post Coverage Comment
+        uses: codecov/codecov-action@v4
+        with:
+          flags: backend
+          comment: true
+          update-comment: true   # updates the previous comment instead of posting new
+          fail_ci_if_error: true
+          commit: ${{ github.sha }}
 
   sast:
     name: SAST - CodeQL Scan
