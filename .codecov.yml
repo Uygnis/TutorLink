@@ -3,9 +3,6 @@ ignore:
   - "tests/*"
   - "docs/*"
 
-# Base path to correctly resolve coverage report file paths
-base_path: "backend"
-
 # Control coverage reporting behavior
 coverage:
   status:
