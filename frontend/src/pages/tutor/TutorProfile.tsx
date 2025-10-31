@@ -52,7 +52,7 @@ const ViewTutorProfile = () => {
         dispatch(setLoading(true));
         if (!user?.token) {
           toast.error("No token found. Please login again.");
-          navigate("/login");
+          navigate("/");
           return;
         }
 
@@ -176,7 +176,7 @@ const ViewTutorProfile = () => {
       if (!user?.token) {
         toast.error("No token found. Please login again.");
         dispatch(setLoading(false));
-        navigate("/login");
+        navigate("/");
         return;
       }
       console.log(profile);

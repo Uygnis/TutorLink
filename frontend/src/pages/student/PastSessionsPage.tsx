@@ -24,7 +24,7 @@ const PastSessionsPage = () => {
   useEffect(() => {
     if (!user?.id || !user?.token) {
       toast.error("User not logged in");
-      navigate("/login");
+      navigate("/");
       return;
     }
 
