@@ -29,8 +29,8 @@ jobs:
           else
             echo "Detected Push trigger 🚀"
             # For push: use previous commit on same branch
-            git fetch origin ${{ github.event.workflow_run.head_branch }} --depth=2
-            BASE_SHA=$(git rev-list ${{ github.event.workflow_run.head_sha }}^ -n 1)
+            git fetch origin ${{ github.ref }} --depth=2
+            BASE_SHA=$(git rev-parse "${GITHUB_SHA}^" 2>/dev/null || echo "${GITHUB_SHA}")
             echo "base_sha=$BASE_SHA" >> $GITHUB_OUTPUT
           fi
 
