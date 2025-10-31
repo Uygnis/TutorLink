@@ -45,6 +45,9 @@ const CreateAdminModal = ({ isOpen, onClose, admin }: Props) => {
     { id: "SUSPEND_ADMIN", label: "Suspend Admins", superOnly: true },
     { id: "DELETE_ADMIN", label: "Delete Admins", superOnly: true },
     { id: "SUPER_ADMIN", label: "Super Admin", superOnly: true },
+
+    // Booking Management
+    { id: "DELETE_BOOKING", label: "Delete Booking", superOnly: true },
   ];
 
   // ✅ Check if current user is a SUPER_ADMIN
@@ -66,8 +69,13 @@ const CreateAdminModal = ({ isOpen, onClose, admin }: Props) => {
     const isValid = await trigger();
     if (!isValid) return;
 
-    const { firstname, lastname, email, password, permissions: selectedPerms } =
-      getValues();
+    const {
+      firstname,
+      lastname,
+      email,
+      password,
+      permissions: selectedPerms,
+    } = getValues();
 
     try {
       dispatch(setLoading(true));
@@ -182,7 +190,7 @@ const CreateAdminModal = ({ isOpen, onClose, admin }: Props) => {
             <button
               type="button"
               onClick={() => {
-                reset(); 
+                reset();
                 onClose();
               }}
               className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
