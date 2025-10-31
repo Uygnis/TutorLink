@@ -10,7 +10,6 @@ coverage:
       # Show coverage for all files, not just changed ones
       target: auto #default
       threshold: 0%
-      base: auto
       only_changed_files: false
 
 # Comment configuration on PRs
