@@ -1,11 +1,16 @@
 name: Post-Deployment Pipeline
 
+# on:
+#   workflow_dispatch: # manual trigger
+#   workflow_run:
+#     workflows: ["Deploy Pipeline"]
+#     types:
+#       - completed
 on:
-  workflow_dispatch: # manual trigger
-  workflow_run:
-    workflows: ["Deploy Pipeline"]
-    types:
-      - completed
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   # ----------------- DAST -----------------
