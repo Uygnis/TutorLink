@@ -13,7 +13,6 @@ coverage:
 # Comment configuration on PRs
 comment:
   layout: "diff"        # Shows coverage diff in the comment
-  behavior: "update"    # Updates the existing comment instead of posting new ones
 
 # Flags to separate frontend/backend coverage reports
 flags:
