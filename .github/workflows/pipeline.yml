@@ -79,8 +79,8 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: |
-            backend/target/site/jacoco.xml
-            backend/target/site/jacoco/jacoco.xml
+            ./backend/target/site/jacoco.xml
+            ./backend/target/site/jacoco/jacoco.xml
           flags: backend
           name: backend-coverage
           fail_ci_if_error: true
