@@ -13,7 +13,7 @@ const ManageTutors = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const tutorsPerPage = 5;
+  const tutorsPerPage = 10;
   const dispatch = useAppDispatch();
 
   // Sorting

@@ -8,7 +8,6 @@ import { toast } from "react-toastify";
 import Navbar from "@/components/Navbar";
 import ProfilePicModal from "@/components/ProfilePicModal";
 import BookingCard from "@/components/BookingCard";
-import RescheduleModal from "@/components/RescheduleModal";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
 import { BookingResponse } from "@/types/BookingType";
 
@@ -22,11 +21,7 @@ const StudentDashboard = () => {
   const [loadingWallet, setLoadingWallet] = useState<boolean>(true);
   const [showOnlyConfirmed, setShowOnlyConfirmed] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [rescheduleBooking, setRescheduleBooking] = useState<{
-    bookingId: string;
-    tutorId: string;
-  } | null>(null);
-
+  
   const fetchWallet = async (studentId: string) => {
     if (!user?.token) return;
     try {
@@ -73,14 +68,10 @@ const StudentDashboard = () => {
     }
   };
 
-  const handleReschedule = (bookingId: string, tutorId: string) => {
-    setRescheduleBooking({ bookingId, tutorId });
-  };
-
   useEffect(() => {
     if (!user?.id || !user?.token) {
       toast.error("User not logged in");
-      navigate("/login");
+      navigate("/");
       return;
     }
     fetchStudentDetails(user.id);
@@ -238,19 +229,6 @@ const StudentDashboard = () => {
       <footer className="bg-white text-gray-600 text-sm text-center py-3 border-t shadow-inner">
         © {new Date().getFullYear()} TutorLink — Empowering Students & Tutors 🌱
       </footer>
-
-      {/* Reschedule Modal */}
-      {rescheduleBooking && (
-        <RescheduleModal
-          bookingId={rescheduleBooking.bookingId}
-          tutorId={rescheduleBooking.tutorId}
-          onClose={() => setRescheduleBooking(null)}
-          onRescheduleConfirmed={() => {
-            setRescheduleBooking(null);
-            if (user?.id) fetchBookings(user.id);
-          }}
-        />
-      )}
     </div>
   );
 };
