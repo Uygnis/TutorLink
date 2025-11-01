@@ -61,13 +61,15 @@ jobs:
       # ----- Set deploy flags for manual or push -----
       - name: Set deploy flags
         id: deploy_flags
+        shell: bash
         run: |
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
             echo "frontend=true" >> $GITHUB_OUTPUT
             echo "backend=true" >> $GITHUB_OUTPUT
           else
             echo "frontend=${{ steps.changes.outputs.frontend }}" >> $GITHUB_OUTPUT
-            echo "backend=${{ steps.changes.outputs.backend }}" >> $GITHUB_OUTPUT           
+            echo "backend=${{ steps.changes.outputs.backend }}" >> $GITHUB_OUTPUT
+          fi         
 
       # ----- Show detected changes -----
       - name: Show detected changes
