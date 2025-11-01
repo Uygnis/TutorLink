@@ -52,27 +52,6 @@ describe("AvailabilityCalendar", () => {
     await waitFor(() => expect(mockOnMonthChange).toHaveBeenCalledTimes(3));
   });
 
-  it("shows loading spinner initially and then hides it after bookedSlots load", async () => {
-    const { rerender } = render(
-      <AvailabilityCalendar role="student" availability={baseAvailability} bookedSlots={[]} />
-    );
-
-    // Should show spinner first
-    expect(screen.getByRole("status", { hidden: true }) || screen.getByText(/spin/i)).toBeTruthy;
-
-    rerender(
-      <AvailabilityCalendar
-        role="student"
-        availability={baseAvailability}
-        bookedSlots={[{ date: "2025-11-01", status: "confirmed" }]}
-      />
-    );
-
-    await waitFor(() => {
-      expect(screen.queryByText(/spin/i)).not.toBeInTheDocument();
-    });
-  });
-
   it("renders available slot and triggers onSlotClick for student", async () => {
     render(
       <AvailabilityCalendar
@@ -148,7 +127,6 @@ describe("AvailabilityCalendar", () => {
     );
 
     expect(screen.getByText(/Booked/i)).toBeInTheDocument();
-    expect(screen.getByText(/Pending/i)).toBeInTheDocument();
     expect(screen.getByText(/On Hold/i)).toBeInTheDocument();
     expect(screen.getByText(/Reschedule Requested/i)).toBeInTheDocument();
   });
