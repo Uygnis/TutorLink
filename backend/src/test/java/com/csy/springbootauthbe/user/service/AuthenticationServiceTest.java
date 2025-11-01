@@ -236,7 +236,7 @@ class AuthenticationServiceTest {
         AuthenticationResponse resp = auth.register(req);
 
         assertNotNull(resp);
-        assertEquals(Role.STUDENT, resp.getUser().getRole());
+        assertEquals(Role.ADMIN, resp.getUser().getRole());
         verify(adminService).createAdmin(any(AdminDTO.class));
     }
 }
