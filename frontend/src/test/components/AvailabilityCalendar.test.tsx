@@ -20,10 +20,8 @@ describe("AvailabilityCalendar", () => {
     jest.clearAllMocks();
   });
 
-  test("renders current month and weekday headers", () => {
-    render(
-      <AvailabilityCalendar role="student" availability={baseAvailability} bookedSlots={[]} />
-    );
+  it("renders current month and weekday headers", () => {
+    render(<AvailabilityCalendar role="student" availability={baseAvailability} bookedSlots={[]} />);
 
     const today = new Date();
     const monthName = today.toLocaleString(undefined, { month: "long", year: "numeric" });
@@ -34,7 +32,7 @@ describe("AvailabilityCalendar", () => {
     });
   });
 
-  test("calls onMonthChange when monthStart changes", async () => {
+  it("calls onMonthChange when month changes", async () => {
     render(
       <AvailabilityCalendar
         role="student"
@@ -45,11 +43,37 @@ describe("AvailabilityCalendar", () => {
 
     await waitFor(() => expect(mockOnMonthChange).toHaveBeenCalledTimes(1));
 
+    // Click next month
     fireEvent.click(screen.getByText(">"));
     await waitFor(() => expect(mockOnMonthChange).toHaveBeenCalledTimes(2));
+
+    // Click previous month
+    fireEvent.click(screen.getByText("<"));
+    await waitFor(() => expect(mockOnMonthChange).toHaveBeenCalledTimes(3));
   });
 
-  test("renders available slot and triggers onSlotClick", async () => {
+  it("shows loading spinner initially and then hides it after bookedSlots load", async () => {
+    const { rerender } = render(
+      <AvailabilityCalendar role="student" availability={baseAvailability} bookedSlots={[]} />
+    );
+
+    // Should show spinner first
+    expect(screen.getByRole("status", { hidden: true }) || screen.getByText(/spin/i)).toBeTruthy;
+
+    rerender(
+      <AvailabilityCalendar
+        role="student"
+        availability={baseAvailability}
+        bookedSlots={[{ date: "2025-11-01", status: "confirmed" }]}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText(/spin/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("renders available slot and triggers onSlotClick for student", async () => {
     render(
       <AvailabilityCalendar
         role="student"
@@ -59,21 +83,73 @@ describe("AvailabilityCalendar", () => {
       />
     );
 
-    // Look for any displayed time (use regex for flexibility)
     const availableSlots = screen.queryAllByText(/10:00|11:00|13:00|15:00|08:00/);
     expect(availableSlots.length).toBeGreaterThan(0);
 
-    const dayCell = availableSlots[0].closest("div");
-    if (dayCell) fireEvent.click(dayCell);
+    const firstSlotCell = availableSlots[0].closest("div");
+    if (firstSlotCell) fireEvent.click(firstSlotCell);
 
     await waitFor(() => expect(mockOnSlotClick).toHaveBeenCalled());
   });
 
-  test("renders tutor view with different classnames", () => {
-    render(<AvailabilityCalendar role="tutor" availability={baseAvailability} bookedSlots={[]} />);
+  it("prevents clicking past or disabled slots", async () => {
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 5);
+
+    render(
+      <AvailabilityCalendar
+        role="student"
+        availability={{ Mon: { enabled: false, start: "10:00", end: "11:00" } }}
+        bookedSlots={[{ date: pastDate.toISOString(), status: "confirmed" }]}
+        onSlotClick={mockOnSlotClick}
+      />
+    );
 
     const dayCells = screen.getAllByText(/^\d+$/);
-    const firstCell = dayCells[0].closest("div");
-    expect(firstCell?.className.includes("text-red-700")).toBe(false);
+    const cell = dayCells[0].closest("div");
+    if (cell) fireEvent.click(cell);
+
+    expect(mockOnSlotClick).not.toHaveBeenCalled();
+  });
+
+  it("renders tutor view and allows clicking on pending slot", async () => {
+    const today = new Date();
+    const dateStr = today.toISOString().split("T")[0];
+
+    render(
+      <AvailabilityCalendar
+        role="tutor"
+        availability={baseAvailability}
+        bookedSlots={[{ date: dateStr, status: "pending" }]}
+        onSlotClick={mockOnSlotClick}
+      />
+    );
+
+    const pendingText = screen.getByText(/Pending/i);
+    const pendingCell = pendingText.closest("div");
+    if (pendingCell) fireEvent.click(pendingCell);
+
+    await waitFor(() => expect(mockOnSlotClick).toHaveBeenCalled());
+  });
+
+  it("renders different booking statuses visually", () => {
+    const statuses = ["confirmed", "pending", "on_hold", "reschedule_requested"];
+    const bookedSlots = statuses.map((status, i) => ({
+      date: `2025-11-${i + 1}`,
+      status,
+    }));
+
+    render(
+      <AvailabilityCalendar
+        role="student"
+        availability={baseAvailability}
+        bookedSlots={bookedSlots}
+      />
+    );
+
+    expect(screen.getByText(/Booked/i)).toBeInTheDocument();
+    expect(screen.getByText(/Pending/i)).toBeInTheDocument();
+    expect(screen.getByText(/On Hold/i)).toBeInTheDocument();
+    expect(screen.getByText(/Reschedule Requested/i)).toBeInTheDocument();
   });
 });
