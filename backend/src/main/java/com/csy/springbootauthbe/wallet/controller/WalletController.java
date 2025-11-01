@@ -22,7 +22,7 @@ public class WalletController {
 
     private final WalletService walletService;
 
-    @Value("${EC2_HOST:http://localhost:5173}")
+    @Value("${EC2_HOST}")
     private String frontendBaseUrl;
 
     //  Get current wallet balance

@@ -19,6 +19,7 @@ const Navbar = () => {
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
+  const BASE_URL = `${import.meta.env.VITE_APP_API}`;
 
   // -------------------------
   // Initial fetch + SSE
@@ -33,7 +34,7 @@ const Navbar = () => {
 
     // 2 SSE subscription
     const eventSource = new EventSource(
-      `http://localhost:8080/api/notifications/stream/${user.id}`
+      `${BASE_URL}/api/notifications/stream/${user.id}`
     );
 
     eventSource.onmessage = (event) => {
