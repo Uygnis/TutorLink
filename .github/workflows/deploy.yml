@@ -111,13 +111,17 @@ jobs:
       - name: Copy Docker images via SCP
         if: ${{ steps.deploy_flags.outputs.frontend == 'true' || steps.deploy_flags.outputs.backend == 'true' }}
         uses: appleboy/scp-action@master
+        env:
+          DEBUG: true
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           port: 22
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-images/frontend.tar,docker-images/backend.tar"
+          source: |
+            $(find docker-images -name "*.tar")
           target: "/home/ubuntu/TutorLink/"
+      
 
       # ----- Deploy containers on EC2 -----
       - name: Deploy Docker images on EC2
