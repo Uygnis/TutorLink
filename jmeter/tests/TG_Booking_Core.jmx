@@ -118,7 +118,7 @@ log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group" enabled="true">
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -203,7 +203,7 @@ log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters" enabled="true">
+        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters">
           <collectionProp name="UserParameters.names">
             <stringProp name="3506294">role</stringProp>
             <stringProp name="96619420">email</stringProp>
@@ -218,6 +218,29 @@ log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
           </collectionProp>
           <boolProp name="UserParameters.per_iteration">false</boolProp>
         </UserParameters>
+        <hashTree/>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">if(!props.get(&quot;urlBase&quot;)){
+	props.put(&quot;urlBase&quot;,&quot;localhost&quot;)
+	props.put(&quot;port&quot;,&quot;8080&quot;)
+	log.info(&quot;Set base url&quot;)
+}else{
+	log.info(&quot;Set base url has already been declared&quot;)
+	log.info(&quot;Base URL: &quot; + props.get(&quot;baseUrl&quot;))
+	log.info(&quot;Port: &quot; + props.get(&quot;port&quot;))
+}
+
+log.info(&quot;📘 CSV Data Loaded:&quot;)
+log.info(&quot;  role      = &quot; + vars.get(&quot;role&quot;))
+log.info(&quot;  email     = &quot; + vars.get(&quot;email&quot;))
+log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
+
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223PreProcessor>
         <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST auth" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
@@ -331,7 +354,7 @@ if (token) {
           <hashTree/>
         </hashTree>
       </hashTree>
-      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group" enabled="true">
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -431,6 +454,29 @@ if (token) {
           </collectionProp>
           <boolProp name="UserParameters.per_iteration">false</boolProp>
         </UserParameters>
+        <hashTree/>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">if(!props.get(&quot;urlBase&quot;)){
+	props.put(&quot;urlBase&quot;,&quot;localhost&quot;)
+	props.put(&quot;port&quot;,&quot;8080&quot;)
+	log.info(&quot;Set base url&quot;)
+}else{
+	log.info(&quot;Set base url has already been declared&quot;)
+	log.info(&quot;Base URL: &quot; + props.get(&quot;baseUrl&quot;))
+	log.info(&quot;Port: &quot; + props.get(&quot;port&quot;))
+}
+
+log.info(&quot;📘 CSV Data Loaded:&quot;)
+log.info(&quot;  role      = &quot; + vars.get(&quot;role&quot;))
+log.info(&quot;  email     = &quot; + vars.get(&quot;email&quot;))
+log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
+
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223PreProcessor>
         <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST auth" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
@@ -544,7 +590,7 @@ if (token) {
           <hashTree/>
         </hashTree>
       </hashTree>
-      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group" enabled="true">
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -644,6 +690,29 @@ if (token) {
           </collectionProp>
           <boolProp name="UserParameters.per_iteration">false</boolProp>
         </UserParameters>
+        <hashTree/>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">if(!props.get(&quot;urlBase&quot;)){
+	props.put(&quot;urlBase&quot;,&quot;localhost&quot;)
+	props.put(&quot;port&quot;,&quot;8080&quot;)
+	log.info(&quot;Set base url&quot;)
+}else{
+	log.info(&quot;Set base url has already been declared&quot;)
+	log.info(&quot;Base URL: &quot; + props.get(&quot;baseUrl&quot;))
+	log.info(&quot;Port: &quot; + props.get(&quot;port&quot;))
+}
+
+log.info(&quot;📘 CSV Data Loaded:&quot;)
+log.info(&quot;  role      = &quot; + vars.get(&quot;role&quot;))
+log.info(&quot;  email     = &quot; + vars.get(&quot;email&quot;))
+log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
+
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223PreProcessor>
         <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST auth" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
@@ -757,7 +826,7 @@ if (token) {
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG_Booking_Core" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG_Booking_Core">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -841,6 +910,29 @@ if (token) {
           </objProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
+        <hashTree/>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">if(!props.get(&quot;urlBase&quot;)){
+	props.put(&quot;urlBase&quot;,&quot;localhost&quot;)
+	props.put(&quot;port&quot;,&quot;8080&quot;)
+	log.info(&quot;Set base url&quot;)
+}else{
+	log.info(&quot;Set base url has already been declared&quot;)
+	log.info(&quot;Base URL: &quot; + props.get(&quot;baseUrl&quot;))
+	log.info(&quot;Port: &quot; + props.get(&quot;port&quot;))
+}
+
+log.info(&quot;📘 CSV Data Loaded:&quot;)
+log.info(&quot;  role      = &quot; + vars.get(&quot;role&quot;))
+log.info(&quot;  email     = &quot; + vars.get(&quot;email&quot;))
+log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
+
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223PreProcessor>
         <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST create booking" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
