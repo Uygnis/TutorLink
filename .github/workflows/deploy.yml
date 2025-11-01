@@ -22,32 +22,32 @@ jobs:
         with:
           fetch-depth: 0
       
-      # Figure out which SHAs to compare
+      # ----- Determine changes only for push -----
       - name: Determine base and head commits
         id: sha
-        shell: bash
+        if: github.event_name == 'push'
         run: |
-          if [ -n "${{ github.event.workflow_run.pull_requests[0].base.sha }}" ]; then
-            echo "Detected PR trigger ✅"
-            echo "base_sha=${{ github.event.workflow_run.pull_requests[0].base.sha }}" >> $GITHUB_OUTPUT
-          else
-            echo "Detected Push trigger 🚀"
-            # For push: use previous commit on same branch
-            git fetch origin ${{ github.ref }} --depth=2
-            BASE_SHA=$(git rev-parse "${GITHUB_SHA}^" 2>/dev/null || echo "${GITHUB_SHA}")
-            echo "base_sha=$BASE_SHA" >> $GITHUB_OUTPUT
-          fi
+          echo "Detected push trigger ✅"
+          git fetch --depth=2 origin ${{ github.ref }}
+          echo "base_sha=$(git rev-parse HEAD^)" >> $GITHUB_OUTPUT
+          echo "head_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
-          echo "head_sha=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
-
-      # Fetch the head commit if needed
-      - name: Fetch head commit
+      - name: Debug SHAs
+        if: github.event_name == 'push'
         run: |
-          git fetch origin ${{ steps.sha.outputs.head_sha }} --depth=1    
+          echo "Base SHA: ${{ steps.sha.outputs.base_sha }}"
+          echo "Head SHA: ${{ steps.sha.outputs.head_sha }}"
+          git log --oneline -5  
 
-      # Check if changes are in frontend or backend
+      # # Fetch the head commit if needed
+      # - name: Fetch head commit
+      #   run: |
+      #     git fetch origin ${{ steps.sha.outputs.head_sha }} --depth=1    
+
+      # ----- Check modified paths (only push) -----
       - name: Check modified paths
         id: changes
+        if: github.event_name == 'push'
         uses: dorny/paths-filter@v3
         with:
           base: ${{ steps.sha.outputs.base_sha }}
@@ -58,20 +58,18 @@ jobs:
             backend:
               - 'backend/**'
 
-      # Debug info 
+      # ----- Set defaults for manual trigger -----
+      - name: Set changes for manual trigger
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "frontend=true" >> $GITHUB_OUTPUT
+          echo "backend=true" >> $GITHUB_OUTPUT              
+
+      # ----- Show detected changes -----
       - name: Show detected changes
         run: |
-          echo "Base SHA: ${{ steps.sha.outputs.base_sha }}"
-          echo "Head SHA: ${{ steps.sha.outputs.head_sha }}"
           echo "Frontend changed: ${{ steps.changes.outputs.frontend }}"
           echo "Backend changed: ${{ steps.changes.outputs.backend }}"
-
-      # --- Stop if no relevant changes ---
-      - name: Stop if not frontend/backend
-        if: ${{ steps.changes.outputs.frontend != 'true' && steps.changes.outputs.backend != 'true' }}
-        run: |
-          echo "No changes detected in frontend or backend — skipping deployment."
-          exit 0
 
       # ----- BACKEND -----
       - name: Create backend application.yml
@@ -124,9 +122,16 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e
             cd /home/ubuntu/TutorLink/docker-images
-            sudo docker load -i frontend.tar
-            sudo docker load -i backend.tar
+
+            echo "🧹 Removing old containers..."
+            sudo docker compose down --remove-orphans || true
+
+            echo "🧠 Loading new Docker images..."
+            sudo docker load -i frontend.tar || true
+            sudo docker load -i backend.tar || true
+
+            echo "🚀 Rebuilding containers..."
             cd /home/ubuntu/TutorLink
-            sudo docker compose down
-            sudo docker compose up -d
+            sudo docker compose up -d --force-recreate
