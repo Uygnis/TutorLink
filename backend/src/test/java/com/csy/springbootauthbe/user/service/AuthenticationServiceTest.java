@@ -1,5 +1,7 @@
 package com.csy.springbootauthbe.user.service;
 
+import com.csy.springbootauthbe.admin.dto.AdminDTO;
+import com.csy.springbootauthbe.admin.service.AdminService;
 import com.csy.springbootauthbe.config.JWTService;
 import com.csy.springbootauthbe.student.dto.StudentDTO;
 import com.csy.springbootauthbe.student.service.StudentService;
@@ -36,6 +38,7 @@ class AuthenticationServiceTest {
     @Mock AuthenticationManager authenticationManager;
     @Mock StudentService studentService;
     @Mock TutorService tutorService;
+    @Mock AdminService adminService;
 
     @InjectMocks AuthenticationService auth;
 
@@ -209,5 +212,31 @@ class AuthenticationServiceTest {
         assertNotNull(resp);
         assertEquals(Role.STUDENT, resp.getUser().getRole());
         verify(studentService).createStudent(any(StudentDTO.class));
+    }
+
+    @Test
+    void register_roleAdmin_createsAdminAndCallsAdminService() {
+        RegisterRequest req = new RegisterRequest();
+        req.setEmail("admin@x.com");
+        req.setPassword("pw");
+        req.setFirstname("S");
+        req.setLastname("Y");
+        req.setRole("Admin");
+
+        when(repository.existsByEmailAndStatusNot("admin@x.com", AccountStatus.DELETED)).thenReturn(false);
+        when(passwordEncoder.encode("pw")).thenReturn("hashed");
+        when(jwtService.generateToken(any(User.class))).thenReturn("jwt");
+        when(repository.save(any(User.class))).thenAnswer(inv -> {
+            User u = inv.getArgument(0);
+            u.setId("S123");
+            u.setRole(Role.ADMIN);
+            return u;
+        });
+
+        AuthenticationResponse resp = auth.register(req);
+
+        assertNotNull(resp);
+        assertEquals(Role.STUDENT, resp.getUser().getRole());
+        verify(adminService).createAdmin(any(AdminDTO.class));
     }
 }
