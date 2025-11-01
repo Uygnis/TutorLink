@@ -86,7 +86,7 @@ jobs:
             echo "🚀 Running JMeter test: $name"
             /opt/jmeter/bin/jmeter -n \
               -t "$test" \
-              -JbaseUrl=${{ secrets.STAGING_URL }} \
+              -JurlBase=${{ secrets.STAGING_URL }} \
               -Jlog_level.jmeter=INFO \
               -l "jmeter-results/${name}.jtl" \
               -e -o "jmeter-report/${name}" || true
