@@ -187,6 +187,13 @@ jobs:
               elif "informational" in t: levels.append("Informational")
 
           counts = Counter(levels)
+          zap_data = {
+                  "Critical": counts.get("Critical", 0),
+                  "High": counts.get("High", 0),
+                  "Medium": counts.get("Medium", 0),
+                  "Low": counts.get("Low", 0),
+                  "Informational": counts.get("Informational", 0)
+              }
           print("ZAP Risk Counts:", counts)
 
           JMETER_RESULTS_DIR = "./jmeter-results"
@@ -309,8 +316,7 @@ jobs:
 
           with open("gemini_summary.txt", "w", encoding="utf-8") as f:
               f.write("**ZAP Risk Counts:**\n")
-              for level in ["Critical", "High", "Medium", "Low", "Informational"]:
-                  f.write(f"{level}: {counts.get(level, 0)}\n")
+              f.write(as_markdown_table(zap_data))
               
               f.write("\n")
 
