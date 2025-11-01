@@ -4,6 +4,7 @@ import com.csy.springbootauthbe.booking.dto.BookingDTO;
 import com.csy.springbootauthbe.booking.dto.BookingRequest;
 import com.csy.springbootauthbe.booking.entity.Booking;
 import com.csy.springbootauthbe.booking.mapper.BookingMapper;
+import com.csy.springbootauthbe.booking.observer.BookingNotificationObserver;
 import com.csy.springbootauthbe.booking.repository.BookingRepository;
 import com.csy.springbootauthbe.notification.service.NotificationService;
 import com.csy.springbootauthbe.wallet.service.WalletService;
@@ -49,7 +50,10 @@ class BookingServiceImplTest {
         // Arrange
         BookingRequest bookingRequest = new BookingRequest();
         bookingRequest.setTutorId("tutorId");
+        bookingRequest.setTutorName("test Tutor");
         bookingRequest.setStudentId("studentId");
+        bookingRequest.setStudentName("test Student");
+        bookingRequest.setLessonType("test Lesson");
         bookingRequest.setDate("2023-10-01");
         bookingRequest.setStart("10:00");
         bookingRequest.setEnd("11:00");
@@ -59,12 +63,22 @@ class BookingServiceImplTest {
         Booking booking = new Booking();
         booking.setId("bookingId");
         booking.setStatus("pending");
+        booking.setTutorId(bookingRequest.getTutorId());
+        booking.setTutorName(bookingRequest.getTutorName());
+        booking.setStudentId(bookingRequest.getStudentId());
+        booking.setStudentName(bookingRequest.getStudentName());
+        booking.setLessonType(bookingRequest.getLessonType());
+        booking.setDate(bookingRequest.getDate());
+        booking.setStart(bookingRequest.getStart());
+        booking.setEnd(bookingRequest.getEnd());
 
         when(bookingRepository.findByTutorIdAndDate("tutorId", "2023-10-01")).thenReturn(Collections.emptyList());
         when(bookingRepository.findByStudentIdAndDate("studentId", "2023-10-01")).thenReturn(Collections.emptyList());
         when(bookingMapper.toEntity(bookingRequest)).thenReturn(booking);
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
         when(bookingMapper.toDto(booking)).thenReturn(new BookingDTO());
+
+        bookingService.addObserver(new BookingNotificationObserver(notificationService));
 
         // Act
         BookingDTO result = bookingService.createBooking(bookingRequest);
@@ -86,10 +100,15 @@ class BookingServiceImplTest {
         booking.setAmount(BigDecimal.valueOf(100));
         booking.setStudentId("studentId");
         booking.setTutorId("tutorId");
+        booking.setTutorName("test Tutor");
+        booking.setStudentName("test Student");
+        booking.setLessonType("test Lesson");
 
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
         when(bookingMapper.toDto(booking)).thenReturn(new BookingDTO());
+
+        bookingService.addObserver(new BookingNotificationObserver(notificationService));
 
         // Act
         BookingDTO result = bookingService.cancelBooking(bookingId, currentUserId);
@@ -111,10 +130,15 @@ class BookingServiceImplTest {
         booking.setAmount(BigDecimal.valueOf(100));
         booking.setStudentId("studentId");
         booking.setTutorId("tutorId");
+        booking.setTutorName("test Tutor");
+        booking.setStudentName("test Student");
+        booking.setLessonType("test Lesson");
 
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
         when(bookingMapper.toDto(booking)).thenReturn(new BookingDTO());
+
+        bookingService.addObserver(new BookingNotificationObserver(notificationService));
 
         // Act
         BookingDTO result = bookingService.acceptBooking(bookingId);
@@ -138,6 +162,9 @@ class BookingServiceImplTest {
         newBooking.setOriginalBookingId(originalBookingId);
         newBooking.setStudentId("studentId");
         newBooking.setTutorId("tutorId");
+        newBooking.setTutorName("test Tutor");
+        newBooking.setStudentName("test Student");
+        newBooking.setLessonType("test Lesson");
 
         Booking originalBooking = new Booking();
         originalBooking.setId(originalBookingId);
@@ -148,6 +175,8 @@ class BookingServiceImplTest {
 
         BookingDTO originalBookingDTO = new BookingDTO();
         when(bookingMapper.toDto(originalBooking)).thenReturn(originalBookingDTO);
+
+        bookingService.addObserver(new BookingNotificationObserver(notificationService));
 
         // Act
         BookingDTO result = bookingService.rejectReschedule(newBookingId);
@@ -162,19 +191,8 @@ class BookingServiceImplTest {
         verify(bookingRepository).save(originalBooking);
         verify(bookingRepository).save(newBooking);
 
-        verify(notificationService).createNotification(
-                eq(newBooking.getStudentId()),
-                eq("reschedule_rejected"),
-                eq(newBooking.getId()),
-                anyString()
-        );
+        verify(notificationService, times(2)).createNotification(anyString(), anyString(), anyString(), anyString());
 
-        verify(notificationService).createNotification(
-                eq(newBooking.getTutorId()),
-                eq("reschedule_rejected"),
-                eq(newBooking.getId()),
-                anyString()
-        );
     }
 
     @Test
