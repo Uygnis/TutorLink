@@ -5,6 +5,8 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config">
@@ -39,6 +41,7 @@
 	} else if (urlBase.startsWith(&quot;https://&quot;)) {
 	    urlBase = urlBase.replaceFirst(&quot;https://&quot;, &quot;&quot;)
 	}
+	urlBase = urlBase.replaceFirst(&quot;/&quot;, &quot;&quot;)
 	props.put(&quot;urlBase&quot;, urlBase)
     // Deployment environment
     log.info(&quot;Deployment mode detected, base URL: ${props.get(&quot;urlBase&quot;)}&quot;)
@@ -91,7 +94,7 @@ log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -128,7 +131,7 @@ log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group">
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -265,7 +268,7 @@ log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST auth">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST auth" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/auth/login</stringProp>
@@ -476,7 +479,7 @@ if (token) {
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG_Tutor_Core">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG_Tutor_Core" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>

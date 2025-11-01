@@ -5,6 +5,8 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config">
@@ -39,6 +41,7 @@
 	} else if (urlBase.startsWith(&quot;https://&quot;)) {
 	    urlBase = urlBase.replaceFirst(&quot;https://&quot;, &quot;&quot;)
 	}
+	urlBase = urlBase.replaceFirst(&quot;/&quot;, &quot;&quot;)
 	props.put(&quot;urlBase&quot;, urlBase)
     // Deployment environment
     log.info(&quot;Deployment mode detected, base URL: ${props.get(&quot;urlBase&quot;)}&quot;)
@@ -91,7 +94,7 @@ log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
