@@ -5,6 +5,8 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config">
@@ -27,12 +29,22 @@
 	props.put(&quot;urlBase&quot;,&quot;localhost&quot;)
 	props.put(&quot;port&quot;,&quot;8080&quot;)
 	log.info(&quot;Set base url&quot;)
+}else{
+	log.info(&quot;Set base url has already been declared&quot;)
+	log.info(&quot;Base URL: &quot; + props.get(&quot;urlBase&quot;))
+	log.info(&quot;Port: &quot; + props.get(&quot;port&quot;))
 }
+
+log.info(&quot;📘 CSV Data Loaded:&quot;)
+log.info(&quot;  role      = &quot; + vars.get(&quot;role&quot;))
+log.info(&quot;  email     = &quot; + vars.get(&quot;email&quot;))
+log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
+
 </stringProp>
         <stringProp name="scriptLanguage">groovy</stringProp>
       </JSR223PreProcessor>
       <hashTree/>
-      <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report">
+      <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -69,7 +81,7 @@
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -191,7 +203,7 @@
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters" enabled="true">
+        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters">
           <collectionProp name="UserParameters.names">
             <stringProp name="3506294">role</stringProp>
             <stringProp name="96619420">email</stringProp>
@@ -207,7 +219,30 @@
           <boolProp name="UserParameters.per_iteration">false</boolProp>
         </UserParameters>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST auth">
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">if(!props.get(&quot;urlBase&quot;)){
+	props.put(&quot;urlBase&quot;,&quot;localhost&quot;)
+	props.put(&quot;port&quot;,&quot;8080&quot;)
+	log.info(&quot;Set base url&quot;)
+}else{
+	log.info(&quot;Set base url has already been declared&quot;)
+	log.info(&quot;Base URL: &quot; + props.get(&quot;urlBase&quot;))
+	log.info(&quot;Port: &quot; + props.get(&quot;port&quot;))
+}
+
+log.info(&quot;📘 CSV Data Loaded:&quot;)
+log.info(&quot;  role      = &quot; + vars.get(&quot;role&quot;))
+log.info(&quot;  email     = &quot; + vars.get(&quot;email&quot;))
+log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
+
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST auth" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -264,7 +299,7 @@
           </JSONPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/GET currentStudent">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/GET currentStudent" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/user/currentStudent</stringProp>
@@ -404,7 +439,7 @@ if (token) {
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters">
+        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters" enabled="true">
           <collectionProp name="UserParameters.names">
             <stringProp name="3506294">role</stringProp>
             <stringProp name="96619420">email</stringProp>
@@ -420,7 +455,30 @@ if (token) {
           <boolProp name="UserParameters.per_iteration">false</boolProp>
         </UserParameters>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST auth">
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">if(!props.get(&quot;urlBase&quot;)){
+	props.put(&quot;urlBase&quot;,&quot;localhost&quot;)
+	props.put(&quot;port&quot;,&quot;8080&quot;)
+	log.info(&quot;Set base url&quot;)
+}else{
+	log.info(&quot;Set base url has already been declared&quot;)
+	log.info(&quot;Base URL: &quot; + props.get(&quot;urlBase&quot;))
+	log.info(&quot;Port: &quot; + props.get(&quot;port&quot;))
+}
+
+log.info(&quot;📘 CSV Data Loaded:&quot;)
+log.info(&quot;  role      = &quot; + vars.get(&quot;role&quot;))
+log.info(&quot;  email     = &quot; + vars.get(&quot;email&quot;))
+log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
+
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST auth" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -477,7 +535,7 @@ if (token) {
           </JSONPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/GET currentTutor">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/GET currentTutor" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/user/currentUser</stringProp>
@@ -617,7 +675,7 @@ if (token) {
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters">
+        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters" enabled="true">
           <collectionProp name="UserParameters.names">
             <stringProp name="3506294">role</stringProp>
             <stringProp name="96619420">email</stringProp>
@@ -633,7 +691,30 @@ if (token) {
           <boolProp name="UserParameters.per_iteration">false</boolProp>
         </UserParameters>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST auth">
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">if(!props.get(&quot;urlBase&quot;)){
+	props.put(&quot;urlBase&quot;,&quot;localhost&quot;)
+	props.put(&quot;port&quot;,&quot;8080&quot;)
+	log.info(&quot;Set base url&quot;)
+}else{
+	log.info(&quot;Set base url has already been declared&quot;)
+	log.info(&quot;Base URL: &quot; + props.get(&quot;urlBase&quot;))
+	log.info(&quot;Port: &quot; + props.get(&quot;port&quot;))
+}
+
+log.info(&quot;📘 CSV Data Loaded:&quot;)
+log.info(&quot;  role      = &quot; + vars.get(&quot;role&quot;))
+log.info(&quot;  email     = &quot; + vars.get(&quot;email&quot;))
+log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
+
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST auth" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
@@ -690,7 +771,7 @@ if (token) {
           </JSONPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/GET currentAdmin">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/GET currentAdmin" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/user/currentAdmin</stringProp>
@@ -830,7 +911,30 @@ if (token) {
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST create booking">
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">if(!props.get(&quot;urlBase&quot;)){
+	props.put(&quot;urlBase&quot;,&quot;localhost&quot;)
+	props.put(&quot;port&quot;,&quot;8080&quot;)
+	log.info(&quot;Set base url&quot;)
+}else{
+	log.info(&quot;Set base url has already been declared&quot;)
+	log.info(&quot;Base URL: &quot; + props.get(&quot;urlBase&quot;))
+	log.info(&quot;Port: &quot; + props.get(&quot;port&quot;))
+}
+
+log.info(&quot;📘 CSV Data Loaded:&quot;)
+log.info(&quot;  role      = &quot; + vars.get(&quot;role&quot;))
+log.info(&quot;  email     = &quot; + vars.get(&quot;email&quot;))
+log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
+
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST create booking" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/bookings</stringProp>
@@ -896,7 +1000,7 @@ if (tutorId) {
           </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/GET booking">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/GET booking" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/bookings/${bookingId}</stringProp>
@@ -919,7 +1023,7 @@ if (tutorId) {
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/PUT accept booking">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/PUT accept booking" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/bookings/${bookingId}/accept</stringProp>
@@ -942,7 +1046,7 @@ if (tutorId) {
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/DELETE booking">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/DELETE booking" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/admins/booking/${__P(userId_ADMIN)}/${__P(bookingId)}</stringProp>
@@ -965,7 +1069,7 @@ if (tutorId) {
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST create booking">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/POST create booking" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/bookings</stringProp>
@@ -1031,7 +1135,7 @@ if (tutorId) {
           </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/PUT cancel booking">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/PUT cancel booking" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/bookings/${bookingId}/cancel/${__P(userId_TUTOR)}</stringProp>
@@ -1054,7 +1158,7 @@ if (tutorId) {
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/DELETE booking">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="/DELETE booking" enabled="true">
           <stringProp name="HTTPSampler.domain">${__P(urlBase)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(port)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/admins/booking/${__P(userId_ADMIN)}/${__P(bookingId)}</stringProp>

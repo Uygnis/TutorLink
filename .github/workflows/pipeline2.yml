@@ -7,6 +7,14 @@ on:
     types:
       - completed
 
+# on:
+#   pull_request:
+#     branches: [main]
+#   push:
+#     branches: [main]  
+#   workflow_dispatch: # manual trigger allowed
+
+
 jobs:
   # ----------------- DAST -----------------
   dast:
@@ -50,7 +58,7 @@ jobs:
   # ----------------- JMETER -----------------
   jmeter:
     name: Load Test - Apache JMeter
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    # if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment: development
     permissions:
@@ -78,7 +86,8 @@ jobs:
             echo "🚀 Running JMeter test: $name"
             /opt/jmeter/bin/jmeter -n \
               -t "$test" \
-              -JbaseUrl=${{ secrets.STAGING_URL }} \
+              -JurlBase=${{ secrets.STAGING_URL }} \
+              -Jlog_level.jmeter=INFO \
               -l "jmeter-results/${name}.jtl" \
               -e -o "jmeter-report/${name}" || true
           done
