@@ -5,12 +5,16 @@ import com.csy.springbootauthbe.booking.dto.BookingRequest;
 import com.csy.springbootauthbe.booking.dto.RecentBookingResponse;
 import com.csy.springbootauthbe.booking.entity.Booking;
 import com.csy.springbootauthbe.booking.mapper.BookingMapper;
+import com.csy.springbootauthbe.booking.observer.BookingEvent;
+import com.csy.springbootauthbe.booking.observer.BookingNotificationObserver;
+import com.csy.springbootauthbe.booking.observer.BookingObserver;
 import com.csy.springbootauthbe.booking.repository.BookingRepository;
 import com.csy.springbootauthbe.common.utils.SanitizedLogger;
 import com.csy.springbootauthbe.notification.service.NotificationService;
 import com.csy.springbootauthbe.user.entity.User;
 import com.csy.springbootauthbe.user.repository.UserRepository;
 import com.csy.springbootauthbe.wallet.service.WalletService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +39,22 @@ public class BookingServiceImpl implements BookingService {
     private static final SanitizedLogger logger = SanitizedLogger.getLogger(BookingServiceImpl.class);
     private final WalletService walletService;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private final List<BookingObserver> observers = new ArrayList<>();
+
+    private void notifyObservers(Booking booking, BookingEvent.Type type, String initiatorUserId) {
+        BookingEvent event = new BookingEvent(booking, type, initiatorUserId);
+        for (BookingObserver observer : observers) {
+            observer.handleBookingEvent(event);
+        }
+    }
+    public void addObserver(BookingObserver observer) {
+        observers.add(observer);
+    }
+
+    @PostConstruct
+    private void initObservers() {
+        this.addObserver(new BookingNotificationObserver(notificationService));
+    }
 
     @Override
     @Transactional
@@ -74,24 +94,8 @@ public class BookingServiceImpl implements BookingService {
         booking.setAmount(dto.getAmount());
         Booking saved = bookingRepository.save(booking);
 
-        // 6️⃣ Notify tutor
-        notificationService.createNotification(
-                dto.getTutorId(),
-                "booking_created",
-                saved.getId(),
-                booking.getStudentName() + " has requested a new booking for " + dto.getLessonType() +
-                    " on " + booking.getDate() + " from " + booking.getStart() + " to " + booking.getEnd() + "."
-        );
-
-        // Notify student
-        notificationService.createNotification(
-            dto.getStudentId(),
-            "booking_created",
-            saved.getId(),
-            "Your booking request for " + dto.getLessonType() + " with " + dto.getTutorName() +
-                " on " + booking.getDate() + " from " + booking.getStart() + " to " + booking.getEnd() +
-                " has been created and is pending tutor approval."
-        );
+        // notify
+        notifyObservers(saved, BookingEvent.Type.booking_created, saved.getStudentId()); // student initiates booking creation
 
         return bookingMapper.toDto(saved);
     }
@@ -222,29 +226,8 @@ public class BookingServiceImpl implements BookingService {
             );
         }
 
-        // ✅ Notify student
-        notificationService.createNotification(
-                booking.getStudentId(), // student receives notification
-                "booking_accepted",
-                booking.getId(),
-                "Your booking for " + booking.getLessonType() + " from " + booking.getTutorName() + " has been confirmed!"
-        );
-
-        notificationService.createNotification(
-            booking.getStudentId(), // student receives notification
-            "credit_deducted",
-            booking.getId(),
-            "An amount of $" + booking.getAmount() + " has been deducted for booking " + booking.getTutorName() + "."
-        );
-
-        // ✅ Notify tutor
-        notificationService.createNotification(
-                booking.getTutorId(),
-                "credit_released",
-                booking.getId(),
-                "An amount of $" + booking.getAmount() + " has been released to your wallet for booking " +
-                    booking.getLessonType() + " for " + booking.getStudentName() + "."
-        );
+        // Notify
+        notifyObservers(booking, BookingEvent.Type.booking_accepted, booking.getTutorId()); // tutor initiates accept booking
 
         return bookingMapper.toDto(savedBooking);
     }
@@ -279,24 +262,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         // ✅ Notify the other user
-        String recipientId = currentUserId.equals(booking.getStudentId())
-                ? booking.getTutorId()
-                : booking.getStudentId();
-
-        notificationService.createNotification(
-                recipientId,
-                "booking_cancelled",
-                booking.getId(),
-                "Booking for " + booking.getLessonType() + " has been cancelled."
-        );
-
-        notificationService.createNotification(
-            booking.getStudentId(), // student receives notification
-            "credit_refunded",
-            booking.getId(),
-            "An amount of $" + booking.getAmount() + " has been refunded for booking " + booking.getTutorName() + "."
-        );
-
+        notifyObservers(savedBooking, BookingEvent.Type.booking_cancelled, currentUserId);
 
         return bookingMapper.toDto(savedBooking);
     }
@@ -356,12 +322,7 @@ public class BookingServiceImpl implements BookingService {
         logger.info("Created new on_hold booking: {}", savedNewBooking.getId());
 
         // 6. Notify tutor
-        notificationService.createNotification(
-                currentBooking.getTutorId(),
-                "reschedule_requested",
-                savedNewBooking.getId(),
-                "Student requested reschedule for booking: " + currentBooking.getLessonType()
-        );
+        notifyObservers(savedNewBooking, BookingEvent.Type.reschedule_requested, savedNewBooking.getStudentId()); // student requests reschedule
         logger.info("Notification sent to tutorId={}", currentBooking.getTutorId());
 
         return bookingMapper.toDto(savedNewBooking);
@@ -387,21 +348,8 @@ public class BookingServiceImpl implements BookingService {
         newBooking.setStatus("confirmed");
         Booking savedNewBooking = bookingRepository.save(newBooking);
 
-        // 5. Notify student
-        notificationService.createNotification(
-                newBooking.getStudentId(),
-                "reschedule_approved",
-                savedNewBooking.getId(),
-                "Your rescheduled booking has been confirmed!"
-        );
-
-        // 6. Notify tutor (optional)
-        notificationService.createNotification(
-                newBooking.getTutorId(),
-                "reschedule_approved",
-                savedNewBooking.getId(),
-                "You confirmed the rescheduled booking."
-        );
+        // 5. Notify
+        notifyObservers(savedNewBooking, BookingEvent.Type.reschedule_requested, savedNewBooking.getTutorId()); // tutor initiates accept reschedule
 
         return bookingMapper.toDto(savedNewBooking);
     }
