@@ -32,11 +32,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Install dependencies (if cache missed)
-        run: npm ci
+      - name: Run frontend tests
+        run: |
+          npm ci
+          npm run test -- --coverage
+      - name: List coverage files
+        run: ls -l coverage/ || echo "❌ coverage folder not found!"
 
-      # - name: Run Tests
-      #   run: npm test
+      - name: Validate Codecov YAML
+        run: curl --data-binary @../.codecov.yml https://codecov.io/validate  
+
+      - name: Upload frontend coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          fail_ci_if_error: true
 
   # run backend test
   backend-test:
@@ -70,12 +83,15 @@ jobs:
           SENTRY_TRACES_SAMPLE_RATE: "0"
           SENTRY_PROFILES_SAMPLE_RATE: "0"
         run: mvn clean test jacoco:report
+
       - name: List JaCoCo output files
         run: |
           echo "Listing JaCoCo reports..."
           ls -R ./target/site/jacoco || echo "❌ jacoco.xml not found!"  
+
       - name: Validate Codecov YAML
         run: curl --data-binary @../.codecov.yml https://codecov.io/validate  
+
       - name: Upload Backend Coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
@@ -84,19 +100,6 @@ jobs:
           flags: backend
           name: backend-coverage
           fail_ci_if_error: true
-
-  # # Post Coverage Comment on PR
-  # codecov-comment:
-  #   name: Codecov PR Comment
-  #   needs: [backend-test]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-  #     - name: Validate Codecov YAML
-  #       run: curl --data-binary @.codecov.yml https://codecov.io/validate  
-  #     - name: Post Coverage Comment
-  #       uses: codecov/codecov-action@v5
 
   sast:
     name: SAST - CodeQL Scan
