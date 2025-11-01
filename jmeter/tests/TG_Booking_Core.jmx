@@ -921,7 +921,7 @@ if (token) {
 	log.info(&quot;Set base url&quot;)
 }else{
 	log.info(&quot;Set base url has already been declared&quot;)
-	log.info(&quot;Base URL: &quot; + props.get(&quot;baseUrl&quot;))
+	log.info(&quot;Base URL: &quot; + props.get(&quot;urlBase&quot;))
 	log.info(&quot;Port: &quot; + props.get(&quot;port&quot;))
 }
 
