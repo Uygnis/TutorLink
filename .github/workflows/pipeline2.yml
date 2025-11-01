@@ -78,6 +78,9 @@ jobs:
 
       - name: Run all JMeter Test Plans
         run: |
+          echo "🔍 Checking STAGING_URL value..."
+          echo "STAGING_URL: ${{ secrets.STAGING_URL }}"
+          
           mkdir -p jmeter-results jmeter-report
           chmod -R 777 jmeter-results jmeter-report
 
