@@ -8,8 +8,13 @@ import { Provider } from "react-redux";
 import store from "@/redux/store";
 import { MemoryRouter } from "react-router-dom";
 import * as storeModule from "@/redux/store";
-import { GetStudentByUserId } from "@/api/studentAPI";
-import { GetBookingsForStudent, CancelBooking } from "@/api/bookingAPI";
+import {
+  GetStudentByUserId,
+} from "@/api/studentAPI";
+import {
+  GetBookingsForStudent,
+  CancelBooking,
+} from "@/api/bookingAPI";
 import { GetWalletByUserId } from "@/api/walletAPI";
 
 // -------------------------
@@ -26,22 +31,31 @@ jest.mock("@/api/walletAPI", () => ({
   GetWalletByUserId: jest.fn(),
 }));
 jest.mock("@/components/Navbar", () => () => <div data-testid="navbar">Mock Navbar</div>);
-jest.mock(
-  "@/components/ProfilePicModal",
-  () => (props: any) =>
-    props.isOpen ? (
-      <div data-testid="profile-modal">
-        Mock Profile Modal
-        <button onClick={props.onClose}>Close</button>
-      </div>
-    ) : null
+jest.mock("@/components/ProfilePicModal", () => (props: any) =>
+  props.isOpen ? (
+    <div data-testid="profile-modal">
+      Mock Profile Modal
+      <button onClick={props.onClose}>Close</button>
+    </div>
+  ) : null
 );
 jest.mock("@/components/BookingCard", () => (props: any) => (
   <div data-testid="booking-card">
     BookingCard - {props.id}
     <button onClick={() => props.onCancel(props.id)}>Cancel</button>
+    <button onClick={() => props.onReschedule(props.id, "t1", "Tutor Tom", "Student Sam")}>
+      Reschedule
+    </button>
   </div>
 ));
+jest.mock("@/components/RescheduleModal", () => (props: any) =>
+  props.booking ? (
+    <div data-testid="reschedule-modal">
+      Reschedule Modal for {props.booking.bookingId}
+      <button onClick={props.onClose}>Close</button>
+    </div>
+  ) : null
+);
 
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
@@ -99,22 +113,15 @@ describe("StudentDashboard", () => {
 
   it("renders and fetches student details, bookings, and wallet", async () => {
     (GetStudentByUserId as jest.Mock).mockResolvedValueOnce({
-      data: {
-        profileImageUrl: "",
-        studentNumber: "S123",
-        gradeLevel: "Sec 3",
-      },
+      data: { studentNumber: "S123", gradeLevel: "Sec 3", profileImageUrl: "" },
     });
-    (GetBookingsForStudent as jest.Mock).mockResolvedValueOnce({
-      data: [],
-    });
+    (GetBookingsForStudent as jest.Mock).mockResolvedValueOnce({ data: [] });
     (GetWalletByUserId as jest.Mock).mockResolvedValueOnce({
       data: { balance: 80 },
     });
 
     renderComponent();
 
-    // Navbar should exist
     expect(screen.getByTestId("navbar")).toBeInTheDocument();
 
     await waitFor(() => {
@@ -128,12 +135,8 @@ describe("StudentDashboard", () => {
     (GetStudentByUserId as jest.Mock).mockResolvedValueOnce({
       data: { studentNumber: "S123", gradeLevel: "P6" },
     });
-    (GetBookingsForStudent as jest.Mock).mockResolvedValueOnce({
-      data: [],
-    });
-    (GetWalletByUserId as jest.Mock).mockResolvedValueOnce({
-      data: { balance: 0 },
-    });
+    (GetBookingsForStudent as jest.Mock).mockResolvedValueOnce({ data: [] });
+    (GetWalletByUserId as jest.Mock).mockResolvedValueOnce({ data: { balance: 0 } });
 
     renderComponent();
 
@@ -149,9 +152,7 @@ describe("StudentDashboard", () => {
     (GetBookingsForStudent as jest.Mock).mockResolvedValueOnce({
       data: [{ id: "b1", date: "2099-10-31", start: "10:00", status: "confirmed" }],
     });
-    (GetWalletByUserId as jest.Mock).mockResolvedValueOnce({
-      data: { balance: 40 },
-    });
+    (GetWalletByUserId as jest.Mock).mockResolvedValueOnce({ data: { balance: 40 } });
     (CancelBooking as jest.Mock).mockResolvedValueOnce({});
 
     renderComponent();
@@ -175,9 +176,7 @@ describe("StudentDashboard", () => {
     (GetBookingsForStudent as jest.Mock).mockResolvedValueOnce({
       data: [{ id: "b2", date: "2099-10-31", start: "10:00", status: "confirmed" }],
     });
-    (GetWalletByUserId as jest.Mock).mockResolvedValueOnce({
-      data: { balance: 10 },
-    });
+    (GetWalletByUserId as jest.Mock).mockResolvedValueOnce({ data: { balance: 10 } });
     (CancelBooking as jest.Mock).mockRejectedValueOnce({
       response: { data: { message: "Failed to cancel booking" } },
     });
@@ -199,9 +198,7 @@ describe("StudentDashboard", () => {
     (GetStudentByUserId as jest.Mock).mockResolvedValueOnce({
       data: { studentNumber: "S321", gradeLevel: "JC2" },
     });
-    (GetBookingsForStudent as jest.Mock).mockResolvedValueOnce({
-      data: [],
-    });
+    (GetBookingsForStudent as jest.Mock).mockResolvedValueOnce({ data: [] });
     (GetWalletByUserId as jest.Mock).mockResolvedValueOnce({
       data: { balance: 123 },
     });
@@ -217,5 +214,29 @@ describe("StudentDashboard", () => {
 
     fireEvent.click(screen.getByText(/View Past Sessions/i));
     expect(mockNavigate).toHaveBeenCalledWith("/student/past-sessions");
+  });
+
+  it("opens reschedule modal when reschedule clicked", async () => {
+    (GetStudentByUserId as jest.Mock).mockResolvedValueOnce({
+      data: { studentNumber: "S100", gradeLevel: "Sec 2" },
+    });
+    (GetBookingsForStudent as jest.Mock).mockResolvedValueOnce({
+      data: [{ id: "b5", date: "2099-10-31", start: "09:00", status: "confirmed" }],
+    });
+    (GetWalletByUserId as jest.Mock).mockResolvedValueOnce({
+      data: { balance: 50 },
+    });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("booking-card")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/Reschedule/i));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("reschedule-modal")).toBeInTheDocument();
+    });
   });
 });
