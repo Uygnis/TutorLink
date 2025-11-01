@@ -107,6 +107,18 @@ jobs:
             docker save backend:latest -o docker-images/backend.tar
           fi
 
+
+      - name: List Docker images
+        if: ${{ steps.deploy_flags.outputs.frontend == 'true' || steps.deploy_flags.outputs.backend == 'true' }}
+        run: docker images
+
+      - name: Verify saved tar files
+        if: ${{ steps.deploy_flags.outputs.frontend == 'true' || steps.deploy_flags.outputs.backend == 'true' }}
+        run: |
+          ls -lh docker-images
+          echo "File details:"
+          find docker-images -type f -exec ls -lh {} \;
+
       # ----- Copy Docker images + docker-compose.yml to EC2 -----
       - name: Copy Docker images via SCP
         if: ${{ steps.deploy_flags.outputs.frontend == 'true' || steps.deploy_flags.outputs.backend == 'true' }}
