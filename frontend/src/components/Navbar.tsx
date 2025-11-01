@@ -34,8 +34,8 @@ const Navbar = () => {
 
     // 2 SSE subscription
     const eventSource = new EventSource(
-      `${BASE_URL}/api/notifications/stream/${user.id}`
-    );
+      `${BASE_URL}/sse/notifications/stream/${user.id}`
+    );  
 
     eventSource.onmessage = (event) => {
       const newNotification: NotificationType = JSON.parse(event.data);

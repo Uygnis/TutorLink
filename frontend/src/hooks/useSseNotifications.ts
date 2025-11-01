@@ -14,7 +14,7 @@ export const useSseNotifications = (userId: string, token: string) => {
 
     // 2️⃣ SSE for real-time updates
     const eventSource = new EventSource(
-      `${BASE_URL}/api/v1/notifications/stream/${userId}`
+      `${BASE_URL}/notifications/stream/${userId}`
     );
     eventSource.onmessage = (event) => {
       const newNotification: NotificationType = JSON.parse(event.data);
