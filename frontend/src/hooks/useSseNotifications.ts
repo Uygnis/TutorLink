@@ -7,7 +7,10 @@ export const useSseNotifications = (userId: string, token: string) => {
 
   useEffect(() => {
     if (!userId) return;
-    const BASE_URL = `${import.meta.env.VITE_APP_API}`;
+    const BASE_URL =
+      typeof import.meta !== "undefined"
+        ? import.meta.env.VITE_APP_API
+        : process.env.VITE_APP_API || "http://localhost:8080";
 
     // 1️⃣ Fetch existing notifications initially
     fetchNotifications(userId, token).then((res) => setNotifications(res.data));

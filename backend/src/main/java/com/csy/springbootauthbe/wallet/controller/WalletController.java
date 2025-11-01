@@ -33,7 +33,7 @@ public class WalletController {
 
     // Manually top-up credits (used by success redirect)
     @PostMapping("/topup")
-    public ResponseEntity<Wallet> topUp(@RequestBody Map<String, Object> req) {
+    public ResponseEntity<WalletTransaction> topUp(@RequestBody Map<String, Object> req) {
         String studentId = (String) req.get("studentId");
         BigDecimal amount = new BigDecimal(req.get("amount").toString());
         String refId = UUID.randomUUID().toString();
