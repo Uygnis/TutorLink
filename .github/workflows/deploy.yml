@@ -130,8 +130,7 @@ jobs:
           username: ubuntu
           port: 22
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: |
-            $(find docker-images -name "*.tar")
+          source: "docker-images/*.tar"
           target: "/home/ubuntu/TutorLink/"
       
 
