@@ -50,7 +50,10 @@ class BookingServiceImplTest {
         // Arrange
         BookingRequest bookingRequest = new BookingRequest();
         bookingRequest.setTutorId("tutorId");
+        bookingRequest.setTutorName("test Tutor");
         bookingRequest.setStudentId("studentId");
+        bookingRequest.setStudentName("test Student");
+        bookingRequest.setLessonType("test Lesson");
         bookingRequest.setDate("2023-10-01");
         bookingRequest.setStart("10:00");
         bookingRequest.setEnd("11:00");
@@ -60,6 +63,14 @@ class BookingServiceImplTest {
         Booking booking = new Booking();
         booking.setId("bookingId");
         booking.setStatus("pending");
+        booking.setTutorId(bookingRequest.getTutorId());
+        booking.setTutorName(bookingRequest.getTutorName());
+        booking.setStudentId(bookingRequest.getStudentId());
+        booking.setStudentName(bookingRequest.getStudentName());
+        booking.setLessonType(bookingRequest.getLessonType());
+        booking.setDate(bookingRequest.getDate());
+        booking.setStart(bookingRequest.getStart());
+        booking.setEnd(bookingRequest.getEnd());
 
         when(bookingRepository.findByTutorIdAndDate("tutorId", "2023-10-01")).thenReturn(Collections.emptyList());
         when(bookingRepository.findByStudentIdAndDate("studentId", "2023-10-01")).thenReturn(Collections.emptyList());
@@ -89,6 +100,9 @@ class BookingServiceImplTest {
         booking.setAmount(BigDecimal.valueOf(100));
         booking.setStudentId("studentId");
         booking.setTutorId("tutorId");
+        booking.setTutorName("test Tutor");
+        booking.setStudentName("test Student");
+        booking.setLessonType("test Lesson");
 
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
@@ -116,6 +130,9 @@ class BookingServiceImplTest {
         booking.setAmount(BigDecimal.valueOf(100));
         booking.setStudentId("studentId");
         booking.setTutorId("tutorId");
+        booking.setTutorName("test Tutor");
+        booking.setStudentName("test Student");
+        booking.setLessonType("test Lesson");
 
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
@@ -145,6 +162,9 @@ class BookingServiceImplTest {
         newBooking.setOriginalBookingId(originalBookingId);
         newBooking.setStudentId("studentId");
         newBooking.setTutorId("tutorId");
+        newBooking.setTutorName("test Tutor");
+        newBooking.setStudentName("test Student");
+        newBooking.setLessonType("test Lesson");
 
         Booking originalBooking = new Booking();
         originalBooking.setId(originalBookingId);
