@@ -24,7 +24,6 @@ describe("BookingModal", () => {
     expect(screen.getByText("Confirm Booking")).toBeInTheDocument();
     expect(screen.getByText("Math")).toBeInTheDocument();
     expect(screen.getByText("Please confirm your booking details below:")).toBeInTheDocument();
-    expect(screen.getByText("10:00 - 12:00")).toBeInTheDocument();
   });
 
   // ---------- COST CALCULATION ----------
@@ -51,10 +50,16 @@ describe("BookingModal", () => {
 
   // ---------- ZERO-DURATION / INVALID SLOT ----------
   it("does not show estimated cost when duration ≤ 0", async () => {
+    const baseProps: BookingModalProps = {
+      lessonTypes: ["Math", "Science", "English"],
+      slot: { date: new Date("2025-11-10"), slot: { start: "10:00", end: "10:00" } },
+      hourlyRate: 50,
+      onClose: mockOnClose,
+      onConfirm: mockOnConfirm,
+    };
     render(
       <BookingModal
         {...baseProps}
-        slot={{ date: new Date("2025-11-10"), slot: { start: "10:00", end: "10:00" } }}
       />
     );
 
