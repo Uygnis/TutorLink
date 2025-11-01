@@ -5,7 +5,7 @@ export interface BookingCardProps {
   tutorId?: string;
   studentId?: string;
   tutorName: string;
-  studentName?: string;
+  studentName: string;
   date: string;
   start: string;
   end: string;
@@ -15,7 +15,7 @@ export interface BookingCardProps {
   isDashboard?: boolean; // ✅ new prop
   onClick?: (id: string) => void;
   onCancel?: (id: string) => void;
-  onReschedule?: (bookingId: string, tutorId: string) => void;
+  onReschedule?: (bookingId: string, tutorId: string, tutorName: string, studentName: string) => void;
   onReview?: (bookingId: string) => void;
 }
 
@@ -23,6 +23,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
   id,
   tutorId,
   tutorName,
+  studentName,
   date,
   start,
   end,
@@ -42,6 +43,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
     pending: "bg-yellow-100 text-yellow-800",
     cancelled: "bg-red-100 text-red-800",
     on_hold: "bg-orange-100 text-orange-800",
+    reschedule_requested: "bg-purple-100 text-purple-800",
   } as const;
 
   const handleCancelClick = (e: React.MouseEvent) => {
@@ -51,7 +53,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
 
   // Disable hover overlays for past sessions
   const showCancelOverlay = !isPastSession && status === "pending" && isHovered;
-  const showRescheduleOverlay = false;
+  const showRescheduleOverlay = !isPastSession && status === "confirmed" && isHovered;
 
   const month = new Date(date).toLocaleString("default", { month: "short" });
   const day = new Date(date).getDate();
@@ -129,7 +131,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            if (onReschedule && tutorId) onReschedule(id, tutorId);
+            if (onReschedule && tutorId) onReschedule(id, tutorId, tutorName, studentName);
           }}
           className="absolute inset-0 flex items-center justify-center bg-blue-500/70 text-white font-bold rounded-md backdrop-blur-sm opacity-0 hover:opacity-100 transition"
           aria-label="Reschedule Booking">

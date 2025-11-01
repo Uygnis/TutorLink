@@ -129,6 +129,20 @@ export const ApproveReschedule = async (
   );
 };
 
+/** Reject a reschedule request (tutor) */
+export const RejectReschedule = async (
+  newBookingId: string, 
+  authtoken: string
+): Promise<AxiosResponse<BookingResponse>> => {
+    return await axios.put(
+      `${BASE_URL}/reschedule/${newBookingId}/reject`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${authtoken}` },
+      }
+    );
+  };
+  
 /** Get all past sessions for a student */
 export const GetPastSessionsForStudent = async (
   studentId: string,

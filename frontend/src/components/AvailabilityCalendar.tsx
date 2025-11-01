@@ -117,8 +117,8 @@ const AvailabilityCalendar = ({
 
   const studentClasses = {
     booked: "bg-red-200 text-red-700 cursor-not-allowed",
-    pending: "bg-yellow-200 text-yellow-700 cursor-pointer",
-    on_hold: "bg-purple-200 text-purple-800 cursor-pointer",
+    pending: "bg-yellow-200 text-yellow-700 cursor-not-allowed",
+    on_hold: "bg-purple-200 text-purple-800 cursor-not-allowed",
     reschedule_requested: "bg-blue-200 text-blue-800 cursor-not-allowed",
     available: "bg-green-100 hover:bg-green-200 cursor-pointer",
     disabled: "bg-gray-100 cursor-not-allowed",
@@ -128,7 +128,7 @@ const AvailabilityCalendar = ({
   const tutorClasses = {
     booked: "bg-green-100 hover:bg-green-200 cursor-pointer",
     pending: "bg-yellow-200 text-yellow-700 cursor-pointer",
-    on_hold: "bg-purple-200 text-purple-800 cursor-not-allowed",
+    on_hold: "bg-purple-200 text-purple-800 cursor-pointer",
     reschedule_requested: "bg-blue-200 text-blue-800 cursor-not-allowed",
     available: "cursor-not-allowed",
     disabled: "bg-gray-100 cursor-not-allowed",
@@ -192,8 +192,8 @@ const AvailabilityCalendar = ({
                     if (isPastDate(date)) return;
                     if (!slot?.enabled) return;
                     if (
-                      bookingStatus !== "booked" &&
-                      bookingStatus !== "reschedule_requested"
+                      (role === "student" && bookingStatus === "available") ||
+                      (role === "tutor" && (bookingStatus !== "reschedule_requested"))
                     ) {
                       onSlotClick?.(date, slot);
                     }

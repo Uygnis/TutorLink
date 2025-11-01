@@ -10,6 +10,7 @@ import ProfilePicModal from "@/components/ProfilePicModal";
 import BookingCard from "@/components/BookingCard";
 import defaultProfile from "../../assets/default-profile-pic.jpg";
 import { BookingResponse } from "@/types/BookingType";
+import RescheduleModal from "@/components/RescheduleModal";
 
 const StudentDashboard = () => {
   const { user } = useAppSelector((state) => state.user);
@@ -21,7 +22,13 @@ const StudentDashboard = () => {
   const [loadingWallet, setLoadingWallet] = useState<boolean>(true);
   const [showOnlyConfirmed, setShowOnlyConfirmed] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+  const [rescheduleBooking, setRescheduleBooking] = useState<{
+    bookingId: string;
+    tutorId: string;
+    tutorName: string;
+    studentName: string;
+  } | null>(null);
+
   const fetchWallet = async (studentId: string) => {
     if (!user?.token) return;
     try {
@@ -52,6 +59,10 @@ const StudentDashboard = () => {
     } catch {
       toast.error("Failed to fetch bookings");
     }
+  };
+
+  const handleReschedule = (bookingId: string, tutorId: string, tutorName: string, studentName: string) => {
+    setRescheduleBooking({ bookingId, tutorId, tutorName, studentName});
   };
 
   const handleCancelBooking = async (bookingId: string) => {
@@ -124,6 +135,7 @@ const StudentDashboard = () => {
                       key={b.id}
                       {...b}
                       onCancel={handleCancelBooking}
+                      onReschedule={handleReschedule}
                     />
                   ))}
                 </div>
@@ -224,6 +236,17 @@ const StudentDashboard = () => {
           </div>
         </div>
       </div>
+      {/* Reschedule Modal */}
+      {rescheduleBooking && (
+        <RescheduleModal
+          booking={rescheduleBooking}
+          onClose={() => setRescheduleBooking(null)}
+          onRescheduleConfirmed={() => {
+            setRescheduleBooking(null);
+            if (user?.id) fetchBookings(user.id);
+          }}
+        />
+      )}
 
       {/* Footer */}
       <footer className="bg-white text-gray-600 text-sm text-center py-3 border-t shadow-inner">
