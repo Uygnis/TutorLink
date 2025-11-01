@@ -18,18 +18,41 @@
         <boolProp name="quotedData">false</boolProp>
         <boolProp name="recycle">true</boolProp>
         <boolProp name="stopThread">false</boolProp>
-        <stringProp name="shareMode">shareMode.all</stringProp>
+        <stringProp name="shareMode">shareMode.thread</stringProp>
       </CSVDataSet>
       <hashTree/>
-      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor" enabled="true">
+      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
         <stringProp name="cacheKey">true</stringProp>
         <stringProp name="filename"></stringProp>
         <stringProp name="parameters"></stringProp>
-        <stringProp name="script">if(!props.get(&quot;urlBase&quot;)){
-	props.put(&quot;urlBase&quot;,&quot;localhost&quot;)
-	props.put(&quot;port&quot;,&quot;8080&quot;)
-	log.info(&quot;Set base url&quot;)
+        <stringProp name="script">if (!props.get(&quot;urlBase&quot;)) {
+    // Local development environment
+    props.put(&quot;urlBase&quot;, &quot;localhost&quot;)
+    props.put(&quot;port&quot;, &quot;8080&quot;)
+    log.info(&quot;Set base url for development: ${props.get(&quot;urlBase&quot;)}:${props.get(&quot;port&quot;)}&quot;)
+} else if (props.get(&quot;urlBase&quot;) == &quot;localhost&quot;) {
+    // Already dev mode
+    log.info(&quot;Dev mode detected, keeping port 8080&quot;)
+    props.put(&quot;port&quot;, &quot;8080&quot;)
+} else {
+	def urlBase = props.get(&quot;urlBase&quot;)
+	if (urlBase.startsWith(&quot;http://&quot;)) {
+	    urlBase = urlBase.replaceFirst(&quot;http://&quot;, &quot;&quot;)
+	} else if (urlBase.startsWith(&quot;https://&quot;)) {
+	    urlBase = urlBase.replaceFirst(&quot;https://&quot;, &quot;&quot;)
+	}
+	urlBase = urlBase.replaceFirst(&quot;/&quot;, &quot;&quot;)
+	props.put(&quot;urlBase&quot;, urlBase)
+    // Deployment environment
+    log.info(&quot;Deployment mode detected, base URL: ${props.get(&quot;urlBase&quot;)}&quot;)
+    props.put(&quot;port&quot;, &quot;&quot;)
 }
+
+log.info(&quot;📘 CSV Data Loaded:&quot;)
+log.info(&quot;  role      = &quot; + vars.get(&quot;role&quot;))
+log.info(&quot;  email     = &quot; + vars.get(&quot;email&quot;))
+log.info(&quot;  password  = &quot; + vars.get(&quot;password&quot;))
+
 </stringProp>
         <stringProp name="scriptLanguage">groovy</stringProp>
       </JSR223PreProcessor>
@@ -456,7 +479,7 @@ if (token) {
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG_Tutor_Core">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG_Tutor_Core" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
