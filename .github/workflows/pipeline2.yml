@@ -191,29 +191,74 @@ jobs:
 
           JMETER_RESULTS_DIR = "./jmeter-results"
           all_jtl_files = glob.glob(os.path.join(JMETER_RESULTS_DIR, "*.jtl"))
-          jmeter_metrics = defaultdict(float)
+
+          from collections import defaultdict
+
+          jmeter_metrics = {
+              "Total Requests": 0,
+              "Successful Requests": 0,
+              "Failed Requests": 0,
+              "Total Unique APIs Tested": 0,
+              "Successful APIs": 0,
+              "Failed APIs": 0,
+              "Average Response Time (ms)": 0,
+              "Max Response Time (ms)": 0,
+              "Min Response Time (ms)": 0,
+          }
+
+          api_success_map = {}
           total_response_times = []
 
           for jtl_file in all_jtl_files:
-            with open(jtl_file, "r", encoding="utf-8") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    jmeter_metrics["Total Requests"] += 1
-                    if row.get("success", "").lower() != "true":
-                        jmeter_metrics["Failed Requests"] += 1
-                    try:
-                        total_response_times.append(float(row.get("elapsed", 0)))
-                    except:
-                        pass
+              with open(jtl_file, "r", encoding="utf-8") as f:
+                  reader = csv.DictReader(f)
+                  for row in reader:
+                      url = row.get("label") or row.get("URL") or "Unknown"
+                      success = row.get("success", "").lower() == "true"
 
+                      jmeter_metrics["Total Requests"] += 1
+                      if success:
+                          jmeter_metrics["Successful Requests"] += 1
+                      else:
+                          jmeter_metrics["Failed Requests"] += 1
+
+                      if url not in api_success_map:
+                          api_success_map[url] = {"success": 0, "fail": 0}
+                      if success:
+                          api_success_map[url]["success"] += 1
+                      else:
+                          api_success_map[url]["fail"] += 1
+
+                      try:
+                          total_response_times.append(float(row.get("elapsed", 0)))
+                      except:
+                          pass
+
+          # Calculate time metrics
           if total_response_times:
-              jmeter_metrics["Average Response Time (ms)"] = sum(total_response_times)/len(total_response_times)
+              jmeter_metrics["Average Response Time (ms)"] = sum(total_response_times) / len(total_response_times)
               jmeter_metrics["Max Response Time (ms)"] = max(total_response_times)
               jmeter_metrics["Min Response Time (ms)"] = min(total_response_times)
-          else:
-              jmeter_metrics["Average Response Time (ms)"] = 0
-              jmeter_metrics["Max Response Time (ms)"] = 0
-              jmeter_metrics["Min Response Time (ms)"] = 0
+
+          # API counts
+          unique_apis = list(api_success_map.keys())
+          jmeter_metrics["Total Unique APIs Tested"] = len(unique_apis)
+          jmeter_metrics["Successful APIs"] = sum(1 for u in unique_apis if api_success_map[u]["fail"] == 0)
+          jmeter_metrics["Failed APIs"] = sum(1 for u in unique_apis if api_success_map[u]["fail"] > 0)
+
+          # --- Markdown table formatting for console/comment output ---
+          def as_markdown_table(data: dict):
+              headers = ["Metric", "Value"]
+              rows = [[k, f"{v:.2f}" if isinstance(v, float) else v] for k, v in data.items()]
+              table = "| " + " | ".join(headers) + " |\n"
+              table += "|---|---|\n"
+              for r in rows:
+                  table += f"| {r[0]} | {r[1]} |\n"
+              return table
+
+          jmeter_summary_table = as_markdown_table(jmeter_metrics)
+          print("\nJMeter Summary:\n")
+          print(jmeter_summary_table)
 
           jmeter_summary = "\n".join(
               f"{k}: {v:.2f}" if isinstance(v, float) else f"{k}: {v}"
@@ -270,7 +315,7 @@ jobs:
               f.write("\n")
 
               f.write("**JMeter Metrics:**\n")
-              f.write(jmeter_summary)
+              f.write(jmeter_summary_table)
               f.write("\n\n")
 
               f.write(response.text)
