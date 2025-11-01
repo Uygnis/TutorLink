@@ -11,9 +11,8 @@ on:
 #   pull_request:
 #     branches: [main]
 #   push:
-#     branches: [main]  
+#     branches: [main]
 #   workflow_dispatch: # manual trigger allowed
-
 
 jobs:
   # ----------------- DAST -----------------
@@ -81,8 +80,8 @@ jobs:
           echo "🔍 Checking STAGING_URL value..."
           echo "STAGING_URL: ${{ secrets.STAGING_URL }}"
 
-          mkdir -p jmeter-results jmeter-report
-          chmod -R 777 jmeter-results jmeter-report
+          mkdir -p jmeter-results jmeter-report jmeter-logs
+          chmod -R 777 jmeter-results jmeter-report jmeter-logs
 
           for test in jmeter/tests/*.jmx; do
             name=$(basename "$test" .jmx)
@@ -92,7 +91,9 @@ jobs:
               -JurlBase=${{ secrets.STAGING_URL }} \
               -Jlog_level.jmeter=DEBUG \
               -l "jmeter-results/${name}.jtl" \
+              -j "jmeter-logs/${name}.log" \
               -e -o "jmeter-report/${name}" || true
+            echo "✅ Finished $name — logs saved to jmeter-logs/${name}.log"
           done
 
       - name: Upload JMeter Reports
@@ -130,7 +131,7 @@ jobs:
         with:
           name: jmeter-reports
           path: ./jmeter-report
-      
+
       - name: Download JMeter results artifacts
         uses: actions/download-artifact@v4
         with:
@@ -167,7 +168,7 @@ jobs:
 
           with open(REPORT_FILE, "r", encoding="utf-8") as f:
               html_content = f.read()
-          
+
           soup = BeautifulSoup(html_content, "html.parser")
           risk_cells = soup.find_all(string=lambda s: s and any(r in s for r in ["Critical", "High", "Medium", "Low", "Informational"]))
           levels = []
@@ -227,7 +228,7 @@ jobs:
           Informational: {counts.get('Informational', 0)}
 
           JMeter Metrics:{jmeter_summary}
-          
+
           Provide:
           - A short overall security and performance summary
           - Top recurring issues
@@ -310,4 +311,3 @@ jobs:
               body: commentBody
             })
             console.log(`✅ Gemini summary posted to commit ${commitSha}`)
-
