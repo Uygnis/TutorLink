@@ -406,6 +406,49 @@ public class BookingServiceImpl implements BookingService {
         return bookingMapper.toDto(savedNewBooking);
     }
 
+    @Transactional
+    @Override
+    public BookingDTO rejectReschedule(String newBookingId) {
+        // 1. Fetch new (on_hold) booking
+        Booking newBooking = bookingRepository.findById(newBookingId)
+            .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        if (!"on_hold".equals(newBooking.getStatus())) {
+            throw new RuntimeException("Only on_hold bookings can be rejected.");
+        }
+
+        // 2. Fetch the original booking
+        Booking originalBooking = bookingRepository.findById(newBooking.getOriginalBookingId())
+            .orElseThrow(() -> new RuntimeException("Original booking not found"));
+
+        // 3. Restore original booking status to confirmed
+        originalBooking.setStatus("confirmed");
+        bookingRepository.save(originalBooking);
+
+        // 4. Cancel the new on_hold booking
+        newBooking.setStatus("cancelled");
+        bookingRepository.save(newBooking);
+
+        // 5. Notify student and tutor
+        notificationService.createNotification(
+            newBooking.getStudentId(),
+            "reschedule_rejected",
+            newBooking.getId(),
+            "Your reschedule request of " + newBooking.getDate() + " for " + newBooking.getLessonType() +
+                " from " + newBooking.getTutorName() + " was rejected. Your original booking remains confirmed."
+        );
+
+        notificationService.createNotification(
+            newBooking.getTutorId(),
+            "reschedule_rejected",
+            newBooking.getId(),
+            "You have rejected the reschedule request " + newBooking.getDate() + " " + newBooking.getLessonType() +
+                " for " + newBooking.getStudentName() + ". The original booking has been restored."
+        );
+
+        return bookingMapper.toDto(originalBooking);
+    }
+
     @Override
     public RecentBookingResponse getPastSessionsForStudent(String studentId) {
         String todayStr = LocalDate.now().format(formatter);

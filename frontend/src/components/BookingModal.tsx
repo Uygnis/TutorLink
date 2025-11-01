@@ -70,12 +70,12 @@ const BookingModal: React.FC<BookingModalProps> = ({
             </option>
           ))}
         </select>
-
+{/* 
         <div className="mb-4 p-3 bg-red-100 rounded-md text-sm text-gray-700">
           <p>
             Please note that once the booking is confirmed, it <strong className="text-red-700">cannot be cancelled or rescheduled</strong>.
           </p>
-        </div>
+        </div> */}
 
         {/* Optional estimated cost */}
         {hourlyRate && estimatedCost !== null && (
