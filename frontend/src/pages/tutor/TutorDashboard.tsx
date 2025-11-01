@@ -18,6 +18,7 @@ import {
   GetBookingsForTutorRange,
   GetPastBookingsForTutor,
   GetRecentBookingsForTutor,
+  RejectReschedule,
 } from "@/api/bookingAPI";
 import BookingModalAccept from "@/components/BookingModalAccept";
 import BookingModalView from "@/components/BookingModalView";
@@ -81,6 +82,14 @@ const TutorDashboard = () => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
+
+  const statusColor = {
+    confirmed: "bg-green-100 text-green-800",
+    pending: "bg-yellow-100 text-yellow-800",
+    cancelled: "bg-red-100 text-red-800",
+    on_hold: "bg-orange-100 text-orange-800",
+    reschedule_requested: "bg-purple-100 text-purple-800",
+  } as const;
 
   const { user } = useAppSelector((state) => state.user);
   const navigate = useNavigate();
@@ -266,6 +275,8 @@ const TutorDashboard = () => {
           item.status !== "cancelled"
       );
 
+    console.log("Selected booking for modal:", booking);
+
     if (!booking) return null;
 
     if (booking.status === "pending") {
@@ -321,20 +332,37 @@ const TutorDashboard = () => {
     const dateStr = selectedSlot.date.toLocaleDateString("en-CA"); // YYYY-MM-DD
 
     try {
-      await CancelBooking(bookingId, user.id, user.token);
-      setBookedSlots((prev) =>
-        prev.map((b) =>
-          b.id === bookingId ? { ...b, status: "cancelled" } : b
-        )
-      );
-      setRecentBookedSlots((prev) =>
-        prev.map((b) =>
-          b.id === bookingId ? { ...b, status: "cancelled" } : b
-        )
-      );
-      alert(
-        `✅ Booking rejected on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
-      );
+      // ✅ Find booking to determine its type
+      const booking =
+        bookedSlots.find((b) => b.id === bookingId) ||
+        recentBookedSlots.find((b) => b.id === bookingId) ||
+        pastBookedSlots.find((b) => b.id === bookingId);
+
+      if (!booking) {
+        alert("Booking not found.");
+        return;
+      }
+
+      // ✅ Decide which API to call
+      if (booking.status === "on_hold") {
+        // Reschedule rejection
+        await RejectReschedule(bookingId, user.token);
+        alert(`❌ Reschedule request rejected. Original booking restored.`);
+      } else {
+        // Normal cancellation
+        await CancelBooking(bookingId, user.id, user.token);
+        alert(
+          `✅ Booking rejected on ${dateStr} | ${selectedSlot.slot.start} - ${selectedSlot.slot.end}`
+        );
+      }
+
+      // ✅ Update UI (simpler: refetch to avoid partial states)
+      await Promise.all([
+        fetchBookingsForMonth(user.id),
+        fetchRecentBookings(user.id),
+        fetchRecentPastBookings(user.id),
+      ]);
+
     } catch (err) {
       console.error("Booking failed:", err);
       alert("❌ Failed to reject booking. Please try again.");
@@ -343,6 +371,7 @@ const TutorDashboard = () => {
       setSelectedSlot(null);
     }
   };
+
 
   const confirmBooking = async (bookingId: string) => {
     if (!user?.token || !user?.id || !selectedSlot) {
@@ -497,14 +526,10 @@ const TutorDashboard = () => {
                             <p className="text-sm text-gray-500">
                               {b.start} | Status:{" "}
                               <span
-                                className={`px-2 py-1 text-xs font-semibold rounded-full ${b.status === "confirmed"
-                                    ? "bg-green-100 text-green-600"
-                                    : b.status === "pending"
-                                      ? "bg-yellow-100 text-yellow-600"
-                                      : "bg-gray-100 text-gray-400"
+                                className={`px-2 py-1 text-xs font-semibold rounded-full ${statusColor[b.status as keyof typeof statusColor] || "bg-gray-100 text-gray-400"
                                   }`}
                               >
-                                {b.status.charAt(0).toUpperCase() + b.status.slice(1)}
+                                {b.status.charAt(0).toUpperCase() + b.status.slice(1).replace("_", " ")}
                               </span>
                             </p>
                           </div>
@@ -581,7 +606,7 @@ const TutorDashboard = () => {
                               month: "short",
                               year: "numeric",
                             })}{" "}
-                            | {b.start} - {b.end} 
+                            | {b.start} - {b.end}
                           </p>
                           <p className="text-gray-600 text-sm">
                             {b.lessonType}
