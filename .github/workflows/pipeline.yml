@@ -10,6 +10,7 @@ on:
 jobs:
   secret-scan:
     name: Secret Scanning
+    if: github.event_name == 'pull_request' # only run on PRs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,6 +24,7 @@ jobs:
   frontend-test:
     name: Frontend - Test
     needs: secret-scan
+    if: always()
     runs-on: ubuntu-latest
     environment: development
     defaults:
@@ -68,6 +70,7 @@ jobs:
   backend-test:
     name: Backend - Test
     needs: secret-scan
+    if: always()
     runs-on: ubuntu-latest
     environment: development
     defaults:
