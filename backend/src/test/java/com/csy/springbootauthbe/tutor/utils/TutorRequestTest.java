@@ -17,13 +17,16 @@ class TutorRequestTest {
         Availability availability = new Availability();
         QualificationFile qf = new QualificationFile();
 
+        // ✅ Create a mock MultipartFile (non-null)
+        MultipartFile mockFile = org.mockito.Mockito.mock(MultipartFile.class);
+
         TutorRequest req = TutorRequest.builder()
             .userId("T123")
             .subject("Mathematics")
             .hourlyRate(45.5)
             .description("Experienced tutor")
             .lessonType(List.of("Online", "Group"))
-            .fileUploads(List.of((MultipartFile) null))
+            .fileUploads(List.of(mockFile)) // ✅ use mock instead of null
             .qualifications(List.of(qf))
             .availability(Map.of("Monday", availability))
             .build();
@@ -33,6 +36,7 @@ class TutorRequestTest {
         assertEquals(45.5, req.getHourlyRate());
         assertEquals("Experienced tutor", req.getDescription());
         assertEquals(2, req.getLessonType().size());
+        assertEquals(1, req.getFileUploads().size());
         assertEquals(1, req.getQualifications().size());
         assertEquals(1, req.getAvailability().size());
     }
