@@ -198,7 +198,7 @@ jobs:
   # backend
   backend-build:
     name: Backend - Build
-    needs: [sast, asp-scan-backend]
+    needs: [sast, backend-test]
     runs-on: ubuntu-latest
     environment: development
     defaults:
@@ -226,7 +226,7 @@ jobs:
   asp-scan-backend:
     name: OWASP Scan - Backend
     runs-on: ubuntu-latest
-    needs: backend-test
+    needs: backend-build
     steps:
       - uses: actions/checkout@v4
 
