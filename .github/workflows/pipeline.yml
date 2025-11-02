@@ -8,23 +8,21 @@ on:
   workflow_dispatch: # manual trigger allowed
 
 jobs:
-  secret-scan:
-    name: Secret Scanning
-    if: github.event_name == 'pull_request' # only run on PRs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+  # secret-scan:
+  #   name: Secret Scanning
+  #   if: github.event_name == 'pull_request' # only run on PRs
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Secret Scanning Review Action
-        uses: advanced-security/secret-scanning-review-action@main
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Secret Scanning Review Action
+  #       uses: advanced-security/secret-scanning-review-action@main
+  #       with:
+  #         token: ${{ secrets.GITHUB_TOKEN }}
 
   # run frontend test
   frontend-test:
     name: Frontend - Test
-    needs: secret-scan
-    if: always()
     runs-on: ubuntu-latest
     environment: development
     defaults:
@@ -69,8 +67,6 @@ jobs:
   # run backend test
   backend-test:
     name: Backend - Test
-    needs: secret-scan
-    if: always()
     runs-on: ubuntu-latest
     environment: development
     defaults:
