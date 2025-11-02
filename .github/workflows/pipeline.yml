@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main]  
+    branches: [main]
   workflow_dispatch: # manual trigger allowed
 
 jobs:
@@ -41,7 +41,7 @@ jobs:
         run: ls -l coverage/ || echo "❌ coverage folder not found!"
 
       - name: Validate Codecov YAML
-        run: curl --data-binary @../.codecov.yml https://codecov.io/validate  
+        run: curl --data-binary @../.codecov.yml https://codecov.io/validate
 
       - name: Upload frontend coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -88,10 +88,10 @@ jobs:
       - name: List JaCoCo output files
         run: |
           echo "Listing JaCoCo reports..."
-          ls -R ./target/site/jacoco || echo "❌ jacoco.xml not found!"  
+          ls -R ./target/site/jacoco || echo "❌ jacoco.xml not found!"
 
       - name: Validate Codecov YAML
-        run: curl --data-binary @../.codecov.yml https://codecov.io/validate  
+        run: curl --data-binary @../.codecov.yml https://codecov.io/validate
 
       - name: Upload Backend Coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -171,7 +171,7 @@ jobs:
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: "backend"
-          path: "./backend"
+          path: "./backend/target/springboot-auth-be-0.0.1-SNAPSHOT.jar"
           format: "HTML"
           out: "reports/backend"
 
