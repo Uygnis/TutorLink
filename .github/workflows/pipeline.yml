@@ -3,25 +3,35 @@ name: CI/CD Pipeline
 on:
   pull_request:
     branches: [main]
-  # push:
-  #   branches: [main]
-  # workflow_dispatch: # manual trigger allowed
+  push:
+    branches: [main]
+  workflow_dispatch: # manual trigger allowed
 
 jobs:
   secret-scan:
-    name: Secret Scanning
-    if: github.event_name == 'pull_request' # only run on PRs
     runs-on: ubuntu-latest
-    permissions:
-      security-events: read
-      contents: read
+    defaults:
+      run:
+        shell: bash
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Secret Scanning Review Action
-        uses: advanced-security/secret-scanning-review-action@main
+      - name: Checkout code
+        uses: actions/checkout@v3
         with:
-          token: ${{ github.token }}
+          fetch-depth: 0
+
+      - name: Initiate Secret Scanning
+        id: trufflehog
+        uses: trufflesecurity/trufflehog@main
+        continue-on-error: true
+        with:
+          path: ./
+          base: "${{ github.event.repository.default_branch }}"
+          head: HEAD
+          extra_args: --debug
+
+      - name: Scan Results Status
+        if: steps.trufflehog.outcome == 'failure'
+        run: exit 1
 
   # run frontend test
   frontend-test:
