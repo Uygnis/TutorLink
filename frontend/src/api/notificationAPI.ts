@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 import { NotificationType } from "@/types/NotificationType"; // define this type
 
-const BASE_URL = `${import.meta.env.VITE_APP_API}/notifications`; // adjust as needed
+const BASE_URL = `${import.meta.env.VITE_APP_API}`; // adjust as needed
 
 /**
  * Fetch all notifications for a user
@@ -12,7 +12,7 @@ export const fetchNotifications = async (
   userId: string,
   token: string
 ): Promise<AxiosResponse<NotificationType[]>> => {
-  return axios.get(`${BASE_URL}?userId=${userId}`, {
+  return axios.get(`${BASE_URL}/notifications?userId=${userId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
