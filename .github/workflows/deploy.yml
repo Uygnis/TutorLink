@@ -79,20 +79,7 @@ jobs:
 
       - name: Build backend Docker image
         if: ${{ steps.deploy_flags.outputs.backend == 'true' }}
-        run:
-          docker build -t backend:latest ./backend
-
-          # ---- Scan Backend Image ----
-      - name: Trivy Backend image vulnerability scanning
-        if: ${{ steps.deploy_flags.outputs.backend == 'true' }}
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          input: "docker-images/backend.tar"
-          format: "table"
-          exit-code: "1" # fail job if HIGH/CRITICAL found
-          ignore-unfixed: true
-          vuln-type: "os,library"
-          severity: "CRITICAL,HIGH"
+        run: docker build -t backend:latest ./backend
 
       # ----- FRONTEND -----
       - name: Create frontend .env from secret
@@ -102,18 +89,6 @@ jobs:
       - name: Build frontend Docker image
         if: ${{ steps.deploy_flags.outputs.frontend == 'true' }}
         run: docker build -t frontend:latest ./frontend
-
-      # ---- Scan Frontend Image ----
-      - name: Scan Frontend Docker image with Trivy
-        if: ${{ steps.deploy_flags.outputs.frontend == 'true' }}
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          input: "docker-images/frontend.tar"
-          format: "table"
-          exit-code: "1"
-          ignore-unfixed: true
-          vuln-type: "os,library"
-          severity: "CRITICAL,HIGH"
 
       # ----- Save Docker images -----
       - name: Save Docker images
@@ -126,6 +101,30 @@ jobs:
           if [ "${{ steps.deploy_flags.outputs.backend }}" == "true" ]; then
             docker save backend:latest -o docker-images/backend.tar
           fi
+
+      # ---- Scan Backend Image ----
+      - name: Trivy Backend image vulnerability scanning
+        if: ${{ steps.deploy_flags.outputs.backend == 'true' }}
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          input: "docker-images/backend.tar"
+          format: "table"
+          exit-code: "1" # fail job if HIGH/CRITICAL found
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+
+      # ---- Scan Frontend Image ----
+      - name: Scan Frontend Docker image with Trivy
+        if: ${{ steps.deploy_flags.outputs.frontend == 'true' }}
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          input: "docker-images/frontend.tar"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
 
       # ----- Copy Docker images + docker-compose.yml to EC2 -----
       - name: Copy Docker images via SCP
