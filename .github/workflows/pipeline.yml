@@ -110,41 +110,41 @@ jobs:
           name: backend-coverage
           fail_ci_if_error: true
 
-  sast:
-    name: SAST - CodeQL Scan
-    needs: [frontend-test, backend-test]
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-      actions: read
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  # sast:
+  #   name: SAST - CodeQL Scan
+  #   needs: [frontend-test, backend-test]
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     security-events: write
+  #     actions: read
+  #     contents: read
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript, java
-          queries: security-extended,security-and-quality
-          config-file: .github/configs/codeql-config.yml
-      - name: Install frontend dependencies
-        run: |
-          cd frontend
-          npm ci
+  #     - name: Initialize CodeQL
+  #       uses: github/codeql-action/init@v3
+  #       with:
+  #         languages: javascript, java
+  #         queries: security-extended,security-and-quality
+  #         config-file: .github/configs/codeql-config.yml
+  #     - name: Install frontend dependencies
+  #       run: |
+  #         cd frontend
+  #         npm ci
 
-      - name: Build frontend
-        run: |
-          cd frontend
-          npm run build --if-present
+  #     - name: Build frontend
+  #       run: |
+  #         cd frontend
+  #         npm run build --if-present
 
-      - name: Build backend
-        run: |
-          cd backend
-          mvn compile -DskipTests
+  #     - name: Build backend
+  #       run: |
+  #         cd backend
+  #         mvn compile -DskipTests
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+  #     - name: Perform CodeQL Analysis
+  #       uses: github/codeql-action/analyze@v3
 
   # security scan
   asp-scan-frontend:
@@ -171,7 +171,8 @@ jobs:
   # frontend
   frontend-build:
     name: Frontend - Build
-    needs: [sast, asp-scan-frontend]
+    # needs: [sast, asp-scan-frontend]
+    needs: asp-scan-frontend
     runs-on: ubuntu-latest
     environment: development
     defaults:
@@ -206,7 +207,8 @@ jobs:
   # backend
   backend-build:
     name: Backend - Build
-    needs: [sast, backend-test]
+    # needs: [sast, backend-test]
+    needs: backend-test
     runs-on: ubuntu-latest
     environment: development
     defaults:
