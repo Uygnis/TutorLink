@@ -172,6 +172,27 @@ jobs:
           name: dependency-check-report-frontend
           path: reports/frontend
 
+  asp-scan-backend:
+    name: OWASP Scan - Backend
+    runs-on: ubuntu-latest
+    needs: backend-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run OWASP Dependency Check (Backend)
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "backend"
+          path: "./backend"
+          format: "HTML"
+          out: "reports/backend"
+
+      - name: Upload OWASP Report (Backend)
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report-backend
+          path: reports/backend
+
   # frontend
   frontend-build:
     name: Frontend - Build
@@ -234,24 +255,3 @@ jobs:
 
       - name: Build Backend (skip tests)
         run: mvn -B clean package -DskipTests
-
-  asp-scan-backend:
-    name: OWASP Scan - Backend
-    runs-on: ubuntu-latest
-    needs: backend-build
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run OWASP Dependency Check (Backend)
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: "backend"
-          path: "./backend"
-          format: "HTML"
-          out: "reports/backend"
-
-      - name: Upload OWASP Report (Backend)
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-check-report-backend
-          path: reports/backend
