@@ -27,7 +27,7 @@ export const markNotificationAsRead = async (
   token: string
 ): Promise<AxiosResponse<void>> => {
   return axios.put(
-    `${BASE_URL}/${notificationId}/read`,
+    `${BASE_URL}/notifications/${notificationId}/read`,
     {},
     {
       headers: { Authorization: `Bearer ${token}` },
@@ -47,7 +47,7 @@ export const createNotification = async (
   },
   token: string
 ): Promise<AxiosResponse<NotificationType>> => {
-  return axios.post(BASE_URL, payload, {
+  return axios.post(`${BASE_URL}/notifications`, payload, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
