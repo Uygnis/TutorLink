@@ -21,7 +21,7 @@ jobs:
       - name: Secret Scanning Review Action
         uses: advanced-security/secret-scanning-review-action@main
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
 
   # run frontend test
   frontend-test:
