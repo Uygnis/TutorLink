@@ -22,7 +22,7 @@ jobs:
   # run frontend test
   frontend-test:
     name: Frontend - Test
-    needs: secrets-scanning
+    needs: secret-scan
     runs-on: ubuntu-latest
     environment: development
     defaults:
@@ -67,7 +67,7 @@ jobs:
   # run backend test
   backend-test:
     name: Backend - Test
-    needs: secrets-scanning
+    needs: secret-scan
     runs-on: ubuntu-latest
     environment: development
     defaults:
