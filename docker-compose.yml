@@ -11,6 +11,8 @@ services:
   backend:
     build: ./backend
     image: backend:latest
+    environment:
+      - EC2_HOST=http://98.81.196.176
     container_name: backend
     ports:
       - "5000:5000"
