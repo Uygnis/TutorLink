@@ -12,6 +12,9 @@ jobs:
     name: Secret Scanning
     if: github.event_name == 'pull_request' # only run on PRs
     runs-on: ubuntu-latest
+    permissions:
+      security-events: read
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
