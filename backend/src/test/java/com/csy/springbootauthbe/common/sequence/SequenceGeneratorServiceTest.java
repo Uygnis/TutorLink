@@ -2,12 +2,9 @@ package com.csy.springbootauthbe.common.sequence;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
@@ -28,96 +25,84 @@ class SequenceGeneratorServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    // ✅ 1. Test getNextSequence returns incremented seq
+    // ---------- getNextSequence ----------
+
     @Test
-    void getNextSequence_whenCounterExists_returnsIncrementedValue() {
-        Counter mockCounter = new Counter();
-        mockCounter.setSeq(5L);
+    void testGetNextSequence_ReturnsIncrementedValue() {
+        Counter mockCounter = new Counter("studentId", 5);
         when(mongoOperations.findAndModify(
-                any(Query.class),
-                any(Update.class),
-                any(FindAndModifyOptions.class),
-                eq(Counter.class)
-        )).thenReturn(mockCounter);
+            any(Query.class),
+            any(Update.class),
+            any(FindAndModifyOptions.class),
+            eq(Counter.class))
+        ).thenReturn(mockCounter);
 
         long result = sequenceGeneratorService.getNextSequence("studentId");
 
-        assertEquals(5L, result);
-        verify(mongoOperations).findAndModify(
-                any(Query.class),
-                any(Update.class),
-                any(FindAndModifyOptions.class),
-                eq(Counter.class)
-        );
+        assertEquals(5, result);
     }
 
-    // ✅ 2. Test getNextSequence when Counter is null
     @Test
-    void getNextSequence_whenCounterIsNull_returns1() {
-        when(mongoOperations.findAndModify(
-                any(Query.class),
-                any(Update.class),
-                any(FindAndModifyOptions.class),
-                eq(Counter.class)
-        )).thenReturn(null);
+    void testGetNextSequence_ReturnsOneWhenNull() {
+        when(mongoOperations.findAndModify(any(), any(), any(), eq(Counter.class)))
+            .thenReturn(null);
 
-        long result = sequenceGeneratorService.getNextSequence("studentId");
-
-        assertEquals(1L, result);
+        long result = sequenceGeneratorService.getNextSequence("missingSeq");
+        assertEquals(1, result);
     }
 
-    // ✅ 3. Test getNextStudentId formats properly
+    // ---------- getNextStudentId ----------
+
     @Test
-    void getNextStudentId_returnsFormattedId() {
-        SequenceGeneratorService spyService = spy(sequenceGeneratorService);
-        doReturn(7L).when(spyService).getNextSequence("studentId");
+    void testGetNextStudentId_FormatsProperly() {
+        Counter mockCounter = new Counter("studentId", 12);
+        when(mongoOperations.findAndModify(any(), any(), any(), eq(Counter.class)))
+            .thenReturn(mockCounter);
 
-        String result = spyService.getNextStudentId();
-
-        assertEquals("S07", result);
+        String id = sequenceGeneratorService.getNextStudentId();
+        assertEquals("S12", id);
     }
 
-    // ✅ 4. Test getNextEventId delegates properly
+    // ---------- getNextEventId ----------
+
     @Test
-    void getNextEventId_returnsSequenceValue() {
-        SequenceGeneratorService spyService = spy(sequenceGeneratorService);
-        doReturn(99L).when(spyService).getNextSequence("eventId");
+    void testGetNextEventId_ReturnsLong() {
+        Counter mockCounter = new Counter("eventId", 7);
+        when(mongoOperations.findAndModify(any(), any(), any(), eq(Counter.class)))
+            .thenReturn(mockCounter);
 
-        Long result = spyService.getNextEventId();
-
-        assertEquals(99L, result);
+        Long id = sequenceGeneratorService.getNextEventId();
+        assertEquals(7L, id);
     }
 
-    // ✅ 5. Test peekSequence when counter exists
+    // ---------- peekSequence ----------
+
     @Test
-    void peekSequence_whenCounterExists_returnsIncrementedValue() {
-        Counter mockCounter = new Counter();
-        mockCounter.setSeq(10L);
-        when(mongoOperations.findOne(any(Query.class), eq(Counter.class))).thenReturn(mockCounter);
+    void testPeekSequence_ReturnsExistingPlusOne() {
+        Counter counter = new Counter("studentId", 3);
+        when(mongoOperations.findOne(any(Query.class), eq(Counter.class)))
+            .thenReturn(counter);
 
         long result = sequenceGeneratorService.peekSequence("studentId");
-
-        assertEquals(11L, result);
+        assertEquals(4, result);
     }
 
-    // ✅ 6. Test peekSequence when counter is null
     @Test
-    void peekSequence_whenCounterIsNull_returns1() {
-        when(mongoOperations.findOne(any(Query.class), eq(Counter.class))).thenReturn(null);
-
-        long result = sequenceGeneratorService.peekSequence("studentId");
-
-        assertEquals(1L, result);
+    void testPeekSequence_ReturnsOneIfMissing() {
+        when(mongoOperations.findOne(any(), eq(Counter.class))).thenReturn(null);
+        long result = sequenceGeneratorService.peekSequence("missing");
+        assertEquals(1, result);
     }
 
-    // ✅ 7. Test peekNextStudentId formats properly
+    // ---------- peekNextStudentId ----------
+
     @Test
-    void peekNextStudentId_returnsFormattedValue() {
-        SequenceGeneratorService spyService = spy(sequenceGeneratorService);
-        doReturn(15L).when(spyService).peekSequence("studentId");
+    void testPeekNextStudentId_FormatsProperly() {
+        Counter counter = new Counter("studentId", 9);
+        when(mongoOperations.findOne(any(Query.class), eq(Counter.class)))
+            .thenReturn(counter);
 
-        String result = spyService.peekNextStudentId();
-
-        assertEquals("S15", result);
+        String id = sequenceGeneratorService.peekNextStudentId();
+        assertEquals("S10", id);
     }
 }

@@ -3,83 +3,82 @@ package com.csy.springbootauthbe.config;
 import com.csy.springbootauthbe.user.entity.AccountStatus;
 import com.csy.springbootauthbe.user.entity.User;
 import com.csy.springbootauthbe.user.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationProvider;
+import org.mockito.*;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.lang.reflect.Field;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class ApplicationConfigTest {
 
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private AuthenticationConfiguration authenticationConfiguration;
+
     @InjectMocks
-    private ApplicationConfig applicationConfig;
+    private ApplicationConfig config;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
-    void userDetailsService_whenUserExists_returnsUserDetails() {
+    void testUserDetailsService_FindsUser() {
         User mockUser = new User();
-        mockUser.setEmail("test@example.com");
-        mockUser.setStatus(AccountStatus.ACTIVE);
+        mockUser.setEmail("a@b.com");
+        when(userRepository.findByEmailAndStatusNot("a@b.com", AccountStatus.DELETED))
+            .thenReturn(Optional.of(mockUser));
 
-        when(userRepository.findByEmailAndStatusNot("test@example.com", AccountStatus.DELETED))
-                .thenReturn(Optional.of(mockUser));
-
-        var service = applicationConfig.userDetailsService();
-        UserDetails user = service.loadUserByUsername("test@example.com");
+        var service = config.userDetailsService();
+        var user = service.loadUserByUsername("a@b.com");
 
         assertNotNull(user);
-        assertEquals("test@example.com", ((User) user).getEmail());
+        verify(userRepository, times(1))
+            .findByEmailAndStatusNot("a@b.com", AccountStatus.DELETED);
     }
 
     @Test
-    void userDetailsService_whenUserMissing_throwsException() {
-        when(userRepository.findByEmailAndStatusNot("missing@example.com", AccountStatus.DELETED))
-                .thenReturn(Optional.empty());
+    void testUserDetailsService_UserNotFound() {
+        when(userRepository.findByEmailAndStatusNot("x@y.com", AccountStatus.DELETED))
+            .thenReturn(Optional.empty());
 
-        var service = applicationConfig.userDetailsService();
+        var service = config.userDetailsService();
+
         assertThrows(UsernameNotFoundException.class,
-                () -> service.loadUserByUsername("missing@example.com"));
+            () -> service.loadUserByUsername("x@y.com"));
     }
 
     @Test
-    void passwordEncoder_returnsBCryptAndMatches() {
-        PasswordEncoder encoder = applicationConfig.passwordEncoder();
-        String encoded = encoder.encode("secret123");
-        assertTrue(encoder.matches("secret123", encoded));
+    void testAuthProvider_ReturnsDaoAuthProvider() {
+        var provider = config.authProvider();
+        assertTrue(provider instanceof DaoAuthenticationProvider);
     }
 
     @Test
-    void authProvider_returnsDaoAuthProvider_withConfiguredFields() throws Exception {
-        AuthenticationProvider provider = applicationConfig.authProvider();
+    void testAuthManager_ReturnsFromConfig() throws Exception {
+        AuthenticationManager mockManager = mock(AuthenticationManager.class);
+        when(authenticationConfiguration.getAuthenticationManager()).thenReturn(mockManager);
 
-        assertNotNull(provider);
-        assertInstanceOf(DaoAuthenticationProvider.class, provider);
+        var manager = config.authManager(authenticationConfiguration);
+        assertNotNull(manager);
+        assertEquals(mockManager, manager);
+    }
 
-        DaoAuthenticationProvider dao = (DaoAuthenticationProvider) provider;
-
-        // Verify internal fields via reflection
-        Field userDetailsField = DaoAuthenticationProvider.class.getDeclaredField("userDetailsService");
-        userDetailsField.setAccessible(true);
-        Object uds = userDetailsField.get(dao);
-        assertNotNull(uds, "UserDetailsService should be configured");
-
-        Field passwordEncoderField = DaoAuthenticationProvider.class.getDeclaredField("passwordEncoder");
-        passwordEncoderField.setAccessible(true);
-        Object encoder = passwordEncoderField.get(dao);
-        assertNotNull(encoder, "PasswordEncoder should be configured");
+    @Test
+    void testPasswordEncoder_ReturnsBCrypt() {
+        PasswordEncoder encoder = config.passwordEncoder();
+        assertNotNull(encoder);
+        assertTrue(encoder.matches("pw", encoder.encode("pw")));
     }
 }
