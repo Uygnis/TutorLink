@@ -16,6 +16,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -247,4 +248,147 @@ class BookingServiceImplTest {
         verify(bookingRepository).findById(newBookingId);
         verifyNoMoreInteractions(bookingRepository, notificationService);
     }
+
+    @Test
+    void getBookingById_ShouldReturnBookingDto() {
+        Booking booking = new Booking();
+        booking.setId("B1");
+        BookingDTO dto = new BookingDTO();
+
+        when(bookingRepository.findById("B1")).thenReturn(Optional.of(booking));
+        when(bookingMapper.toDto(booking)).thenReturn(dto);
+
+        BookingDTO result = bookingService.getBookingById("B1");
+        assertSame(dto, result);
+        verify(bookingRepository).findById("B1");
+    }
+
+    @Test
+    void getBookingById_ShouldThrow_WhenNotFound() {
+        when(bookingRepository.findById("X")).thenReturn(Optional.empty());
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> bookingService.getBookingById("X"));
+        assertEquals("Booking not found", ex.getMessage());
+    }
+
+    @Test
+    void deleteBooking_ShouldMarkCancelledAndReturnDto() {
+        Booking booking = new Booking();
+        booking.setId("B2");
+        booking.setStatus("confirmed");
+        when(bookingRepository.findById("B2")).thenReturn(Optional.of(booking));
+        when(bookingMapper.toDto(booking)).thenReturn(new BookingDTO());
+
+        BookingDTO dto = bookingService.deleteBooking("B2");
+        assertNotNull(dto);
+        assertEquals("cancelled", booking.getStatus());
+        verify(bookingRepository).save(booking);
+    }
+
+    @Test
+    void approveReschedule_ShouldApproveAndReturnDto() {
+        Booking newBooking = new Booking();
+        newBooking.setId("NB");
+        newBooking.setOriginalBookingId("OB");
+
+        Booking oldBooking = new Booking();
+        oldBooking.setId("OB");
+        oldBooking.setStatus("reschedule_requested");
+
+        when(bookingRepository.findById("NB")).thenReturn(Optional.of(newBooking));
+        when(bookingRepository.findById("OB")).thenReturn(Optional.of(oldBooking));
+        when(bookingRepository.save(any(Booking.class))).thenReturn(newBooking);
+        when(bookingMapper.toDto(newBooking)).thenReturn(new BookingDTO());
+
+        bookingService.addObserver(new BookingNotificationObserver(notificationService));
+        BookingDTO result = bookingService.approveReschedule("NB");
+        assertNotNull(result);
+        verify(bookingRepository, atLeast(2)).save(any(Booking.class));
+        verify(notificationService, atLeastOnce()).createNotification(any(), any(), any(), any());
+    }
+
+    @Test
+    void getUpcomingBookings_ShouldReturnNextFive() {
+        Booking b1 = new Booking(); b1.setId("1");
+        Booking b2 = new Booking(); b2.setId("2");
+        when(bookingRepository.findByTutorIdAndStatusInAndDateGreaterThanEqualOrderByDateAsc(anyString(), anyList(), anyString()))
+                .thenReturn(java.util.List.of(b1, b2));
+        when(bookingMapper.toDto(any())).thenReturn(new BookingDTO());
+
+        var resp = bookingService.getUpcomingBookings("T1");
+        assertEquals(2, resp.getTotalCount());
+        assertEquals(2, resp.getRecentSessions().size());
+    }
+
+    @Test
+    void getRecentPastBookings_ShouldReturnRecentSessions() {
+        Booking b1 = new Booking(); b1.setId("1");
+        when(bookingRepository.countByTutorIdAndStatusAndDateBefore(anyString(), anyString(), anyString()))
+                .thenReturn(3L);
+        when(bookingRepository.findTop5ByTutorIdAndStatusAndDateBeforeOrderByDateDesc(anyString(), anyString(), anyString()))
+                .thenReturn(List.of(b1));
+        when(bookingMapper.toDto(any())).thenReturn(new BookingDTO());
+
+        var result = bookingService.getRecentPastBookings("T1");
+        assertEquals(3, result.getTotalCount());
+        assertEquals(1, result.getRecentSessions().size());
+    }
+
+    @Test
+    void createBooking_ShouldThrow_WhenAmountInvalid() {
+        BookingRequest req = new BookingRequest();
+        req.setTutorId("T1");
+        req.setStudentId("S1");
+        req.setDate("2025-11-01");
+        req.setAmount(BigDecimal.ZERO);
+        when(bookingRepository.findByTutorIdAndDate(anyString(), anyString())).thenReturn(Collections.emptyList());
+        when(bookingRepository.findByStudentIdAndDate(anyString(), anyString())).thenReturn(Collections.emptyList());
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> bookingService.createBooking(req));
+        assertEquals("Invalid booking amount", ex.getMessage());
+    }
+
+    @Test
+    void createBooking_ShouldThrow_WhenSlotOverlap() {
+        BookingRequest req = new BookingRequest();
+        req.setTutorId("T1");
+        req.setStudentId("S1");
+        req.setDate("2025-11-01");
+        req.setStart("10:00");
+        req.setEnd("11:00");
+        req.setAmount(BigDecimal.TEN);
+
+        Booking existing = new Booking();
+        existing.setStart("10:30");
+        existing.setEnd("11:30");
+        existing.setStatus("pending");
+
+        when(bookingRepository.findByTutorIdAndDate("T1", "2025-11-01")).thenReturn(List.of(existing));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> bookingService.createBooking(req));
+        assertEquals("Selected slot is already booked.", ex.getMessage());
+    }
+
+    @Test
+    void createBooking_ShouldThrow_WhenConflictWithAnotherTutorSameDay() {
+        BookingRequest req = new BookingRequest();
+        req.setTutorId("T1");
+        req.setStudentId("S1");
+        req.setDate("2025-11-01");
+        req.setStart("10:00");
+        req.setEnd("11:00");
+        req.setAmount(BigDecimal.TEN);
+
+        Booking other = new Booking();
+        other.setTutorId("T2");
+        other.setStart("09:00");
+        other.setEnd("10:30");
+        other.setStatus("pending");
+
+        when(bookingRepository.findByTutorIdAndDate(any(), any())).thenReturn(Collections.emptyList());
+        when(bookingRepository.findByStudentIdAndDate(any(), any())).thenReturn(List.of(other));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> bookingService.createBooking(req));
+        assertEquals("You already have a booking with another tutor on this date.", ex.getMessage());
+    }
+
 }
