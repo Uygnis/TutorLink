@@ -132,7 +132,6 @@ jobs:
             echo "Removing old containers, volumes and images..."
             sudo docker system prune -af --volumes || true
             sudo docker image prune -af || true
-            sudo rm -rf /home/ubuntu/TutorLink/docker-images/*.tar
             sudo docker compose down --remove-orphans || true
 
             echo "Loading new Docker images..."
