@@ -119,7 +119,6 @@ jobs:
 
       # ----- Deploy containers on EC2 -----
       - name: Deploy Docker images on EC2
-        if: ${{ steps.deploy_flags.outputs.frontend == 'true' || steps.deploy_flags.outputs.backend == 'true' }}
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -128,17 +127,24 @@ jobs:
           script: |
             set -e
             cd /home/ubuntu/TutorLink/docker-images
-
-            echo "Removing old containers, volumes and images..."
-            sudo docker system prune -af --volumes || true
-            sudo docker image prune -af || true
-            sudo rm -rf /home/ubuntu/TutorLink/docker-images/*.tar
-            sudo docker compose down --remove-orphans || true
-
+      
             echo "Loading new Docker images..."
-            sudo docker load -i frontend.tar || true
-            sudo docker load -i backend.tar || true
-
+            if [ -f frontend.tar ]; then
+              sudo docker load -i frontend.tar
+            fi
+      
+            if [ -f backend.tar ]; then
+              sudo docker load -i backend.tar
+            fi
+      
             echo "Rebuilding containers..."
             cd /home/ubuntu/TutorLink
-            sudo docker compose up -d --force-recreate
+      
+            # Recreate only updated services
+            if [ -f /home/ubuntu/TutorLink/docker-images/frontend.tar ]; then
+              sudo docker compose up -d --force-recreate frontend
+            fi
+      
+            if [ -f /home/ubuntu/TutorLink/docker-images/backend.tar ]; then
+              sudo docker compose up -d --force-recreate backend
+            fi
