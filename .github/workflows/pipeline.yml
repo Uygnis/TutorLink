@@ -8,9 +8,16 @@ on:
   workflow_dispatch: # manual trigger allowed
 
 jobs:
+  secrets-scanning:
+    name: Secret Scanning Review Action
+    uses: advanced-security/secret-scanning-review-action@main
+    with:
+      token: ${{ secrets.GITHUB_TOKEN }}
+
   # run frontend test
   frontend-test:
     name: Frontend - Test
+    needs: secrets-scanning
     runs-on: ubuntu-latest
     environment: development
     defaults:
@@ -55,6 +62,7 @@ jobs:
   # run backend test
   backend-test:
     name: Backend - Test
+    needs: secrets-scanning
     runs-on: ubuntu-latest
     environment: development
     defaults:
@@ -234,7 +242,7 @@ jobs:
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: "backend"
-          path: "./backend/target/springboot-auth-be-0.0.1-SNAPSHOT.jar"
+          path: "./backend"
           format: "HTML"
           out: "reports/backend"
 
